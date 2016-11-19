@@ -1,15 +1,14 @@
-from direct.directnotify import DirectNotifyGlobal
+from pandac.PandaModules import *
+from toontown.toonbase import ToontownGlobals
+from direct.showbase import DirectObject
 from direct.fsm import StateData
 from direct.gui.DirectGui import *
-from direct.showbase import DirectObject
 from pandac.PandaModules import *
-
-from toontown.effects import DistributedFireworkShow
-from toontown.nametag import NametagGlobals
-from toontown.parties import DistributedPartyFireworksActivity
 from toontown.toonbase import TTLocalizer
-from toontown.toonbase import ToontownGlobals
-
+from toontown.effects import DistributedFireworkShow
+from toontown.parties import DistributedPartyFireworksActivity
+from direct.directnotify import DirectNotifyGlobal
+from otp.nametag import NametagGlobals
 
 class ShtikerBook(DirectFrame, StateData.StateData):
     notify = DirectNotifyGlobal.directNotify.newCategory('ShtikerBook')
@@ -45,9 +44,10 @@ class ShtikerBook(DirectFrame, StateData.StateData):
          TTLocalizer.NPCFriendPageTitle,
          TTLocalizer.GardenPageTitle,
          TTLocalizer.GolfPageTitle,
+         TTLocalizer.PhotoPageTitle,
          TTLocalizer.EventsPageName,
-         TTLocalizer.AchievementsPageTitle,
-         TTLocalizer.NewsPageName]
+         TTLocalizer.NewsPageName,
+         TTLocalizer.TopToonsPageTitle]
         return
 
     def setSafeMode(self, setting):
@@ -65,9 +65,11 @@ class ShtikerBook(DirectFrame, StateData.StateData):
         base.disableMouse()
         base.render.hide()
         base.setBackgroundColor(0.05, 0.15, 0.4)
-        base.setCellsActive([base.rightCells[0]], 0)
-        NametagGlobals.setForce2dNametags(True)
-        NametagGlobals.setForceOnscreenChat(True)
+        base.setCellsAvailable([base.rightCells[0]], 0)
+        self.oldMin2dAlpha = NametagGlobals.getMin2dAlpha()
+        self.oldMax2dAlpha = NametagGlobals.getMax2dAlpha()
+        NametagGlobals.setMin2dAlpha(0.8)
+        NametagGlobals.setMax2dAlpha(1.0)
         self.__isOpen = 1
         self.__setButtonVisibility()
         self.show()
@@ -101,9 +103,9 @@ class ShtikerBook(DirectFrame, StateData.StateData):
         gsg = base.win.getGsg()
         if gsg:
             base.render.prepareScene(gsg)
-        base.setCellsActive([base.rightCells[0]], 1)
-        NametagGlobals.setForce2dNametags(False)
-        NametagGlobals.setForceOnscreenChat(False)
+        NametagGlobals.setMin2dAlpha(self.oldMin2dAlpha)
+        NametagGlobals.setMax2dAlpha(self.oldMax2dAlpha)
+        base.setCellsAvailable([base.rightCells[0]], 1)
         self.__isOpen = 0
         self.hide()
         self.hideButton()
@@ -215,16 +217,16 @@ class ShtikerBook(DirectFrame, StateData.StateData):
             iconModels.detachNode()
         elif pageName == TTLocalizer.MapPageTitle:
             iconModels = loader.loadModel('phase_3.5/models/gui/sos_textures')
-            iconGeom = iconModels.find('**/teleportIcon')
+            iconGeom = iconModels.find('**/compass')
             iconModels.detachNode()
         elif pageName == TTLocalizer.InventoryPageTitle:
             iconModels = loader.loadModel('phase_3.5/models/gui/inventory_icons')
-            iconGeom = iconModels.find('**/inventory_tart')
+            iconGeom = iconModels.find('**/inventory_cup_cake')
             iconScale = 7
             iconModels.detachNode()
         elif pageName == TTLocalizer.QuestPageToonTasks:
-            iconModels = loader.loadModel('phase_3.5/models/gui/stickerbook_gui')
-            iconGeom = iconModels.find('**/questCard')
+            iconModels = loader.loadModel('phase_3.5/models/gui/sos_textures')
+            iconGeom = iconModels.find('**/task')
             iconScale = 0.9
             iconModels.detachNode()
         elif pageName == TTLocalizer.TrackPageShortTitle:
@@ -246,7 +248,7 @@ class ShtikerBook(DirectFrame, StateData.StateData):
             iconModels.detachNode()
         elif pageName == TTLocalizer.DisguisePageTitle:
             iconModels = loader.loadModel('phase_3.5/models/gui/sos_textures')
-            iconGeom = iconModels.find('**/disguise2')
+            iconGeom = iconModels.find('**/disguises')
             iconColor = Vec4(0.7, 0.7, 0.7, 1)
             iconModels.detachNode()
         elif pageName == TTLocalizer.NPCFriendPageTitle:
@@ -277,6 +279,9 @@ class ShtikerBook(DirectFrame, StateData.StateData):
             iconModels.detachNode()
             buttonPressedCommand = self.goToNewsPage
             extraArgs = [page]
+        elif pageName == TTLocalizer.TopToonsPageTitle:
+            iconGeom = loader.loadModel('phase_5.5/models/estate/jellyBean')
+            iconGeom.setColorScale(0.3, 1, 0.3, 1)
         if pageName == TTLocalizer.OptionsPageTitle:
             pageName = TTLocalizer.OptionsTabTitle
         pageTab = DirectButton(parent=self.pageTabFrame, relief=DGG.RAISED, frameSize=(-0.575,

@@ -18,8 +18,9 @@ from toontown.distributed import DelayDelete
 from toontown.toon import TTEmote
 from otp.avatar import Emote
 from toontown.hood import ZoneUtil
+import sys
 FO_DICT = {'s': 'tt_m_ara_cbe_fieldOfficeMoverShaker',
- 'l': 'tt_m_ara_cbe_fieldOfficeMoverShaker',
+ 'l': 'tt_m_ara_cbe_fieldOfficeLegalEagle',
  'm': 'tt_m_ara_cbe_fieldOfficeMoverShaker',
  'c': 'tt_m_ara_cbe_fieldOfficeMoverShaker'}
 
@@ -71,7 +72,6 @@ class DistributedBuilding(DistributedObject.DistributedObject):
         self.cogWeakenSound = None
         self.toonGrowSound = None
         self.toonSettleSound = None
-        self.leftDoor = None
         return
 
     def generate(self):
@@ -288,19 +288,24 @@ class DistributedBuilding(DistributedObject.DistributedObject):
     def getNodePaths(self):
         nodePath = []
         npc = self.townTopLevel.findAllMatches('**/?b' + str(self.block) + ':*_DNARoot;+s')
-        for i in xrange(npc.getNumPaths()):
+        for i in range(npc.getNumPaths()):
             nodePath.append(npc.getPath(i))
+
         return nodePath
 
     def loadElevator(self, newNP, cogdo = False):
-        self.floorIndicator = [None, None, None, None, None]
+        self.floorIndicator = [None,
+         None,
+         None,
+         None,
+         None]
         self.elevatorNodePath = hidden.attachNewNode('elevatorNodePath')
         if cogdo:
-            self.elevatorModel = loader.loadModel('phase_5/models/cogdominium/tt_m_ara_csa_elevatorB')
+            self.elevatorModel = loader.loadModel('phase_5/models/cogdominium/tt_m_ara_csa_elevatorC')
         else:
             self.elevatorModel = loader.loadModel('phase_4/models/modules/elevator')
             npc = self.elevatorModel.findAllMatches('**/floor_light_?;+s')
-            for i in xrange(npc.getNumPaths()):
+            for i in range(npc.getNumPaths()):
                 np = npc.getPath(i)
                 floor = int(np.getName()[-1:]) - 1
                 self.floorIndicator[floor] = np
@@ -322,10 +327,12 @@ class DistributedBuilding(DistributedObject.DistributedObject):
                 corpIcon = cogIcons.find('**/LegalIcon').copyTo(self.cab)
             elif dept == 'm':
                 corpIcon = cogIcons.find('**/MoneyIcon').copyTo(self.cab)
+            else:
+                corpIcon = hidden.attachNewNode("garbage")
             corpIcon.setPos(0, 6.79, 6.8)
             corpIcon.setScale(3)
             from toontown.suit import Suit
-            corpIcon.setColor(Suit.Suit.medallionColors[dept])
+            if corpIcon.getName() != "garbage": corpIcon.setColor(Suit.Suit.medallionColors[dept])
             cogIcons.removeNode()
         self.leftDoor = self.elevatorModel.find('**/left-door')
         if self.leftDoor.isEmpty():
@@ -336,7 +343,8 @@ class DistributedBuilding(DistributedObject.DistributedObject):
         self.suitDoorOrigin = newNP.find('**/*_door_origin')
         self.elevatorNodePath.reparentTo(self.suitDoorOrigin)
         self.normalizeElevator()
-        return
+        if cogdo and chr(self.track) == 'l':
+            self.suitDoorOrigin.reparentTo(self.suitDoorOrigin.getParent().getParent())
 
     def loadAnimToSuitSfx(self):
         if base.config.GetBool('want-qa-regression', 0):
@@ -385,8 +393,6 @@ class DistributedBuilding(DistributedObject.DistributedObject):
         sideBldgNodes = self.getNodePaths()
         nodePath = hidden.find(self.getSbSearchString())
         newNP = self.setupSuitBuilding(nodePath)
-        if not self.leftDoor:
-            return
         closeDoors(self.leftDoor, self.rightDoor)
         newNP.stash()
         sideBldgNodes.append(newNP)
@@ -431,38 +437,39 @@ class DistributedBuilding(DistributedObject.DistributedObject):
         return
 
     def setupSuitBuilding(self, nodePath):
-        if nodePath.isEmpty():
-            return
         dnaStore = self.cr.playGame.dnaStore
-        level = int(self.difficulty / 2) + 1
-        suitNP = dnaStore.findNode('suit_landmark_' + chr(self.track) + str(level))
+        level = 1
+        if chr(self.track) != "x": suitNP = dnaStore.findNode('suit_landmark_' + chr(self.track) + str(level))
+        else: suitNP = loader.loadModel('phase_5/models/modules/suit_landmark_money2')
         zoneId = dnaStore.getZoneFromBlockNumber(self.block)
         zoneId = ZoneUtil.getTrueZoneId(zoneId, self.interiorZoneId)
         newParentNP = base.cr.playGame.hood.loader.zoneDict[zoneId]
         suitBuildingNP = suitNP.copyTo(newParentNP)
-        buildingTitle = dnaStore.getTitleFromBlockNumber(self.block)
+        buildingTitle = self.getBuildingTitle()
         if not buildingTitle:
             buildingTitle = TTLocalizer.CogsInc
         else:
             buildingTitle += TTLocalizer.CogsIncExt
-        buildingTitle += '\n%s' % SuitDNA.getDeptFullname(chr(self.track))
+        buildingTitle += '\n%s' % (SuitDNA.getDeptFullname(chr(self.track)) if chr(self.track) != "x" else "Loblao's Troll")
         textNode = TextNode('sign')
         textNode.setTextColor(1.0, 1.0, 1.0, 1.0)
         textNode.setFont(ToontownGlobals.getSuitFont())
         textNode.setAlign(TextNode.ACenter)
         textNode.setWordwrap(17.0)
-        textNode.setText(buildingTitle)
+        textNode.setText(buildingTitle.decode(sys.getdefaultencoding()))
         textHeight = textNode.getHeight()
         zScale = (textHeight + 2) / 3.0
         signOrigin = suitBuildingNP.find('**/sign_origin;+s')
+        if signOrigin.isEmpty(): signOrigin = hidden.attachNewNode("garbage")
         backgroundNP = loader.loadModel('phase_5/models/modules/suit_sign')
         backgroundNP.reparentTo(signOrigin)
         backgroundNP.setPosHprScale(0.0, 0.0, textHeight * 0.8 / zScale, 0.0, 0.0, 0.0, 8.0, 8.0, 8.0 * zScale)
-        backgroundNP.node().setEffect(DecalEffect.make())
+        backgroundNP.setDepthOffset(10)
         signTextNodePath = backgroundNP.attachNewNode(textNode.generate())
         signTextNodePath.setPosHprScale(0.0, 0.0, -0.21 + textHeight * 0.1 / zScale, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1 / zScale)
         signTextNodePath.setColor(1.0, 1.0, 1.0, 1.0)
         frontNP = suitBuildingNP.find('**/*_front/+GeomNode;+s')
+        if frontNP.isEmpty(): frontNP = hidden.attachNewNode('garbage')
         backgroundNP.wrtReparentTo(frontNP)
         frontNP.node().setEffect(DecalEffect.make())
         suitBuildingNP.setName('sb' + str(self.block) + ':_landmark__DNARoot')
@@ -470,6 +477,11 @@ class DistributedBuilding(DistributedObject.DistributedObject):
         suitBuildingNP.flattenMedium()
         self.loadElevator(suitBuildingNP)
         return suitBuildingNP
+        
+    def getBuildingTitle(self):
+        dnaStore = self.cr.playGame.dnaStore
+        buildingTitle = dnaStore.getTitleFromBlockNumber(self.block)
+        return buildingTitle
 
     def cleanupSuitBuilding(self):
         if hasattr(self, 'floorIndicator'):
@@ -537,11 +549,13 @@ class DistributedBuilding(DistributedObject.DistributedObject):
         dnaStore = self.cr.playGame.dnaStore
         level = int(self.difficulty / 2) + 1
         suitNP = dnaStore.findNode(FO_DICT[chr(self.track)])
+        if not suitNP:
+            suitNP = loader.loadModel('phase_5/models/cogdominium/%s' % FO_DICT[chr(self.track)])
         zoneId = dnaStore.getZoneFromBlockNumber(self.block)
         zoneId = ZoneUtil.getTrueZoneId(zoneId, self.interiorZoneId)
         newParentNP = base.cr.playGame.hood.loader.zoneDict[zoneId]
         suitBuildingNP = suitNP.copyTo(newParentNP)
-        buildingTitle = dnaStore.getTitleFromBlockNumber(self.block)
+        buildingTitle = self.getBuildingTitle()
         if not buildingTitle:
             buildingTitle = TTLocalizer.Cogdominiums
         else:
@@ -551,23 +565,23 @@ class DistributedBuilding(DistributedObject.DistributedObject):
         textNode.setFont(ToontownGlobals.getSuitFont())
         textNode.setAlign(TextNode.ACenter)
         textNode.setWordwrap(12.0)
-        textNode.setText(buildingTitle)
+        textNode.setText(buildingTitle.decode(sys.getdefaultencoding()))
         textHeight = textNode.getHeight()
         zScale = (textHeight + 2) / 3.0
         signOrigin = suitBuildingNP.find('**/sign_origin;+s')
         backgroundNP = loader.loadModel('phase_5/models/cogdominium/field_office_sign')
         backgroundNP.reparentTo(signOrigin)
         backgroundNP.setPosHprScale(0.0, 0.0, -1.2 + textHeight * 0.8 / zScale, 0.0, 0.0, 0.0, 20.0, 8.0, 8.0 * zScale)
-        backgroundNP.node().setEffect(DecalEffect.make())
+        backgroundNP.setDepthOffset(10)
         signTextNodePath = backgroundNP.attachNewNode(textNode.generate())
         signTextNodePath.setPosHprScale(0.0, 0.0, -0.13 + textHeight * 0.1 / zScale, 0.0, 0.0, 0.0, 0.1 * 8.0 / 20.0, 0.1, 0.1 / zScale)
         signTextNodePath.setColor(1.0, 1.0, 1.0, 1.0)
-        frontNP = suitBuildingNP.find('**/*_front/+GeomNode;+s')
+        frontNP = suitBuildingNP.find('**/*_front')
         backgroundNP.wrtReparentTo(frontNP)
         frontNP.node().setEffect(DecalEffect.make())
         suitBuildingNP.setName('cb' + str(self.block) + ':_landmark__DNARoot')
         suitBuildingNP.setPosHprScale(nodePath, 15.463, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0)
-        suitBuildingNP.flattenMedium()
+        #suitBuildingNP.flattenMedium()
         suitBuildingNP.setColorScale(0.6, 0.6, 0.6, 1.0)
         self.loadElevator(suitBuildingNP, cogdo=True)
         return suitBuildingNP
@@ -710,7 +724,7 @@ class DistributedBuilding(DistributedObject.DistributedObject):
     def plantVictorsOutsideBldg(self):
         retVal = 0
         for victor in self.victorList:
-            if victor != 0 and victor in self.cr.doId2do:
+            if victor != 0 and self.cr.doId2do.has_key(victor):
                 toon = self.cr.doId2do[victor]
                 toon.setPosHpr(self.elevatorModel, 0, -10, 0, 0, 0, 0)
                 toon.startSmooth()
@@ -725,7 +739,7 @@ class DistributedBuilding(DistributedObject.DistributedObject):
         delayDeletes = []
         i = 0
         for victor in self.victorList:
-            if victor != 0 and victor in self.cr.doId2do:
+            if victor != 0 and self.cr.doId2do.has_key(victor):
                 toon = self.cr.doId2do[victor]
                 delayDeletes.append(DelayDelete.DelayDelete(toon, 'getVictoryRunTrack'))
                 toon.stopSmooth()
@@ -736,11 +750,11 @@ class DistributedBuilding(DistributedObject.DistributedObject):
 
         openDoors = getOpenInterval(self, self.leftDoor, self.rightDoor, self.openSfx, None)
         toonDoorPosHpr = self.cr.playGame.dnaStore.getDoorPosHprFromBlockNumber(self.block)
-        useFarExitPoints = toonDoorPosHpr.getPos(render).getZ() > 1.0
+        useFarExitPoints = toonDoorPosHpr.getPos().getZ() > 1.0
         runOutAll = Parallel()
         i = 0
         for victor in self.victorList:
-            if victor != 0 and victor in self.cr.doId2do:
+            if victor != 0 and self.cr.doId2do.has_key(victor):
                 toon = self.cr.doId2do[victor]
                 p0 = Point3(0, 0, 0)
                 p1 = Point3(ElevatorPoints[i][0], ElevatorPoints[i][1] - 5.0, ElevatorPoints[i][2])
@@ -802,7 +816,7 @@ class DistributedBuilding(DistributedObject.DistributedObject):
             currTime = bounceTime
         realScale = nodeObj.getScale()
         currScaleDiff = startScale - realScale[2]
-        for currBounceScale in xrange(numBounces):
+        for currBounceScale in range(numBounces):
             if currBounceScale == numBounces - 1:
                 currScale = realScale[2]
             elif currBounceScale % 2:
@@ -845,7 +859,7 @@ class DistributedBuilding(DistributedObject.DistributedObject):
                     i.stash()
 
         npc = hidden.findAllMatches(self.getSbSearchString())
-        for i in xrange(npc.getNumPaths()):
+        for i in range(npc.getNumPaths()):
             nodePath = npc.getPath(i)
             self.adjustSbNodepathScale(nodePath)
             self.notify.debug('net transform = %s' % str(nodePath.getNetTransform()))
@@ -880,7 +894,7 @@ class DistributedBuilding(DistributedObject.DistributedObject):
                 np.setColorScale(0.6, 0.6, 0.6, 1.0)
 
         npc = hidden.findAllMatches(self.getSbSearchString())
-        for i in xrange(npc.getNumPaths()):
+        for i in range(npc.getNumPaths()):
             nodePath = npc.getPath(i)
             self.adjustSbNodepathScale(nodePath)
             self.notify.debug('net transform = %s' % str(nodePath.getNetTransform()))

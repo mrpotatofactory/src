@@ -336,7 +336,7 @@ class PropPool:
             self.props[name].setTexture(tex, 1)
         elif name == 'dust':
             bin = 110
-            for cloudNum in xrange(1, 12):
+            for cloudNum in range(1, 12):
                 cloudName = '**/cloud' + str(cloudNum)
                 cloud = self.props[name].find(cloudName)
                 cloud.setBin('fixed', bin)
@@ -389,7 +389,7 @@ class PropPool:
 
     def __getPropCopy(self, name):
         if self.propTypes[name] == 'actor':
-            if name not in self.props:
+            if not self.props.has_key(name):
                 prop = Actor.Actor()
                 prop.loadModel(self.propStrings[name][0])
                 animDict = {}
@@ -401,7 +401,7 @@ class PropPool:
                     self.makeVariant(name)
             return Actor.Actor(other=self.props[name])
         else:
-            if name not in self.props:
+            if not self.props.has_key(name):
                 prop = loader.loadModel(self.propStrings[name][0])
                 prop.setName(name)
                 self.storeProp(name, prop)

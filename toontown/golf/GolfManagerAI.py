@@ -1,28 +1,29 @@
-from direct.directnotify.DirectNotifyGlobal import *
+# File: G (Python 2.4)
+
+from direct.distributed import DistributedObjectAI
 from direct.showbase import DirectObject
-from pandac.PandaModules import *
+from direct.directnotify import DirectNotifyGlobal
+from toontown.toonbase import ToontownGlobals
 from toontown.golf import DistributedGolfCourseAI
-
-
-RequestHole = {}
-
+from pandac.PandaModules import *
+RequestHole = { }
 
 def GolfManagerAI():
     if not hasattr(simbase, 'golf'):
         simbase.golf = __GolfManagerAI()
+    
     return simbase.golf
-
 
 class __GolfManagerAI(DirectObject.DirectObject):
     notify = directNotify.newCategory('GolfManagerAI')
-
+    
     def __init__(self):
         DirectObject.DirectObject.__init__(self)
         self.courseList = []
-
+    
     def delete(self):
         DirectObject.DirectObject.delete(self)
-
+    
     def readyGolfCourse(self, avIds, courseId = 0):
         self.notify.debug('readyGolfCourse avIds=%s courseId=%d' % (avIds, courseId))
         golfZone = simbase.air.allocateZone()
@@ -30,8 +31,9 @@ class __GolfManagerAI(DirectObject.DirectObject):
         for avId in avIds:
             if avId in RequestHole:
                 preferredHoleId = RequestHole[avId][0]
-        newCourse = DistributedGolfCourseAI.DistributedGolfCourseAI(
-            golfZone, avIds, courseId, preferredHoleId)
+                continue
+        
+        newCourse = DistributedGolfCourseAI.DistributedGolfCourseAI(golfZone, avIds, courseId, preferredHoleId)
         newCourse.generateWithRequired(golfZone)
         self.courseList.append(newCourse)
         newCourse.addExpectedGolfers(avIds)
@@ -39,19 +41,25 @@ class __GolfManagerAI(DirectObject.DirectObject):
         self.notify.debug('%s' % self)
         self.notify.debug('returning %d' % golfZone)
         return golfZone
-
+    
     def findGolfCourse(self, avId):
         retval = None
         for course in self.courseList:
             if avId in course.avIdList:
                 retval = course
                 break
+                continue
+        
         return retval
-
+    
     def removeCourse(self, course):
         if course in self.courseList:
             for avId in course.avIdList:
                 if avId in RequestHole:
                     if not RequestHole[avId][1]:
                         del RequestHole[avId]
+                    
+                if avId in RequestHole:
+                    RequestHole[avId][1]
+            
             self.courseList.remove(course)

@@ -18,7 +18,7 @@ class DistributedPartyCatchActivityAI(DistributedPartyActivityAI, DistributedPar
         self.playing = False
         
     def delete(self):
-        taskMgr.remove('newGeneration%d' % self.doId)
+        taskMgr.remove(self.taskName('newGeneration'))
         DistributedPartyActivityAI.delete(self)
 
     def getStartTimestamp(self):

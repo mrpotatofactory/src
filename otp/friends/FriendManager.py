@@ -62,7 +62,7 @@ class FriendManager(DistributedObject.DistributedObject):
 
     def up_inviteeFriendResponse(self, yesNoMaybe, context):
         if yesNoMaybe == 1:
-            base.cr.ttiFriendsManager.friendOnline(self.otherToon, 0, 0)
+            base.cr.ttFriendsManager.friendOnline(self.otherToon, 0, 0)
         self.sendUpdate('inviteeFriendResponse', [yesNoMaybe, context])
         self.notify.debug('Client: inviteeFriendResponse(%d, %d)' % (yesNoMaybe, context))
 
@@ -76,7 +76,7 @@ class FriendManager(DistributedObject.DistributedObject):
 
     def friendResponse(self, yesNoMaybe, context):
         if yesNoMaybe == 1:
-            base.cr.ttiFriendsManager.friendOnline(self.otherToon, 0, 0)
+            base.cr.ttFriendsManager.friendOnline(self.otherToon, 0, 0)
         self.notify.debug('Client: friendResponse(%d, %d)' % (yesNoMaybe, context))
         messenger.send('friendResponse', [yesNoMaybe, context])
 
@@ -105,7 +105,7 @@ class FriendManager(DistributedObject.DistributedObject):
         self.up_inviteeAcknowledgeCancel(context)
 
     def up_requestSecret(self):
-        self.notify.warning('Sending Request')
+        self.notify.info('Sending Request')
         self.sendUpdate('requestSecret', [])
 
     def requestSecretResponse(self, result, secret):
@@ -116,3 +116,4 @@ class FriendManager(DistributedObject.DistributedObject):
 
     def submitSecretResponse(self, result, avId):
         messenger.send('submitSecretResponse', [result, avId])
+     

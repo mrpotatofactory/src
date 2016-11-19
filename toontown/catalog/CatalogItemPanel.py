@@ -13,12 +13,13 @@ from CatalogFurnitureItem import getAllFurnitures
 from CatalogFurnitureItem import FLTrunk
 from toontown.toontowngui.TeaserPanel import TeaserPanel
 from otp.otpbase import OTPGlobals
+from direct.directnotify import DirectNotifyGlobal
 CATALOG_PANEL_WORDWRAP = 10
 CATALOG_PANEL_CHAT_WORDWRAP = 9
 CATALOG_PANEL_ACCESSORY_WORDWRAP = 11
 
 class CatalogItemPanel(DirectFrame):
-    notify = directNotify.newCategory('CatalogItemPanel')
+    notify = DirectNotifyGlobal.directNotify.newCategory('CatalogItemPanel')
 
     def __init__(self, parent = aspect2d, parentCatalogScreen = None, **kw):
         optiondefs = (('item', None, DGG.INITOPT), ('type', CatalogItem.CatalogTypeUnspecified, DGG.INITOPT), ('relief', None, None))
@@ -80,8 +81,6 @@ class CatalogItemPanel(DirectFrame):
                 picture.setScale(0.15)
             self.items = [self['item']]
             self.variantPictures = [(picture, self.ival)]
-            if self.ival:
-                self.ival.loop()
         self.typeLabel = DirectLabel(parent=self, relief=None, pos=(0, 0, 0.24), scale=TTLocalizer.CIPtypeLabel, text=self['item'].getTypeName(), text_fg=(0.95, 0.95, 0, 1), text_shadow=(0, 0, 0, 1), text_font=ToontownGlobals.getInterfaceFont(), text_wordwrap=CATALOG_PANEL_WORDWRAP)
         self.auxText = DirectLabel(parent=self, relief=None, scale=0.05, pos=(-0.2, 0, 0.16))
         self.auxText.setHpr(0, 0, -30)
@@ -310,14 +309,14 @@ class CatalogItemPanel(DirectFrame):
         else:
             auxText = ''
         isNameTag = typeCode == CatalogItemTypes.NAMETAG_ITEM
-        if isNameTag and not base.localAvatar.getGameAccess() == OTPGlobals.AccessFull:
+        if isNameTag and not localAvatar.getGameAccess() == OTPGlobals.AccessFull:
             if self['item'].nametagStyle == 100:
-                if base.localAvatar.getFont() == ToontownGlobals.getToonFont():
+                if localAvatar.getFont() == ToontownGlobals.getToonFont():
                     auxText = TTLocalizer.CatalogCurrent
                     self.buyButton['state'] = DGG.DISABLED
             elif self['item'].getPrice(self['type']) > base.localAvatar.getMoney() + base.localAvatar.getBankMoney():
                 self.buyButton['state'] = DGG.DISABLED
-        elif isNameTag and self['item'].nametagStyle == base.localAvatar.getNametagStyle():
+        elif isNameTag and self['item'].nametagStyle == localAvatar.getNametagStyle():
             auxText = TTLocalizer.CatalogCurrent
             self.buyButton['state'] = DGG.DISABLED
         elif self['item'].reachedPurchaseLimit(base.localAvatar):
@@ -340,6 +339,9 @@ class CatalogItemPanel(DirectFrame):
             self.buyButton['state'] = DGG.DISABLED
         elif self['item'].getEmblemPrices() and not base.localAvatar.isEnoughMoneyAndEmblemsToBuy(self['item'].getPrice(self['type']), self['item'].getEmblemPrices()):
             self.buyButton['state'] = DGG.DISABLED
+        elif self['item'].__class__.__name__ == "CatalogHouseItem" and self['item'].houseId == localAvatar.houseType:
+            auxText = TTLocalizer.CatalogPurchasedMaxText
+            self.buyButton['state'] = DGG.DISABLED
         elif self['item'].getPrice(self['type']) <= base.localAvatar.getMoney() + base.localAvatar.getBankMoney():
             self.buyButton['state'] = DGG.NORMAL
             self.buyButton.show()
@@ -349,6 +351,7 @@ class CatalogItemPanel(DirectFrame):
         self.auxText['text'] = auxText
 
     def __handlePurchaseRequest(self):
+        dialog = None
         if self['item'].replacesExisting() and self['item'].hasExisting():
             if self['item'].getFlags() & FLTrunk:
                 message = TTLocalizer.CatalogVerifyPurchase % {'item': self['item'].getName(),
@@ -386,6 +389,28 @@ class CatalogItemPanel(DirectFrame):
                      'price': self['item'].getPrice(self['type']),
                      'silver': silver,
                      'gold': gold}
+                    
+                    if config.GetBool('catalog-emblems-OR', False):
+                        def callback(value):
+                            self.verify.payMethod = value
+                            self.verify.doneStatus = 'ok' if value < 2 else 'cancel'
+                            messenger.send("verifyDone")
+                        
+                        buttonText = ["Pay in Gold Emblems", "Pay in Silver Emblems", "Cancel"]
+                        guiButton = loader.loadModel('phase_3/models/gui/quit_button')
+                        imageList = (guiButton.find('**/QuitBtn_UP'), guiButton.find('**/QuitBtn_DN'), guiButton.find('**/QuitBtn_RLVR'))
+                        buttonImage = [imageList, imageList, imageList]
+                    
+                        message = message.decode('utf-8')
+                        dialog = DirectDialog(fadeScreen=0.2, pos=(0, 0.1, 0.1), button_relief=None,
+                                              text=message, buttonTextList=buttonText, buttonImageList=buttonImage,
+                                              buttonValueList=[0, 1, 2], command=callback)
+                                          
+                        for x in range(3):
+                            dialog.buttonList[x]['text_pos'] = (0, -0.01)
+                            dialog.buttonList[x]['text_scale'] = (0.04, 0.05999)
+                            dialog.buttonList[x].setScale(1.2, 1, 1)
+                    
                 elif silver:
                     message = TTLocalizer.CatalogVerifyPurchaseSilver % {'item': self['item'].getName(),
                      'price': self['item'].getPrice(self['type']),
@@ -403,21 +428,30 @@ class CatalogItemPanel(DirectFrame):
             else:
                 message = TTLocalizer.CatalogVerifyPurchase % {'item': self['item'].getName(),
                  'price': self['item'].getPrice(self['type'])}
-        self.verify = TTDialog.TTGlobalDialog(doneEvent='verifyDone', message=message, style=TTDialog.TwoChoice)
-        self.verify.show()
+                 
+        if not dialog:
+            message = message.encode('utf-8')
+            self.verify = TTDialog.TTGlobalDialog(doneEvent='verifyDone', message=message, style=TTDialog.TwoChoice)
+            self.verify.show()
+            self.verify.payMethod = 0
+            
+        else:
+            self.verify = dialog
+            
         self.accept('verifyDone', self.__handleVerifyPurchase)
 
     def __handleVerifyPurchase(self):
         if base.config.GetBool('want-qa-regression', 0):
             self.notify.info('QA-REGRESSION: CATALOG: Order item')
         status = self.verify.doneStatus
+        payMethod = self.verify.payMethod
         self.ignore('verifyDone')
         self.verify.cleanup()
         del self.verify
         self.verify = None
         if status == 'ok':
             item = self.items[self.itemIndex]
-            messenger.send('CatalogItemPurchaseRequest', [item])
+            messenger.send('CatalogItemPurchaseRequest', [item, payMethod])
             self.buyButton['state'] = DGG.DISABLED
         return
 
@@ -530,6 +564,3 @@ class CatalogItemPanel(DirectFrame):
             self.ival = item.changeIval(volume=0)
             self.ival.loop()
         return
-
-    def lockItem(self):
-        self.buyButton['state'] = DGG.DISABLED

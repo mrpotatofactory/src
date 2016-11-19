@@ -41,7 +41,11 @@ class DistributedBossElevator(DistributedElevatorExt.DistributedElevatorExt):
         icon = self.elevatorModel.find('**/big_frame/')
         icon.hide()
         self.leftDoor = self.elevatorModel.find('**/left-door')
+        if self.leftDoor.isEmpty():
+            self.leftDoor = self.elevatorModel.find('**/left_door')
         self.rightDoor = self.elevatorModel.find('**/right-door')
+        if self.rightDoor.isEmpty():
+            self.rightDoor = self.elevatorModel.find('**/right_door')
         geom = base.cr.playGame.hood.loader.geom
         locator = geom.find('**/elevator_locator')
         self.elevatorModel.reparentTo(locator)

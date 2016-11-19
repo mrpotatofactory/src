@@ -118,7 +118,7 @@ class DistributedVineGameAI(DistributedMinigameAI):
         if not self._playing():
             return
         avId = self.air.getAvatarIdFromSender()
-        if avId not in self.scoreDict:
+        if not self.scoreDict.has_key(avId):
             self.notify.warning('PROBLEM: avatar %s called claimTreasure(%s) but he is not in the scoreDict: %s. avIdList is: %s' % (avId,
              treasureNum,
              self.scoreDict,
@@ -199,7 +199,7 @@ class DistributedVineGameAI(DistributedMinigameAI):
             curTime = self.getCurrentGameTime()
             timeLeft = VineGameGlobals.GameDuration - curTime
             self.notify.debug('curTime =%s timeLeft = %s' % (curTime, timeLeft))
-            if avId not in self.scoreDict:
+            if not self.scoreDict.has_key(avId):
                 self.notify.warning('PROBLEM: avatar %s called claimTreasure(%s) but he is not in the scoreDict: %s. avIdList is: %s' % (avId,
                  treasureNum,
                  self.scoreDict,
@@ -225,7 +225,7 @@ class DistributedVineGameAI(DistributedMinigameAI):
         newVelX = velX
         newVelZ = velZ
         oldInfo = None
-        if avId in self.toonInfo:
+        if self.toonInfo.has_key(avId):
             oldInfo = self.toonInfo[avId]
             if vineIndex == None:
                 newVineIndex = oldInfo[0]
@@ -284,10 +284,10 @@ class DistributedVineGameAI(DistributedMinigameAI):
 
         maxSpiders = VineGameGlobals.SpiderLimits[szId]
         curSpiders = 0
-        for i in xrange(4):
+        for i in range(4):
             spidersLeft = maxSpiders - curSpiders
             validChoices = []
-            for numSpiders in xrange(spidersLeft + 1):
+            for numSpiders in range(spidersLeft + 1):
                 validChoices += pool[numSpiders]
 
             if not validChoices:
@@ -315,6 +315,6 @@ class DistributedVineGameAI(DistributedMinigameAI):
             vineIndex = self.toonInfo[avId][0]
             if not vineIndex == VineGameGlobals.NumVines - 1:
                 partialBeans = int(vineIndex / 5.0)
-                if avId in self.scoreDict:
+                if self.scoreDict.has_key(avId):
                     self.scoreDict[avId] += partialBeans
                     self.sendUpdate('setScore', [avId, self.scoreDict[avId]])

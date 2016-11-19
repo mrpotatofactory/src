@@ -1,9 +1,7 @@
 from toontown.toonbase.ToontownGlobals import *
-
-
-zoneUtilNotify = directNotify.newCategory('ZoneUtil')
+from direct.directnotify import DirectNotifyGlobal
+zoneUtilNotify = DirectNotifyGlobal.directNotify.newCategory('ZoneUtil')
 tutorialDict = None
-
 
 def isGoofySpeedwayZone(zoneId):
     return zoneId == 8000
@@ -105,6 +103,8 @@ def getWhereName(zoneId, isToon):
                     where = 'factoryInterior'
                 elif getHoodId(zoneId) == CashbotHQ:
                     where = 'mintInterior'
+                elif getHoodId(zoneId) == BossbotHQ:
+                    where = 'towersLobby'
                 else:
                     zoneUtilNotify.error('unknown cogHQ interior for hood: ' + str(getHoodId(zoneId)))
             else:

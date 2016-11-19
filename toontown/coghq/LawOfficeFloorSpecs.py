@@ -1,9 +1,10 @@
+# File: L (Python 2.4)
+
 from direct.showbase.PythonUtil import invertDict
+from toontown.toonbase import ToontownGlobals
+from toontown.coghq import NullCogs
 from toontown.coghq import LabotOfficeFloor_01a_Cogs
 from toontown.coghq import LabotOfficeFloor_01b_Cogs
-from toontown.coghq import NullCogs
-from toontown.toonbase import ToontownGlobals
-
 
 def getLawOfficeFloorSpecModule(floorId):
     return LawbotOfficeSpecModules[floorId]
@@ -23,9 +24,10 @@ LawbotOfficeFloorId2FloorName = {
 LawbotOfficeFloorName2FloorId = invertDict(LawbotOfficeFloorId2FloorName)
 LawbotOfficeEntranceIDs = (0, 1)
 LawbotOfficeFloorIDs = (0, 1)
-LawbotOfficeSpecModules = {}
-for roomName, roomId in LawbotOfficeFloorName2FloorId.items():
-    LawbotOfficeSpecModules[roomId] = __import__('toontown.coghq.' + roomName)
+LawbotOfficeSpecModules = { }
+for (roomName, roomId) in LawbotOfficeFloorName2FloorId.items():
+    exec 'from toontown.coghq import %s' % roomName
+    LawbotOfficeSpecModules[roomId] = eval(roomName)
 
 CogSpecModules = {
     'CashbotMintBoilerRoom_Battle00': LabotOfficeFloor_01a_Cogs,

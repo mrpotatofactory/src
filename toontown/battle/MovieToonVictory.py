@@ -6,7 +6,7 @@ import MovieCamera
 from direct.directnotify import DirectNotifyGlobal
 import types
 notify = DirectNotifyGlobal.directNotify.newCategory('MovieToonVictory')
-from toontown.nametag import NametagGlobals
+from otp.nametag import NametagGlobals
 
 def __findToonReward(rewards, toon):
     for r in rewards:
@@ -76,7 +76,7 @@ def doToonVictory(localToonActive, toons, rewardToonIds, rewardDicts, deathList,
     track = Sequence()
     if localToonActive == 1:
         track.append(Func(rpanel.show))
-        track.append(Func(NametagGlobals.setForceOnscreenChat, True))
+        track.append(Func(NametagGlobals.setOnscreenChatForced, 1))
     camTrack = Sequence()
     endTrack = Sequence()
     danceSound = globalBattleSoundCache.getSound('ENC_Win.ogg')
@@ -102,7 +102,7 @@ def doToonVictory(localToonActive, toons, rewardToonIds, rewardDicts, deathList,
     skipper = ToonVictorySkipper(len(toonList), noSkip)
     lastListenIndex = 0
     track.append(skipper.getSetupFunc(lastListenIndex))
-    for tIndex in xrange(len(toonList)):
+    for tIndex in range(len(toonList)):
         t = toonList[tIndex]
         rdict = __findToonReward(rewardDicts, t)
         if rdict != None:
@@ -121,7 +121,7 @@ def doToonVictory(localToonActive, toons, rewardToonIds, rewardDicts, deathList,
     track.append(Func(skipper.destroy))
     if localToonActive == 1:
         track.append(Func(rpanel.hide))
-        track.append(Func(NametagGlobals.setForceOnscreenChat, False))
+        track.append(Func(NametagGlobals.setOnscreenChatForced, 0))
     track.append(endTrack)
     trackdur = track.getDuration()
     soundTrack = SoundInterval(danceSound, duration=trackdur, loop=1)

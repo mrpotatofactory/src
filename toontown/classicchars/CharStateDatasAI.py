@@ -17,6 +17,7 @@ class CharLonelyStateAI(StateData.StateData):
         StateData.StateData.__init__(self, doneEvent)
         self._CharLonelyStateAI__doneEvent = doneEvent
         self.character = character
+        self.load()
 
     
     def enter(self):
@@ -58,6 +59,7 @@ class CharChattyStateAI(StateData.StateData):
         self.lastMessage = [
             -1,
             -1]
+        self.load()
 
     
     def enter(self):
@@ -184,6 +186,7 @@ class CharWalkStateAI(StateData.StateData):
         self.speed = character.walkSpeed()
         self._CharWalkStateAI__lastWalkNode = CCharPaths.startNode
         self._CharWalkStateAI__curWalkNode = CCharPaths.startNode
+        self.load()
 
     
     def enter(self):
@@ -249,6 +252,7 @@ class CharFollowChipStateAI(StateData.StateData):
         self.speed = character.walkSpeed()
         self._CharFollowChipStateAI__lastWalkNode = CCharPaths.startNode
         self._CharFollowChipStateAI__curWalkNode = CCharPaths.startNode
+        self.load()
 
     
     def enter(self, chipDestNode):
@@ -305,7 +309,8 @@ class ChipChattyStateAI(CharChattyStateAI):
     def setDaleId(self, daleId):
         self.daleId = daleId
         self.dale = simbase.air.doId2do.get(self.daleId)
-
+        self.load()
+        
     
     def blather(self, task):
         now = globalClock.getFrameTime()

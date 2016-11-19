@@ -885,11 +885,11 @@ class RegionDropPlacer(DropPlacer):
         DropPlacer.__init__(self, game, numPlayers, dropTypes, startTime=startTime)
         self.DropRegionTable = self.getDropRegionTable(self.numPlayers)
         self.DropRegion2GridCoordList = {}
-        for row in xrange(len(self.DropRegionTable)):
+        for row in range(len(self.DropRegionTable)):
             rowList = self.DropRegionTable[row]
-            for column in xrange(len(rowList)):
+            for column in range(len(rowList)):
                 region = rowList[column]
-                if region not in self.DropRegion2GridCoordList:
+                if not self.DropRegion2GridCoordList.has_key(region):
                     self.DropRegion2GridCoordList[region] = []
                 self.DropRegion2GridCoordList[region].append([row, column])
 

@@ -55,3 +55,6 @@ class DistributedCrusherEntityAI(DistributedEntityAI.DistributedEntityAI):
     def getPosition(self):
         if hasattr(self, 'pos'):
             return self.pos
+        
+
+

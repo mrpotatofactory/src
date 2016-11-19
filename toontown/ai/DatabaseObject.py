@@ -61,7 +61,7 @@ class DatabaseObject:
         if fields != None:
             values = {}
             for field in fields:
-                if field in self.values:
+                if self.values.has_key(field):
                     values[field] = self.values[field]
                 else:
                     self.notify.warning('Field %s not defined.' % field)
@@ -90,7 +90,7 @@ class DatabaseObject:
             return
         count = di.getUint16()
         fields = []
-        for i in xrange(count):
+        for i in range(count):
             name = di.getString()
             fields.append(name)
 
@@ -99,11 +99,11 @@ class DatabaseObject:
             self.notify.warning('Failed to retrieve data for object %d' % self.doId)
         else:
             values = []
-            for i in xrange(count):
+            for i in range(count):
                 value = di.getString()
                 values.append(value)
 
-            for i in xrange(count):
+            for i in range(count):
                 found = di.getUint8()
                 if not found:
                     self.notify.info('field %s is not found' % fields[i])
@@ -139,7 +139,7 @@ class DatabaseObject:
 
     def getDatabaseFields(self, dclass):
         fields = []
-        for i in xrange(dclass.getNumInheritedFields()):
+        for i in range(dclass.getNumInheritedFields()):
             dcf = dclass.getInheritedField(i)
             af = dcf.asAtomicField()
             if af:

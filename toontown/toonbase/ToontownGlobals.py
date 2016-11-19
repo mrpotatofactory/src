@@ -12,14 +12,8 @@ DefaultDatabaseChannelId = AccountDatabaseChannelId
 DatabaseIdFromClassName = {'Account': AccountDatabaseChannelId}
 CogHQCameraFov = 60.0
 BossBattleCameraFov = 72.0
-MakeAToonCameraFov = 48.0
-VPElevatorFov = 53.0
-CFOElevatorFov = 43.0
-CJElevatorFov = 59.0
-CEOElevatorFov = 59.0
+MakeAToonCameraFov = 55
 CBElevatorFov = 42.0
-WantPromotion = 0
-PendingPromotion = 1
 CeilingBitmask = BitMask32(256)
 FloorEventBitmask = BitMask32(16)
 PieBitmask = BitMask32(256)
@@ -34,15 +28,15 @@ PetLookatNonPetBitmask = BitMask32(512)
 BanquetTableBitmask = BitMask32(1024)
 FullPies = 65535
 CogHQCameraFar = 900.0
-CogHQCameraNear = 1.0
+CogHQCameraNear = 2.0
 CashbotHQCameraFar = 2000.0
-CashbotHQCameraNear = 1.0
+CashbotHQCameraNear = 2.0
 LawbotHQCameraFar = 3000.0
-LawbotHQCameraNear = 1.0
+LawbotHQCameraNear = 2.0
 BossbotHQCameraFar = 3000.0
-BossbotHQCameraNear = 1.0
+BossbotHQCameraNear = 2.0
 SpeedwayCameraFar = 8000.0
-SpeedwayCameraNear = 1.0
+SpeedwayCameraNear = 2.0
 MaxMailboxContents = 30
 MaxHouseItems = 45
 MaxAccessories = 50
@@ -102,12 +96,18 @@ FM_DeletedItem = 3
 FM_RecoveredItem = 4
 SPDonaldsBoat = 3
 SPMinniesPiano = 4
+SPSlappysBalloon = 5
 CEVirtual = 14
-MaxHpLimit = 145
+MaxHpLimit = 137
 MaxCarryLimit = 80
 MaxQuestCarryLimit = 4
 GravityValue = 32.174
-MaxCogSuitLevel = 12 - 1
+MaxCogSuitLevel = 50 - 1
+CogSuitHPLevels = (15 - 1,
+ 20 - 1,
+ 30 - 1,
+ 40 - 1,
+ 50 - 1)
 setInterfaceFont(TTLocalizer.InterfaceFont)
 setSignFont(TTLocalizer.SignFont)
 from toontown.toontowngui import TTDialog
@@ -138,10 +138,10 @@ def getMinnieFont():
     return MinnieFont
 
 
-def getSuitFont():
+def getSuitFont(): #balao do nome dos cogs
     global SuitFont
     if SuitFont == None:
-        SuitFont = loader.loadFont(TTLocalizer.SuitFont, pixelsPerUnit=40, spaceAdvance=0.25, lineHeight=1.0)
+        SuitFont = loader.loadFont(TTLocalizer.SuitFont, pixelsPerUnit=40, spaceAdvance=0.25, lineHeight=1.0) #intensidade das cor do nome, X, Altura
     return SuitFont
 
 
@@ -202,6 +202,7 @@ LawbotStageIntA = 13300
 LawbotStageIntB = 13400
 LawbotStageIntC = 13500
 LawbotStageIntD = 13600
+TowersLobby = 10900
 Tutorial = 15000
 MyEstate = 16000
 GolfZone = 17000
@@ -321,6 +322,7 @@ HoodsForTeleportAll = (DonaldsDock,
  DaisyGardens,
  OutdoorZone,
  GoofySpeedway,
+ FunnyFarm,
  DonaldsDreamland,
  BossbotHQ,
  SellbotHQ,
@@ -350,6 +352,8 @@ CogThiefGameId = 14
 TwoDGameId = 15
 PhotoGameId = 16
 TravelGameId = 100
+SurfersGameId = 17
+FADGameId = 18
 MinigameNames = {'race': RaceGameId,
  'cannon': CannonGameId,
  'tag': TagGameId,
@@ -369,7 +373,9 @@ MinigameNames = {'race': RaceGameId,
  'thief': CogThiefGameId,
  '2d': TwoDGameId,
  'photo': PhotoGameId,
- 'travel': TravelGameId}
+ 'travel': TravelGameId,
+ 'surfers': SurfersGameId,
+ 'fad': FADGameId}
 MinigameTemplateId = -1
 MinigameIDs = (RaceGameId,
  CannonGameId,
@@ -387,17 +393,26 @@ MinigameIDs = (RaceGameId,
  CogThiefGameId,
  TwoDGameId,
  PhotoGameId,
- TravelGameId)
-MinigamePlayerMatrix = {
-    1: (CannonGameId, MazeGameId, TugOfWarGameId, RingGameId, VineGameId, CogThiefGameId, TwoDGameId, DivingGameId, PairingGameId, CatchGameId, TargetGameId, PhotoGameId),
-    2: (CannonGameId, MazeGameId, TugOfWarGameId, PatternGameId, TagGameId, RingGameId, VineGameId, IceGameId, CogThiefGameId, TwoDGameId, DivingGameId, PairingGameId, CatchGameId, TargetGameId, PhotoGameId),
-    3: (CannonGameId, MazeGameId, TugOfWarGameId, PatternGameId, RaceGameId, TagGameId, VineGameId, RingGameId, IceGameId, CogThiefGameId, TwoDGameId, DivingGameId, PairingGameId, CatchGameId, TargetGameId, PhotoGameId),
-    4: (CannonGameId, MazeGameId, TugOfWarGameId, PatternGameId, RaceGameId, TagGameId, VineGameId, RingGameId, IceGameId, CogThiefGameId, TwoDGameId, DivingGameId, PairingGameId, CatchGameId, TargetGameId, PhotoGameId),
+ TravelGameId,
+ SurfersGameId,
+ FADGameId)
+MinigamePlayerMatrix = {          # Hue hue hue
+    1: (CannonGameId, MazeGameId, SurfersGameId, TugOfWarGameId, RingGameId, VineGameId, CogThiefGameId, TwoDGameId, DivingGameId, PairingGameId, CatchGameId, TargetGameId, PhotoGameId),
+    2: (CannonGameId, MazeGameId, SurfersGameId, TugOfWarGameId, PatternGameId, TagGameId, RingGameId, VineGameId, IceGameId, CogThiefGameId, TwoDGameId, DivingGameId, PairingGameId, CatchGameId, TargetGameId, PhotoGameId, FADGameId,),
+    3: (CannonGameId, MazeGameId, SurfersGameId, TugOfWarGameId, PatternGameId, RaceGameId, TagGameId, VineGameId, RingGameId, IceGameId, CogThiefGameId, TwoDGameId, DivingGameId, PairingGameId, CatchGameId, TargetGameId, PhotoGameId, FADGameId,),
+    4: (CannonGameId, SurfersGameId, MazeGameId, TugOfWarGameId, PatternGameId, RaceGameId, TagGameId, VineGameId, RingGameId, IceGameId, CogThiefGameId, TwoDGameId, DivingGameId, PairingGameId, CatchGameId, TargetGameId, PhotoGameId, FADGameId,),
 }
+# Seriously
 MinigameReleaseDates = {IceGameId: (2008, 8, 5),
  PhotoGameId: (2008, 8, 13),
  TwoDGameId: (2008, 8, 20),
  CogThiefGameId: (2008, 8, 27)}
+
+if config.GetBool('disable-problematic-minigames', False): # < ROFL
+    MinigameReleaseDates[TagGameId] = (2020, 1, 1) # tag game (AI reset)
+    MinigameReleaseDates[CogThiefGameId] = (2020, 1, 1) # cog thief (bad physics)
+    MinigameReleaseDates[PhotoGameId] = (2020, 1, 1) # photo fun (awful lag)
+ 
 KeyboardTimeout = 300
 phaseMap = {Tutorial: 4,
  ToontownCentral: 4,
@@ -407,9 +422,9 @@ phaseMap = {Tutorial: 4,
  GoofySpeedway: 6,
  TheBrrrgh: 8,
  DaisyGardens: 8,
- FunnyFarm: 8,
+ FunnyFarm: 14,
  DonaldsDreamland: 8,
- OutdoorZone: 6,
+ OutdoorZone: 8,
  BossbotHQ: 12,
  SellbotHQ: 9,
  CashbotHQ: 10,
@@ -422,7 +437,7 @@ streetPhaseMap = {ToontownCentral: 5,
  GoofySpeedway: 6,
  TheBrrrgh: 8,
  DaisyGardens: 8,
- FunnyFarm: 8,
+ FunnyFarm: 14,
  DonaldsDreamland: 8,
  OutdoorZone: 8,
  BossbotHQ: 12,
@@ -437,7 +452,7 @@ dnaMap = {Tutorial: 'toontown_central',
  GoofySpeedway: 'goofy_speedway',
  TheBrrrgh: 'the_burrrgh',
  DaisyGardens: 'daisys_garden',
- FunnyFarm: 'not done yet',
+ FunnyFarm: 'funny_farm',
  DonaldsDreamland: 'donalds_dreamland',
  OutdoorZone: 'outdoor_zone',
  BossbotHQ: 'cog_hq_bossbot',
@@ -547,40 +562,6 @@ PieCodeColors = {PieCodeBossCog: None,
                      0.8,
                      1),
  PieCodeToon: None}
-suitIndex = {
-'f' : 0,
-'p' : 1,
-'ym' : 2,
-'mm' : 3,
-'ds' : 4,
-'hh' : 5,
-'cr' : 6,
-'tbc' : 7,
-'bf' : 8,
-'b' : 9,
-'dt' : 10,
-'ac' : 11,
-'bs' : 12,
-'sd' : 13,
-'le' : 14,
-'bw' : 15,
-'sc' : 16,
-'pp' : 17,
-'tw' : 18,
-'bc' : 19,
-'nc' : 20,
-'mb' : 21,
-'ls' : 22,
-'rb' : 23,
-'cc' : 24,
-'tm' : 25,
-'nd' : 26,
-'gh' : 27,
-'ms' : 28,
-'tf' : 29,
-'m' : 30,
-'mh' : 31
-}
 BossCogRollSpeed = 7.5
 BossCogTurnSpeed = 20
 BossCogTreadSpeed = 3.5
@@ -843,18 +824,10 @@ NoItems = 0
 NewItems = 1
 OldItems = 2
 SuitInvasionBegin = 0
-SuitInvasionEnd = 1
-SuitInvasionUpdate = 2
+SuitInvasionUpdate = 1
+SuitInvasionEnd = 2
 SuitInvasionBulletin = 3
-SkelecogInvasionBegin = 4
-SkelecogInvasionEnd = 5
-SkelecogInvasionBulletin = 6
-WaiterInvasionBegin = 7
-WaiterInvasionEnd = 8
-WaiterInvasionBulletin = 9
-V2InvasionBegin = 10
-V2InvasionEnd = 11
-V2InvasionBulletin = 12
+# HOLIDAY LIST
 NO_HOLIDAY = 0
 JULY4_FIREWORKS = 1
 NEWYEARS_FIREWORKS = 2
@@ -863,6 +836,7 @@ WINTER_DECORATIONS = 4
 SKELECOG_INVASION = 5
 MR_HOLLYWOOD_INVASION = 6
 FISH_BINGO_NIGHT = 7
+ELECTION_PROMOTION = 8
 BLACK_CAT_DAY = 9
 RESISTANCE_EVENT = 10
 KART_RECORD_DAILY_RESET = 11
@@ -977,6 +951,7 @@ SPOOKY_PROPS = 119
 SPOOKY_COSTUMES = 120
 WACKY_WINTER_DECORATIONS = 121
 WACKY_WINTER_CAROLING = 122
+BLOODSUCKER_INVASION = 123
 TOT_REWARD_JELLYBEAN_AMOUNT = 100
 TOT_REWARD_END_OFFSET_AMOUNT = 0
 LawbotBossMaxDamage = 2700
@@ -1412,8 +1387,8 @@ HIGH_POP_JP = 200
 LOW_POP_INTL = 399
 MID_POP_INTL = 499
 HIGH_POP_INTL = -1
-LOW_POP = 100
-MID_POP = 200
+LOW_POP = 399
+MID_POP = 599
 HIGH_POP = -1
 PinballCannonBumper = 0
 PinballCloudBumperLow = 1
@@ -1595,7 +1570,7 @@ DG = 5
 BR = 6
 OZ = 7
 DL = 8
-DefaultWantNewsPageSetting = 0
+DefaultWantNewsPageSetting = 1
 gmMagicWordList = ['restock',
  'restockUber',
  'autoRestock',
@@ -1619,7 +1594,7 @@ AnimPropTypes = Enum(('Unknown',
  'Trashcan'), start=-1)
 EmblemTypes = Enum(('Silver', 'Gold'))
 NumEmblemTypes = 2
-MaxBankMoney = 50000
+DefaultMaxBankMoney = 12000
 DefaultBankItemId = 1350
 ToonAnimStates = set(['off',
  'neutral',
@@ -1674,11 +1649,3 @@ AV_TOUCH_CHECK_DIST_Z = 5.0
 AV_TOUCH_CHECK_TIMELIMIT_CL = 0.002
 AV_TOUCH_COUNT_LIMIT = 5
 AV_TOUCH_COUNT_TIME = 300
-
-# Buffs...
-
-BMovementSpeed = 0
-BMovementSpeedMultiplier = 1.3
-
-BGagAccuracy = 1
-BGagAccuracyMultiplier = 1.3

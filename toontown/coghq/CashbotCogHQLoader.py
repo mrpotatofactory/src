@@ -20,24 +20,46 @@ class CashbotCogHQLoader(CogHQLoader.CogHQLoader):
             state = self.fsm.getStateNamed(stateName)
             state.addTransition('mintInterior')
 
-        self.musicFile = 'phase_9/audio/bgm/encntr_suit_CBHQ_nbrhood.ogg'
+        self.musicFile = 'phase_10/audio/bgm/CB_shipping_station.ogg'
         self.cogHQExteriorModelPath = 'phase_10/models/cogHQ/CashBotShippingStation'
         self.cogHQLobbyModelPath = 'phase_10/models/cogHQ/VaultLobby'
         self.geom = None
+        self.interests = []
 
     def load(self, zoneId):
         CogHQLoader.CogHQLoader.load(self, zoneId)
         Toon.loadCashbotHQAnims()
+        
+    def __handleInterests(self, zoneId):
+        taskMgr.doMethodLater(.1, lambda t: self.__handleInterestsTask(zoneId, t), 'lawbotHQ-handleInterests')
+        
+    def __handleInterestsTask(self, zoneId, task):
+        self.notify.info('__handleInterests: zone %s' % zoneId)
+            
+        if zoneId == ToontownGlobals.CashbotHQ:
+            # disney...
+            for i in range(1, 8) + range(10, 13) + [20, 21, 30, 31, 32] + range(40, 46) + range(50, 61):
+                self.interests.append(base.cr.addInterest(localAvatar.defaultShard, 12000 + i, 'cashbotHq-%d' % i))
+                
+        else:
+            for i in self.interests:
+                base.cr.removeInterest(i)
+            
+            self.interests = []
+            
+        return task.done
 
     def unloadPlaceGeom(self):
         if self.geom:
             self.geom.removeNode()
             self.geom = None
         CogHQLoader.CogHQLoader.unloadPlaceGeom(self)
+        return
 
     def loadPlaceGeom(self, zoneId):
         self.notify.info('loadPlaceGeom: %s' % zoneId)
         zoneId = zoneId - zoneId % 100
+        self.__handleInterests(zoneId)
         if zoneId == ToontownGlobals.CashbotHQ:
             self.geom = loader.loadModel(self.cogHQExteriorModelPath)
             ddLinkTunnel = self.geom.find('**/LinkTunnel1')
@@ -48,18 +70,17 @@ class CashbotCogHQLoader(CogHQLoader.CogHQLoader):
             signText = DirectGui.OnscreenText(text=TTLocalizer.DonaldsDreamland[-1], font=ToontownGlobals.getSuitFont(), scale=3, fg=(0.87, 0.87, 0.87, 1), mayChange=False, parent=backgroundGeom)
             signText.setPosHpr(locator, 0, 0, 0, 0, 0, 0)
             signText.setDepthWrite(0)
-            self.geom.flattenMedium()
         elif zoneId == ToontownGlobals.CashbotLobby:
             if base.config.GetBool('want-qa-regression', 0):
                 self.notify.info('QA-REGRESSION: COGHQ: Visit CashbotLobby')
             self.geom = loader.loadModel(self.cogHQLobbyModelPath)
-            self.geom.flattenMedium()
         else:
             self.notify.warning('loadPlaceGeom: unclassified zone %s' % zoneId)
         CogHQLoader.CogHQLoader.loadPlaceGeom(self, zoneId)
 
     def unload(self):
         CogHQLoader.CogHQLoader.unload(self)
+        self.__handleInterests(0)
         Toon.unloadCashbotHQAnims()
 
     def enterMintInterior(self, requestStatus):

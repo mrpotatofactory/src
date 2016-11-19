@@ -1,15 +1,10 @@
 from direct.showbase import GarbageReport
-from direct.distributed.PyDatagram import PyDatagram
-from direct.distributed.MsgTypes import CLIENTAGENT_EJECT
-
 from otp.ai.AIBaseGlobal import *
-from otp.ai.MagicWordGlobal import *
 from otp.avatar import DistributedAvatarAI
 from otp.avatar import PlayerBase
-from otp.distributed import OtpDoGlobals
 from otp.distributed.ClsendTracker import ClsendTracker
-from otp.otpbase import OTPLocalizer
-
+from otp.otpbase import OTPGlobals
+from otp.ai.MagicWordGlobal import *
 
 class DistributedPlayerAI(DistributedAvatarAI.DistributedAvatarAI, PlayerBase.PlayerBase, ClsendTracker):
     def __init__(self, air):
@@ -115,9 +110,6 @@ class DistributedPlayerAI(DistributedAvatarAI.DistributedAvatarAI, PlayerBase.Pl
     def setDISLid(self, id):
         self.DISLid = id
 
-    def getDISLid(self):
-        return self.DISLid
-
     def d_setFriendsList(self, friendsList):
         self.sendUpdate('setFriendsList', [friendsList])
 
@@ -131,18 +123,11 @@ class DistributedPlayerAI(DistributedAvatarAI.DistributedAvatarAI, PlayerBase.Pl
     def setAdminAccess(self, access):
         self.adminAccess = access
 
-    def d_setAdminAccess(self, access):
-        self.sendUpdate('setAdminAccess', [access])
-
-    def b_setAdminAccess(self, access):
-        self.setAdminAccess(access)
-        self.d_setAdminAccess(access)
-
     def getAdminAccess(self):
         return self.adminAccess
 
     def extendFriendsList(self, friendId, friendCode):
-        for i in xrange(len(self.friendsList)):
+        for i in range(len(self.friendsList)):
             friendPair = self.friendsList[i]
             if friendPair[0] == friendId:
                 self.friendsList[i] = (friendId, friendCode)
@@ -150,115 +135,52 @@ class DistributedPlayerAI(DistributedAvatarAI.DistributedAvatarAI, PlayerBase.Pl
 
         self.friendsList.append((friendId, friendCode))
 
+@magicWord(chains=[CHAIN_ADM], types=[str])
+def smsg(text):
+    """Send a whisper to the whole district (system), un-prefixed."""
+    for doId in simbase.air.doId2do:
+        if str(doId)[:2] == '10': # Non-NPC?
+            do = simbase.air.doId2do.get(doId)
+            if isinstance(do, DistributedPlayerAI): # Toon?
+                do.d_setSystemMessage(0, text)
 
-@magicWord(category=CATEGORY_SYSTEM_ADMINISTRATOR, types=[str])
-def system(message):
-    """
-    Broadcast a <message> to the game server.
-    """
-    message = 'ADMIN: ' + message
-    dclass = simbase.air.dclassesByName['ClientServicesManager']
-    dg = dclass.aiFormatUpdate('systemMessage',
-                               OtpDoGlobals.OTP_DO_ID_CLIENT_SERVICES_MANAGER,
-                               10, 1000000, [message])
-    simbase.air.send(dg)
+@magicWord(chains=[CHAIN_ADM], types=[str])
+def smsgall(text):
+    """Send a system message to all clients connected to the server."""
+    simbase.air.sendSysMsgToAll(text)
 
-@magicWord(category=CATEGORY_SYSTEM_ADMINISTRATOR, types=[int])
-def maintenance(minutes):
-    """
-    Initiate the maintenance message sequence. It will last for the specified
-    amount of <minutes>.
-    """
-    def disconnect(task):
-        dg = PyDatagram()
-        dg.addServerHeader(10, simbase.air.ourChannel, CLIENTAGENT_EJECT)
-        dg.addUint16(154)
-        dg.addString('Toontown Infinite is now closed for maintenance.')
-        simbase.air.send(dg)
-        return Task.done
+@magicWord(chains=[CHAIN_ADM], types=[str])
+def gwhis(text):
+    """Send a whisper to the whole district, prefixed with 'ADMIN Name:'."""
+    text = 'ADMIN ' + spellbook.getInvoker().getName() + ': ' + text # Prepend text with Invoker's toon name.
+    for doId in simbase.air.doId2do:
+        if str(doId)[:2] == '10': # Non-NPC?
+            do = simbase.air.doId2do.get(doId)
+            if isinstance(do, DistributedPlayerAI): # Toon?
+                do.d_setSystemMessage(0, text)
 
-    def countdown(minutes):
-        if minutes > 0:
-            system(OTPLocalizer.CRMaintenanceCountdownMessage % minutes)
-        else:
-            system(OTPLocalizer.CRMaintenanceMessage)
-            taskMgr.doMethodLater(10, disconnect, 'maintenance-disconnection')
-        if minutes <= 5:
-            next = 60
-            minutes -= 1
-        elif minutes % 5:
-            next = 60 * (minutes%5)
-            minutes -= minutes % 5
-        else:
-            next = 300
-            minutes -= 5
-        if minutes >= 0:
-            taskMgr.doMethodLater(next, countdown, 'maintenance-task',
-                                  extraArgs=[minutes])
+@magicWord(chains=[CHAIN_ADM], types=[str])
+def gwhisall(text):
+    """Send a system message to all clients, prefixed with 'ADMIN Name:'."""
+    text = 'ADMIN ' + spellbook.getInvoker().getName() + ': ' + text
+    simbase.air.sendSysMsgToAll(text)
 
+@magicWord(chains=[CHAIN_MOD])
+def accId():
+    """Get the accountId from the target player."""
+    accountId = spellbook.getTarget().DISLid
+    return "%s has the accountId of %d" % (spellbook.getTarget().getName(), accountId)
 
-    countdown(minutes)
-
-@magicWord(category=CATEGORY_ADMINISTRATOR, types=[str, str, int])
-def accessLevel(accessLevel, storage='PERSISTENT', showGM=1):
-    """
-    Modify the target's access level.
-    """
-    accessName2Id = {
-        'user': CATEGORY_USER.defaultAccess,
-        'u': CATEGORY_USER.defaultAccess,
-        'communitymanager': CATEGORY_COMMUNITY_MANAGER.defaultAccess,
-        'community': CATEGORY_COMMUNITY_MANAGER.defaultAccess,
-        'c': CATEGORY_COMMUNITY_MANAGER.defaultAccess,
-        'moderator': CATEGORY_MODERATOR.defaultAccess,
-        'mod': CATEGORY_MODERATOR.defaultAccess,
-        'm': CATEGORY_MODERATOR.defaultAccess,
-        'creative': CATEGORY_CREATIVE.defaultAccess,
-        'creativity': CATEGORY_CREATIVE.defaultAccess,
-        'c': CATEGORY_CREATIVE.defaultAccess,
-        'programmer': CATEGORY_PROGRAMMER.defaultAccess,
-        'coder': CATEGORY_PROGRAMMER.defaultAccess,
-        'p': CATEGORY_PROGRAMMER.defaultAccess,
-        'administrator': CATEGORY_ADMINISTRATOR.defaultAccess,
-        'admin': CATEGORY_ADMINISTRATOR.defaultAccess,
-        'a': CATEGORY_ADMINISTRATOR.defaultAccess,
-        'systemadministrator': CATEGORY_SYSTEM_ADMINISTRATOR.defaultAccess,
-        'systemadmin': CATEGORY_SYSTEM_ADMINISTRATOR.defaultAccess,
-        'sysadministrator': CATEGORY_SYSTEM_ADMINISTRATOR.defaultAccess,
-        'sysadmin': CATEGORY_SYSTEM_ADMINISTRATOR.defaultAccess,
-        'system': CATEGORY_SYSTEM_ADMINISTRATOR.defaultAccess,
-        'sys': CATEGORY_SYSTEM_ADMINISTRATOR.defaultAccess,
-        's': CATEGORY_SYSTEM_ADMINISTRATOR.defaultAccess
-    }
-    try:
-        accessLevel = int(accessLevel)
-    except:
-        if accessLevel not in accessName2Id:
-            return 'Invalid access level!'
-        accessLevel = accessName2Id[accessLevel]
-    if accessLevel not in accessName2Id.values():
-        return 'Invalid access level!'
-    target = spellbook.getTarget()
-    invoker = spellbook.getInvoker()
-    if invoker == target:
-        return "You can't set your own access level!"
-    if not accessLevel < invoker.getAdminAccess():
-        return "The target's access level must be lower than yours!"
-    if target.getAdminAccess() == accessLevel:
-        return "%s's access level is already %d!" % (target.getName(), accessLevel)
-    target.b_setAdminAccess(accessLevel)
-    if showGM:
-        target.b_setGM(accessLevel)
-    temporary = storage.upper() in ('SESSION', 'TEMP', 'TEMPORARY')
-    if not temporary:
-        target.air.dbInterface.updateObject(
-            target.air.dbId,
-            target.getDISLid(),
-            target.air.dclassesByName['AccountAI'],
-            {'ADMIN_ACCESS': accessLevel})
-    if not temporary:
-        target.d_setSystemMessage(0, '%s set your access level to %d!' % (invoker.getName(), accessLevel))
-        return "%s's access level has been set to %d." % (target.getName(), accessLevel)
-    else:
-        target.d_setSystemMessage(0, '%s set your access level to %d temporarily!' % (invoker.getName(), accessLevel))
-        return "%s's access level has been set to %d temporarily." % (target.getName(), accessLevel)
+@magicWord(chains=[CHAIN_HEAD], types=[int])
+def setAdminAccess(access=ACCESS_MOD):
+    if access >= spellbook.getInvokerAccess():
+        return "You can't make others higher or equal to you!"
+        
+    if spellbook.getTarget() == spellbook.getInvoker():
+        return "You can't edit your own level!"
+        
+    accountId = spellbook.getTarget().DISLid
+    spellbook.getTarget().setAdminAccess(access)
+    simbase.air.dbInterface.updateObject(simbase.air.dbId, accountId,
+                                         simbase.air.dclassesByName['AccountAI'],
+                                         {'ADMIN_ACCESS': access})

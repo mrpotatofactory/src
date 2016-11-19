@@ -34,10 +34,6 @@ class DistributedFactoryAI(DistributedLevelAI.DistributedLevelAI, FactoryBase.Fa
         self.notify.info('loading spec')
         specModule = FactorySpecs.getFactorySpecModule(self.factoryId)
         factorySpec = LevelSpec.LevelSpec(specModule)
-        if __dev__:
-            self.notify.info('creating entity type registry')
-            typeReg = self.getEntityTypeReg()
-            factorySpec.setEntityTypeReg(typeReg)
         self.notify.info('creating entities')
         DistributedLevelAI.DistributedLevelAI.generate(self, factorySpec)
         self.notify.info('creating cogs')
@@ -96,12 +92,19 @@ class DistributedFactoryAI(DistributedLevelAI.DistributedLevelAI, FactoryBase.Fa
             if toon is not None:
                 activeVictors.append(toon)
                 activeVictorIds.append(victorId)
+
         scenario = 0
-        description = '%s|%s|%s|%s' % (self.factoryId, self.entranceId, scenario, activeVictorIds)
+        description = '%s|%s|%s|%s' % (self.factoryId,
+         self.entranceId,
+         scenario,
+         activeVictorIds)
         for avId in activeVictorIds:
             self.air.writeServerEvent('factoryDefeated', avId, description)
+
         for toon in activeVictors:
             simbase.air.questManager.toonDefeatedFactory(toon, self.factoryId, activeVictors)
+
+        return
 
     def b_setDefeated(self):
         self.d_setDefeated()

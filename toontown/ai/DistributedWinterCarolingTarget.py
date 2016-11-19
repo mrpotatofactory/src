@@ -1,25 +1,23 @@
-from otp.speedchat import SpeedChatGlobals
 from direct.directnotify import DirectNotifyGlobal
 from direct.distributed import DistributedObject
-from direct.interval.IntervalGlobal import *
+from toontown.speedchat.TTSCIndexedTerminal import TTSCIndexedMsgEvent
+import DistributedScavengerHuntTarget
 
-class DistributedWinterCarolingTarget(DistributedObject.DistributedObject):
+class DistributedWinterCarolingTarget(DistributedScavengerHuntTarget.DistributedScavengerHuntTarget):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedWinterCarolingTarget')
 
     def __init__(self, cr):
-        DistributedObject.DistributedObject.__init__(self, cr)
+        DistributedScavengerHuntTarget.DistributedScavengerHuntTarget.__init__(self, cr)
+
+    def setupListenerDetails(self):
         self.triggered = False
         self.triggerDelay = 15
-
-    def announceGenerate(self):
-        DistributedObject.DistributedObject.announceGenerate(self)
-        DistributedWinterCarolingTarget.notify.debug('announceGenerate')
-        self.accept(SpeedChatGlobals.SCStaticTextMsgEvent, self.phraseSaid)
+        self.accept(TTSCIndexedMsgEvent, self.phraseSaid)
 
     def phraseSaid(self, phraseId):
         self.notify.debug('Checking if phrase was said')
         helpPhrases = []
-        for i in xrange(6):
+        for i in range(6):
             helpPhrases.append(30220 + i)
 
         def reset():
@@ -27,17 +25,5 @@ class DistributedWinterCarolingTarget(DistributedObject.DistributedObject):
 
         if phraseId in helpPhrases and not self.triggered:
             self.triggered = True
-            self.d_requestScavengerHunt()
+            self.attemptScavengerHunt()
             taskMgr.doMethodLater(self.triggerDelay, reset, 'ScavengerHunt-phrase-reset', extraArgs=[])
-            
-    def delete(self):
-        self.ignore(SpeedChatGlobals.SCStaticTextMsgEvent)
-        DistributedObject.DistributedObject.delete(self)
-        
-    def d_requestScavengerHunt(self):
-        self.sendUpdate('requestScavengerHunt', [])
-
-    def doScavengerHunt(self, amount):
-        DistributedWinterCarolingTarget.notify.debug('doScavengerHunt')
-        av = base.localAvatar
-        av.winterCarolingTargetMet(amount)

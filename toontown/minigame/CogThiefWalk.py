@@ -1,6 +1,7 @@
 from toontown.safezone import Walk
 
 class CogThiefWalk(Walk.Walk):
+
     notify = directNotify.newCategory('CogThiefWalk')
 
     def __init__(self, doneEvent):

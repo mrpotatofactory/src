@@ -151,7 +151,9 @@ __targetInfoDict = {ToontownGlobals.ToontownCentral: (2,
                             -126,
                             -0.3,
                             16,
-                            -0.83)}
+                            -0.83),
+                            
+ ToontownGlobals.FunnyFarm + 100: (2, -110, -95, -1.4, 14, -1.78)}
 
 def getNumTargets(zone):
     info = __targetInfoDict.get(zone)

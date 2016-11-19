@@ -38,7 +38,7 @@ def doDrops(drops):
         targets = drop['target']
         if len(targets) == 1:
             suitId = targets[0]['suit'].doId
-            if suitId in suitDropsDict:
+            if suitDropsDict.has_key(suitId):
                 suitDropsDict[suitId].append((drop, targets[0]))
             else:
                 suitDropsDict[suitId] = [(drop, targets[0])]
@@ -47,7 +47,7 @@ def doDrops(drops):
         else:
             for target in targets:
                 suitId = target['suit'].doId
-                if suitId in suitDropsDict:
+                if suitDropsDict.has_key(suitId):
                     otherDrops = suitDropsDict[suitId]
                     alreadyInList = 0
                     for oDrop in otherDrops:
@@ -164,7 +164,7 @@ def __doGroupDrops(groupDrops):
         numTargets = len(targets)
         closestTarget = -1
         nearestDistance = 100000.0
-        for i in xrange(numTargets):
+        for i in range(numTargets):
             suit = drop['target'][i]['suit']
             suitPos = suit.getPos(battle)
             displacement = Vec3(centerPos)
@@ -196,7 +196,7 @@ def __dropGroupObject(drop, delay, closestTarget, alreadyDodged, alreadyTeased):
     npcDrops = {}
     npcs = []
     returnedParallel = __dropObject(drop, delay, objName, level, alreadyDodged, alreadyTeased, npcs, target, npcDrops)
-    for i in xrange(len(drop['target'])):
+    for i in range(len(drop['target'])):
         target = drop['target'][i]
         suitTrack = __createSuitTrack(drop, delay, level, alreadyDodged, alreadyTeased, target, npcs)
         if suitTrack:
@@ -217,9 +217,9 @@ def __dropObject(drop, delay, objName, level, alreadyDodged, alreadyTeased, npcs
     toon = drop['toon']
     repeatNPC = 0
     battle = drop['battle']
-    if 'npc' in drop:
+    if drop.has_key('npc'):
         toon = drop['npc']
-        if toon in npcDrops:
+        if npcDrops.has_key(toon):
             repeatNPC = 1
         else:
             npcDrops[toon] = 1
@@ -379,7 +379,7 @@ def __dropObject(drop, delay, objName, level, alreadyDodged, alreadyTeased, npcs
 
 def __createSuitTrack(drop, delay, level, alreadyDodged, alreadyTeased, target, npcs):
     toon = drop['toon']
-    if 'npc' in drop:
+    if drop.has_key('npc'):
         toon = drop['npc']
     battle = drop['battle']
     majorObject = level >= 3

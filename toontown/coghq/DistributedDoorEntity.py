@@ -13,6 +13,8 @@ from otp.level import BasicEntities
 from direct.fsm import State
 from otp.level import VisibilityBlocker
 
+FourState.FourState.debugPrint = lambda *x: True
+
 class DistributedDoorEntityLock(DistributedDoorEntityBase.LockBase, FourState.FourState):
     slideLeft = Vec3(-7.5, 0.0, 0.0)
     slideRight = Vec3(7.5, 0.0, 0.0)
@@ -87,6 +89,9 @@ class DistributedDoorEntityLock(DistributedDoorEntityBase.LockBase, FourState.Fo
         self.rightNodePath.hide()
         self.lockedNodePath.hide()
         return
+        
+    def debugPrint(self, *a):
+        return True
 
 
 class DistributedDoorEntity(DistributedDoorEntityBase.DistributedDoorEntityBase, DistributedEntity.DistributedEntity, BasicEntities.NodePathAttribsProxy, FourState.FourState, VisibilityBlocker.VisibilityBlocker):
@@ -362,7 +367,9 @@ class DistributedDoorEntity(DistributedDoorEntityBase.DistributedDoorEntityBase,
         return
 
     def openInnerDoors(self):
+        print 'openInnerDoors'
         if not self.level.complexVis() or self.isOuterDoorOpen and (not self.isVisBlocker or self.isVisReady):
+            print 'openInnerDoors stage Two'
             duration = self.duration
             slideSfx = base.loadSfx('phase_9/audio/sfx/CHQ_FACT_door_open_sliding.ogg')
             finalSfx = base.loadSfx('phase_9/audio/sfx/CHQ_FACT_door_open_final.ogg')
@@ -380,6 +387,7 @@ class DistributedDoorEntity(DistributedDoorEntityBase.DistributedDoorEntityBase,
         self.isOuterDoorOpen = isOpen
 
     def enterState1(self):
+        print 'doors enter state 1'
         FourState.FourState.enterState1(self)
         self.isOuterDoorOpen = 0
         if self.isVisBlocker:
@@ -466,3 +474,7 @@ class DistributedDoorEntity(DistributedDoorEntityBase.DistributedDoorEntityBase,
         def attribChanged(self, attrib, value):
             self.takedown()
             self.setup()
+            
+    def debugPrint(self, *a):
+        return True
+        

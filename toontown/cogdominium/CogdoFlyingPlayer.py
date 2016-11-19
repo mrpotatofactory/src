@@ -37,34 +37,41 @@ class CogdoFlyingPlayer(FSM):
         self.createPropeller()
         self.createRedTapeRing()
 
+    def hasPackAccessory(self):
+        if self.toon.getBackpack()[0] == 25 or self.toon.getBackpack()[0] == 26:
+            return True
+
     def createPropeller(self):
         self.propellerSmoke = DustCloud.DustCloud(self.toon, wantSound=False)
         self.propellerSmoke.setBillboardPointEye()
         self.propellerSmoke.setBin('fixed', 5002)
-        self.backpack = CogdoUtil.loadFlyingModel('propellerPack')
-        self.backpack.setScale(1.3)
-        self.backpack.setHpr(180.0, 0.0, 0.0)
-        self.backpackInstances = []
         self.backpackTextureCard = CogdoUtil.loadFlyingModel('propellerPack_card')
-        parts = self.toon.getTorsoParts()
-        for part in parts:
-            backpackInstance = part.attachNewNode('backpackInstance')
-            animal = self.toon.style.getAnimal()
-            bodyScale = ToontownGlobals.toonBodyScales[animal]
-            backpackHeight = ToontownGlobals.torsoHeightDict[self.toon.style.torso] * bodyScale - 0.5
-            backpackInstance.setPos(0.0, -0.325, backpackHeight)
-            self.backpackInstances.append(backpackInstance)
-            self.backpack.instanceTo(backpackInstance)
+        self.backpackInstances = []
+        if not self.hasPackAccessory():
+            self.backpack = CogdoUtil.loadFlyingModel('propellerPack')
+            self.backpack.setScale(1.3)
+            self.backpack.setHpr(180.0, 0.0, 0.0)
+            parts = self.toon.getTorsoParts()
+            for part in parts:
+                backpackInstance = part.attachNewNode('backpackInstance')
+                animal = self.toon.style.getAnimal()
+                bodyScale = ToontownGlobals.toonBodyScales[animal]
+                backpackHeight = ToontownGlobals.torsoHeightDict[self.toon.style.torso] * bodyScale - 0.5
+                backpackInstance.setPos(0.0, -0.325, backpackHeight)
+                self.backpackInstances.append(backpackInstance)
+                self.backpack.instanceTo(backpackInstance)
+        else:
+            self.backpack = self.toon.find('**/tt_m_ara_cfg_propellerPack_large.egg')
+            if self.backpack.isEmpty():
+                self.backpack = self.toon.find('**/tt_m_ara_cfg_propellerPack.egg')
 
         self.propInstances = []
         self.propeller = CogdoUtil.loadFlyingModel('toonPropeller')
-        for part in self.backpackInstances:
-            propInstance = part.attachNewNode('propInstance')
-            propInstance.setPos(0.0, -0.275, 0.0)
-            propInstance.setHpr(0.0, 20.0, 0.0)
-            propInstance.setScale(1.0, 1.0, 1.25)
-            self.propInstances.append(propInstance)
-            self.propeller.instanceTo(propInstance)
+        propInstance = self.backpack.attachNewNode('propInstance')
+        propInstance.setPos(0.0, 0.465, 0.7)
+        propInstance.setHpr(0.0, -31, 0.0)
+        self.propInstances.append(propInstance)
+        self.propeller.instanceTo(propInstance)
 
         self.blades = []
         self.activeBlades = []
@@ -147,9 +154,10 @@ class CogdoFlyingPlayer(FSM):
             self.setBackpackTexture(state)
 
     def setBackpackTexture(self, state):
-        texName = Globals.Gameplay.BackpackState2TextureName[state]
-        tex = self.backpackTextureCard.findTexture(texName)
-        self.backpack.setTexture(tex, 1)
+        if self.toon.getBackpack()[0] == 26:
+            texName = Globals.Gameplay.BackpackState2TextureName[state]
+            tex = self.backpackTextureCard.findTexture(texName)
+            self.backpack.find('**/*temp').setTexture(tex, 1)
 
     def updateLerpStartScale(self, lerp, nodepath):
         lerp.setStartScale(nodepath.getScale())
@@ -233,14 +241,14 @@ class CogdoFlyingPlayer(FSM):
             return
         numBlades = fuelState - 1
         if len(self.activeBlades) != numBlades:
-            for i in xrange(len(self.activeBlades)):
+            for i in range(len(self.activeBlades)):
                 blade = self.activeBlades.pop()
                 blade.stash()
 
             if numBlades > len(self.blades):
                 numBlades = len(self.blades)
             if numBlades > 0:
-                for i in xrange(numBlades):
+                for i in range(numBlades):
                     blade = self.blades[i]
                     self.activeBlades.append(blade)
                     blade.unstash()
@@ -333,7 +341,8 @@ class CogdoFlyingPlayer(FSM):
             backpack.removeNode()
 
         del self.backpackInstances[:]
-        self.backpack.removeNode()
+        if not self.hasPackAccessory():
+            self.backpack.removeNode()
         del self.backpack
         del self.activeBuffs[:]
         del self.legalEaglesTargeting[:]

@@ -67,9 +67,7 @@ class PurchaseBase(StateData.StateData):
         if self.toon.getMoney() <= 0:
             return
         ret = self.toon.inventory.addItem(track, level)
-        if ret == -3:
-            text = TTLocalizer.GagShopNotEnoughJellybeans
-        elif ret == -2:
+        if ret == -2:
             text = TTLocalizer.GagShopTooManyProps
         elif ret == -1:
             text = TTLocalizer.GagShopTooManyOfThatGag % TTLocalizer.BattleGlobalAvPropStringsPlural[track][level]

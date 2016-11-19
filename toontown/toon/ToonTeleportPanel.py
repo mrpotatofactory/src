@@ -121,7 +121,7 @@ class ToonTeleportPanel(DirectFrame):
         hasManager = hasattr(base.cr, 'playerFriendsManager')
         if self.avId == myId:
             self.fsm.request('self')
-        elif self.avId in base.cr.doId2do:
+        elif base.cr.doId2do.has_key(self.avId):
             self.fsm.request('checkAvailability')
         elif base.cr.isFriend(self.avId):
             if base.cr.isFriendOnline(self.avId):
@@ -146,7 +146,7 @@ class ToonTeleportPanel(DirectFrame):
 
     def enterCheckAvailability(self):
         myId = base.localAvatar.getDoId()
-        base.cr.ttiFriendsManager.d_teleportQuery(self.avId)
+        base.localAvatar.d_teleportQuery(myId, sendToId=self.avId)
         self['text'] = TTLocalizer.TeleportPanelCheckAvailability % self.avName
         self.accept('teleportResponse', self.__teleportResponse)
         self.bCancel.show()
@@ -215,21 +215,15 @@ class ToonTeleportPanel(DirectFrame):
             if shard[0] == shardId:
                 pop = shard[2]
 
-        self.bYes.show()
-        self.bNo.show()
-
         if pop and pop > localAvatar.shardPage.midPop:
             self.notify.warning('Entering full shard: issuing performance warning')
             self['text'] = TTLocalizer.TeleportPanelBusyShard % {'avName': self.avName}
-            self.bYes.hide()
-            self.bNo.hide()
-
-            self.bOk.show()
         else:
             self['text'] = TTLocalizer.TeleportPanelOtherShard % {'avName': self.avName,
              'shardName': shardName,
              'myShardName': myShardName}
-
+        self.bYes.show()
+        self.bNo.show()
         self.shardId = shardId
         self.hoodId = hoodId
         self.zoneId = zoneId
@@ -240,10 +234,7 @@ class ToonTeleportPanel(DirectFrame):
         self.bNo.hide()
 
     def enterTeleport(self, shardId, hoodId, zoneId):
-        shardName = base.cr.getShardName(shardId)
-        if shardName is None:
-            shardName = 'unknown'
-        print 'enterTeleport: %r, %r, %r, %r, %r' % (shardId, shardName, hoodId, zoneId, self.avId)
+        teleportNotify.debug('enterTeleport%s' % ((shardId, hoodId, zoneId),))
         hoodsVisited = base.localAvatar.hoodsVisited
         canonicalHoodId = ZoneUtil.getCanonicalZoneId(hoodId)
         if hoodId == ToontownGlobals.MyEstate:

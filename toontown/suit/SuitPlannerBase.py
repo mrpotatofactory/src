@@ -1,12 +1,17 @@
 from pandac.PandaModules import *
-from direct.directnotify.DirectNotifyGlobal import *
+import random
+import string
+from direct.directnotify import DirectNotifyGlobal
 from toontown.hood import ZoneUtil
 from toontown.toonbase import ToontownGlobals
+from toontown.toonbase import ToontownBattleGlobals
+from toontown.hood import HoodUtil
 from toontown.building import SuitBuildingGlobals
-from toontown.dna.DNAParser import DNASuitPoint, DNAStorage, loadDNAFileAI
+
+from toontown.dna.DNAParser import *
 
 class SuitPlannerBase:
-    notify = directNotify.newCategory('SuitPlannerBase')
+    notify = DirectNotifyGlobal.directNotify.newCategory('SuitPlannerBase')
     SuitHoodInfo = [[2100,
       5,
       15,
@@ -354,25 +359,6 @@ class SuitPlannerBase:
        8,
        9),
       []],
-     [10000,
-      3,
-      15,
-      0,
-      5,
-      15,
-      3,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (100,
-       0,
-       0,
-       0),
-      (7, 8, 9, 10),
-      []],
      [11000,
       3,
       15,
@@ -481,7 +467,7 @@ class SuitPlannerBase:
          0]
         for level in levels:
             minFloors, maxFloors = SuitBuildingGlobals.SuitBuildingInfo[level - 1][0]
-            for i in xrange(minFloors - 1, maxFloors):
+            for i in range(minFloors - 1, maxFloors):
                 heights[i] += 1
 
         currHoodInfo[SUIT_HOOD_INFO_HEIGHTS] = heights
@@ -495,32 +481,37 @@ class SuitPlannerBase:
         TOTAL_BWEIGHT_PER_HEIGHT[2] += weight * heights[2]
         TOTAL_BWEIGHT_PER_HEIGHT[3] += weight * heights[3]
         TOTAL_BWEIGHT_PER_HEIGHT[4] += weight * heights[4]
-
+    
     def __init__(self):
         self.suitWalkSpeed = ToontownGlobals.SuitWalkSpeed
         self.dnaStore = None
         self.pointIndexes = {}
         return
 
-    def delete(self):
-        del self.dnaStore
-
     def setupDNA(self):
         if self.dnaStore:
             return None
         self.dnaStore = DNAStorage()
         dnaFileName = self.genDNAFileName()
-        loadDNAFileAI(self.dnaStore, dnaFileName)
+        try:
+            simbase.air.loadDNAFileAI(self.dnaStore, dnaFileName)
+        except:
+            loader.loadDNAFileAI(self.dnaStore, dnaFileName)
+
         self.initDNAInfo()
+        return None
 
     def genDNAFileName(self):
-        zoneId = ZoneUtil.getCanonicalZoneId(self.getZoneId())
-        hoodId = ZoneUtil.getCanonicalHoodId(zoneId)
-        hood = ToontownGlobals.dnaMap[hoodId]
-        phase = ToontownGlobals.streetPhaseMap[hoodId]
-        if hoodId == zoneId:
-            zoneId = 'sz'
-        return 'phase_%s/dna/%s_%s.pdna' % (phase, hood, zoneId)
+        try:
+            return simbase.air.genDNAFileName(self.getZoneId())
+        except:
+            zoneId = ZoneUtil.getCanonicalZoneId(self.getZoneId())
+            hoodId = ZoneUtil.getCanonicalHoodId(zoneId)
+            hood = ToontownGlobals.dnaMap[hoodId]
+            phase = ToontownGlobals.streetPhaseMap[hoodId]
+            if hoodId == zoneId:
+                zoneId = 'sz'
+            return 'phase_%s/dna/%s_%s.dna' % (phase, hood, zoneId)
 
     def getZoneId(self):
         return self.zoneId
@@ -531,7 +522,7 @@ class SuitPlannerBase:
         self.setupDNA()
 
     def extractGroupName(self, groupFullName):
-        return groupFullName.split(':', 1)[0]
+        return str(groupFullName).split(':', 1)[0]
 
     def initDNAInfo(self):
         numGraphs = self.dnaStore.discoverContinuity()
@@ -539,14 +530,33 @@ class SuitPlannerBase:
             self.notify.info('zone %s has %s disconnected suit paths.' % (self.zoneId, numGraphs))
         self.battlePosDict = {}
         self.cellToGagBonusDict = {}
-        for i in xrange(self.dnaStore.getNumDNAVisGroupsAI()):
+        for i in range(self.dnaStore.getNumDNAVisGroupsAI()):
             vg = self.dnaStore.getDNAVisGroupAI(i)
             zoneId = int(self.extractGroupName(vg.getName()))
             if vg.getNumBattleCells() == 1:
+                battleCell = vg.getBattleCell(0)
                 self.battlePosDict[zoneId] = vg.getBattleCell(0).getPos()
             elif vg.getNumBattleCells() > 1:
                 self.notify.warning('multiple battle cells for zone: %d' % zoneId)
                 self.battlePosDict[zoneId] = vg.getBattleCell(0).getPos()
+            if True:
+                for i in range(vg.getNumChildren()):
+                    childDnaGroup = vg.at(i)
+                    if isinstance(childDnaGroup, DNAInteractiveProp):
+                        self.notify.debug('got interactive prop %s' % childDnaGroup)
+                        battleCellId = childDnaGroup.getCellId()
+                        if battleCellId == -1:
+                            self.notify.warning('interactive prop %s  at %s not associated with a a battle' % (childDnaGroup, zoneId))
+                        elif battleCellId == 0:
+                            if self.cellToGagBonusDict.has_key(zoneId):
+                                self.notify.error('FIXME battle cell at zone %s has two props %s %s linked to it' % (zoneId, self.cellToGagBonusDict[zoneId], childDnaGroup))
+                            else:
+                                name = childDnaGroup.getName()
+                                propType = HoodUtil.calcPropType(name)
+                                if propType in ToontownBattleGlobals.PropTypeToTrackBonus:
+                                    trackBonus = ToontownBattleGlobals.PropTypeToTrackBonus[propType]
+                                    self.cellToGagBonusDict[zoneId] = trackBonus
+
         self.dnaStore.resetDNAGroups()
         self.dnaStore.resetDNAVisGroups()
         self.dnaStore.resetDNAVisGroupsAI()
@@ -555,21 +565,26 @@ class SuitPlannerBase:
         self.sidedoorPointList = []
         self.cogHQDoorPointList = []
         numPoints = self.dnaStore.getNumSuitPoints()
-        for i in xrange(numPoints):
+        for i in range(numPoints):
             point = self.dnaStore.getSuitPointAtIndex(i)
-            if point.getPointType() == DNASuitPoint.FRONT_DOOR_POINT:
+            
+            if point.getPointType() == DNASuitPoint.FRONTDOORPOINT:
                 self.frontdoorPointList.append(point)
-            elif point.getPointType() == DNASuitPoint.SIDE_DOOR_POINT:
+                
+            elif point.getPointType() == DNASuitPoint.SIDEDOORPOINT:
                 self.sidedoorPointList.append(point)
-            elif (point.getPointType() == DNASuitPoint.COGHQ_IN_POINT) or (point.getPointType() == DNASuitPoint.COGHQ_OUT_POINT):
+                
+            elif point.getPointType() in (DNASuitPoint.COGHQINPOINT, DNASuitPoint.COGHQOUTPOINT):
                 self.cogHQDoorPointList.append(point)
+                
             else:
                 self.streetPointList.append(point)
+                
             self.pointIndexes[point.getIndex()] = point
 
+        return None
+
     def performPathTest(self):
-        if not self.notify.getDebug():
-            return None
         startAndEnd = self.pickPath()
         if not startAndEnd:
             return None
@@ -577,10 +592,12 @@ class SuitPlannerBase:
         endPoint = startAndEnd[1]
         path = self.dnaStore.getSuitPath(startPoint, endPoint)
         numPathPoints = path.getNumPoints()
-        for i in xrange(numPathPoints - 1):
+        for i in range(numPathPoints - 1):
             zone = self.dnaStore.getSuitEdgeZone(path.getPointIndex(i), path.getPointIndex(i + 1))
             travelTime = self.dnaStore.getSuitEdgeTravelTime(path.getPointIndex(i), path.getPointIndex(i + 1), self.suitWalkSpeed)
-            self.notify.debug('edge from point ' + `i` + ' to point ' + `(i + 1)` + ' is in zone: ' + `zone` + ' and will take ' + `travelTime` + ' seconds to walk.')
+            self.notify.info('edge from point ' + `i` + ' to point ' + `(i + 1)` + ' is in zone: ' + `zone` + ' and will take ' + `travelTime` + ' seconds to walk.')
+
+        return None
 
     def genPath(self, startPoint, endPoint, minPathLen, maxPathLen):
         return self.dnaStore.getSuitPath(startPoint, endPoint, minPathLen, maxPathLen)

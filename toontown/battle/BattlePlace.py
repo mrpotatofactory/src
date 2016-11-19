@@ -1,8 +1,6 @@
 from pandac.PandaModules import *
-from toontown.hood import Place, ZoneUtil
 from toontown.toon import Toon
-from toontown.toonbase import ToontownGlobals
-
+from toontown.hood import Place
 
 class BattlePlace(Place.Place):
 
@@ -88,26 +86,18 @@ class BattlePlace(Place.Place):
             except:
                 self.notify.warning('Invalid floor collision node in street: %s' % newZone.getIntoNode().getName())
                 return
+
         else:
             newZoneId = newZone
         self.doEnterZone(newZoneId)
 
+    def enterZoneStreetBattle(self, newZone):
+        self.enterZone(newZone)
+        
     def doEnterZone(self, newZoneId):
         if newZoneId != self.zoneId:
             if newZoneId != None:
-                if hasattr(self, 'zoneVisDict'):
-                    visList = self.zoneVisDict[newZoneId]
-                else:
-                    visList = base.cr.playGame.getPlace().loader.zoneVisDict[newZoneId]
-                base.cr.sendSetZoneMsg(newZoneId, visList)
+                base.cr.sendSetZoneMsg(newZoneId)
                 self.notify.debug('Entering Zone %d' % newZoneId)
             self.zoneId = newZoneId
-
-    def genDNAFileName(self, zoneId):
-        zoneId = ZoneUtil.getCanonicalZoneId(zoneId)
-        hoodId = ZoneUtil.getCanonicalHoodId(zoneId)
-        hood = ToontownGlobals.dnaMap[hoodId]
-        phase = ToontownGlobals.streetPhaseMap[hoodId]
-        if hoodId == zoneId:
-            zoneId = 'sz'
-        return 'phase_%s/dna/%s_%s.pdna' % (phase, hood, zoneId)
+        return

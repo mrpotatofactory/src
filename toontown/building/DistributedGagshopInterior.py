@@ -5,9 +5,11 @@ import random
 from direct.distributed import DistributedObject
 from direct.directnotify import DirectNotifyGlobal
 import ToonInteriorColors
+import ToonInteriorTextures
 from toontown.dna.DNAParser import DNADoor
 from toontown.hood import ZoneUtil
-from toontown.toon.DistributedNPCToonBase import DistributedNPCToonBase
+
+from toontown.dna.DNAParser import *
 
 class DistributedGagshopInterior(DistributedObject.DistributedObject):
 
@@ -31,7 +33,7 @@ class DistributedGagshopInterior(DistributedObject.DistributedObject):
     def replaceRandomInModel(self, model):
         baseTag = 'random_'
         npc = model.findAllMatches('**/' + baseTag + '???_*')
-        for i in xrange(npc.getNumPaths()):
+        for i in range(npc.getNumPaths()):
             np = npc.getPath(i)
             name = np.getName()
             b = len(baseTag)
@@ -44,8 +46,8 @@ class DistributedGagshopInterior(DistributedObject.DistributedObject):
                 if key2 == 'r':
                     self.replaceRandomInModel(newNP)
             elif key1 == 't':
-                texture = self.randomDNAItem(category, self.dnaStore.findTexture)
-                np.setTexture(texture, 100)
+                texture = self.randomGenerator.choice(self.textures[category])
+                np.setTexture(loader.loadTexture(texture), 100)
                 newNP = np
             if key2 == 'c':
                 if category == 'TI_wallpaper' or category == 'TI_wallpaper_border':
@@ -74,6 +76,7 @@ class DistributedGagshopInterior(DistributedObject.DistributedObject):
         self.interior = loader.loadModel('phase_4/models/modules/gagShop_interior')
         self.interior.reparentTo(render)
         hoodId = ZoneUtil.getCanonicalHoodId(self.zoneId)
+        self.textures = ToonInteriorTextures.textures[hoodId]
         self.colors = ToonInteriorColors.colors[hoodId]
         self.replaceRandomInModel(self.interior)
         door = self.chooseDoor()
@@ -82,16 +85,15 @@ class DistributedGagshopInterior(DistributedObject.DistributedObject):
         doorOrigin.setScale(0.8, 0.8, 0.8)
         doorOrigin.setPos(doorOrigin, 0, -0.025, 0)
         doorColor = self.randomGenerator.choice(self.colors['TI_door'])
-        DNADoor.setupDoor(doorNP, self.interior, doorOrigin, self.dnaStore, str(self.block), doorColor)
+        setupDoor(doorNP, self.interior, doorOrigin, self.dnaStore, str(self.block + 500), doorColor)
         doorFrame = doorNP.find('door_*_flat')
         doorFrame.wrtReparentTo(self.interior)
         doorFrame.setColor(doorColor)
         del self.colors
         del self.dnaStore
         del self.randomGenerator
+        localizerAgent.handleHookGSSignInterior(self.interior.find('**/g1'))
         self.interior.flattenMedium()
-        for npcToon in self.cr.doFindAllInstances(DistributedNPCToonBase):
-            npcToon.initToonState()
 
     def disable(self):
         self.interior.removeNode()

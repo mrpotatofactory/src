@@ -51,8 +51,6 @@ class CogdoMazeGameIntro(CogdoGameMovie):
         for part in suit.getHeadParts():
             part.hide()
 
-        suit.loop('neutral')
-
     def load(self):
         CogdoGameMovie.load(self)
         self.toonDNA = ToonDNA.ToonDNA()
@@ -66,6 +64,7 @@ class CogdoMazeGameIntro(CogdoGameMovie):
         self.toonHead.setPosHprScale(-0.73, 0, -1.27, 180, 0, 0, 0.18, 0.18, 0.18)
         self.toonHead.reparentTo(hidden)
         self.toonHead.startBlink()
+        self.toonHead.setBin('gui-popup', 100)
         self.cogHead = Suit.Suit()
         self.cogDNA = SuitDNA.SuitDNA()
         self.cogDNA.newSuit('ms')
@@ -75,6 +74,9 @@ class CogdoMazeGameIntro(CogdoGameMovie):
         self.cogHead.loop('neutral')
         self.cogHead.setPosHprScale(-0.73, 0, -1.46, 180, 0, 0, 0.14, 0.14, 0.14)
         self.cogHead.reparentTo(hidden)
+        self.cogHead.nametag3d.stash()
+        self.cogHead.nametag.destroy()
+        self.cogHead.setBin('gui-popup', 100)
         self.clipPlane = self.toonHead.attachNewNode(PlaneNode('clip'))
         self.clipPlane.node().setPlane(Plane(0, 0, 1, 0))
         self.clipPlane.setPos(0, 0, 2.45)
@@ -123,7 +125,7 @@ class CogdoMazeGameIntro(CogdoGameMovie):
         def end():
             self._stopUpdateTask()
 
-        self._ival = Sequence(Func(start), Func(self.displayLine, 'toon', self._getRandomLine(dialogue[0])), showExitIval, Func(showWaterCooler), Func(self.displayLine, 'toon', self._getRandomLine(dialogue[1])), Wait(waitDuration), Func(showBoss), bossSuit.hprInterval(1.0, bossSuit.getHpr() + Point3(180, 0, 0), blendType='easeInOut'), Func(self.displayLine, 'toon', self._getRandomLine(dialogue[2])), Wait(waitDuration - 1.0), Func(end))
+        self._ival = Sequence(Func(start), Func(self.displayLine, 'cog', self._getRandomLine(dialogue[0])), showExitIval, Func(showWaterCooler), Func(self.displayLine, 'toon', self._getRandomLine(dialogue[1])), Wait(waitDuration), Func(showBoss), bossSuit.hprInterval(1.0, bossSuit.getHpr() + Point3(180, 0, 0), blendType='easeInOut'), Func(self.displayLine, 'cog', self._getRandomLine(dialogue[2])), Wait(waitDuration - 1.0), Func(end))
         self._startUpdateTask()
 
     def _setCamTarget(self, targetNP, distance, offset = Point3(0, 0, 0), angle = Point3(0, 0, 0)):

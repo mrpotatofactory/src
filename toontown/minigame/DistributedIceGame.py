@@ -593,7 +593,7 @@ class DistributedIceGame(DistributedMinigame.DistributedMinigame, DistributedIce
         taskMgr.remove(self.debugTaskName)
 
     def debugTask(self, task):
-        if self.canDrive and localAvatar.doId in self.tireDict:
+        if self.canDrive and self.tireDict.has_key(localAvatar.doId):
             dt = globalClock.getDt()
             forceMove = 25000
             forceMoveDt = forceMove
@@ -1040,7 +1040,7 @@ class DistributedIceGame(DistributedMinigame.DistributedMinigame, DistributedIce
         DistributedIceWorld.DistributedIceWorld.postStep(self)
         if not self.colCount:
             return
-        for count in xrange(self.colCount):
+        for count in range(self.colCount):
             c0, c1 = self.getOrderedContacts(count)
             if c1 in self.tireCollideIds:
                 tireIndex = self.tireCollideIds.index(c1)

@@ -34,7 +34,7 @@ class RemoteValueSet:
             self.dict[name] = value
 
         for name in expectedFields:
-            if name not in self.dict:
+            if not self.dict.has_key(name):
                 errMsg = "missing expected field '%s'" % name
                 self.notify.warning(errMsg)
                 onUnexpectedResponse(errMsg)
@@ -46,7 +46,7 @@ class RemoteValueSet:
         return 'RemoteValueSet:%s' % str(self.dict)
 
     def hasKey(self, key):
-        return key in self.dict
+        return self.dict.has_key(key)
 
     def getBool(self, name, default = None):
         return self.__getValue(name, lambda x: int(x) != 0, default)

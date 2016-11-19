@@ -1,6 +1,18 @@
-from direct.directnotify import DirectNotifyGlobal
-from toontown.building.DistributedBuildingAI import DistributedBuildingAI
+# File: D (Python 2.4)
 
-class DistributedAnimBuildingAI(DistributedBuildingAI):
-    notify = DirectNotifyGlobal.directNotify.newCategory("DistributedAnimBuildingAI")
+from direct.directnotify import DirectNotifyGlobal
+from toontown.building import DistributedBuildingAI
+from toontown.building import DistributedAnimDoorAI
+from toontown.building import DoorTypes
+
+class DistributedAnimBuildingAI(DistributedBuildingAI.DistributedBuildingAI):
+    
+    def __init__(self, air, blockNumber, zoneId, trophyMgr):
+        DistributedBuildingAI.DistributedBuildingAI.__init__(self, air, blockNumber, zoneId, trophyMgr)
+
+    
+    def createExteriorDoor(self):
+        result = DistributedAnimDoorAI.DistributedAnimDoorAI(self.air, self.block, DoorTypes.EXT_ANIM_STANDARD)
+        return result
+
 

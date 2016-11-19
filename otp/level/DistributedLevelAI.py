@@ -33,10 +33,8 @@ class DistributedLevelAI(DistributedObjectAI.DistributedObjectAI, Level.Level):
             levelSpec = self.levelSpec
         self.initializeLevel(levelSpec)
         self.sendUpdate('setZoneIds', [self.zoneIds])
-        self.sendUpdate('setStartTimestamp', [self.startTimestamp])
-        if __dev__:
-            pass
-        return
+        taskMgr.doMethodLater(.1, DistributedLevelAI.sendUpdate, 'blahLevelAIUpdate',
+                              [self, 'setStartTimestamp', [self.startTimestamp]])
 
     def getLevelZoneId(self):
         return self.zoneId
@@ -52,8 +50,8 @@ class DistributedLevelAI(DistributedObjectAI.DistributedObjectAI, Level.Level):
 
     def delete(self, deAllocZone = True):
         self.notify.debug('delete')
-        if __dev__:
-            self.removeAutosaveTask()
+        #if __dev__:
+        #    self.removeAutosaveTask()
         self.destroyLevel()
         self.ignoreAll()
         if deAllocZone:
@@ -66,8 +64,8 @@ class DistributedLevelAI(DistributedObjectAI.DistributedObjectAI, Level.Level):
         lol = zip([1] * levelSpec.getNumScenarios(), range(levelSpec.getNumScenarios()))
         scenarioIndex = weightedChoice(lol)
         Level.Level.initializeLevel(self, self.doId, levelSpec, scenarioIndex)
-        if __dev__:
-            self.accept(self.editMgrEntity.getSpecSaveEvent(), self.saveSpec)
+        #if __dev__:
+        #    self.accept(self.editMgrEntity.getSpecSaveEvent(), self.saveSpec)
         for avId in self.avIdList:
             self.acceptOnce(self.air.getAvatarExitEvent(avId), Functor(self.handleAvatarDisconnect, avId))
 
@@ -131,7 +129,7 @@ class DistributedLevelAI(DistributedObjectAI.DistributedObjectAI, Level.Level):
         largeBlob = DistributedLargeBlobSenderAI.DistributedLargeBlobSenderAI(self.air, self.zoneId, senderId, specStr, useDisk=useDisk)
         self.sendUpdateToAvatarId(senderId, 'setSpecSenderDoId', [largeBlob.doId])
         return
-
+    '''
     if __dev__:
 
         def setAttribChange(self, entId, attribName, value, username = 'SYSTEM'):
@@ -175,4 +173,5 @@ class DistributedLevelAI(DistributedObjectAI.DistributedObjectAI, Level.Level):
                 DistributedLevelAI.notify.info('no changes to save')
                 return
             self.levelSpec.saveToDisk()
-            self.modified = 0
+            self.modified = 0  
+    '''

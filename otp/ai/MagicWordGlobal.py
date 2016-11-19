@@ -1,20 +1,25 @@
 from direct.showbase import PythonUtil
 
-class MagicError(Exception): pass
+ACCESS_MOD = 300
+ACCESS_DEV = 400
+ACCESS_ADMIN = 500
+ACCESS_TOP = 1000
+
+MINIMUM_MAGICWORD_ACCESS = ACCESS_MOD
+
+MW_DEV_ONLY = 1
+MW_LIVE_ONLY = 2
+
+class MagicError(Exception):
+    pass
 
 def ensureAccess(access, msg='Insufficient access'):
     if spellbook.getInvokerAccess() < access:
         raise MagicError(msg)
 
 class Spellbook:
-    """
-    The Spellbook manages the list of all Magic Words that have been registered
-    anywhere in the system. When the MagicWordManager(AI) wants to process a
-    Magic Word, it is passed off to the Spellbook, which performs the operation.
-
-    To add Magic Words to the Spellbook, use the @magicWord() decorator.
-    """
-
+    isLive = config.GetBool('mw-is-live', False)
+    
     def __init__(self):
         self.words = {}
 
@@ -22,40 +27,41 @@ class Spellbook:
         self.currentTarget = None
 
     def addWord(self, word):
-        self.words[word.name.lower()] = word  # lets make this stuff case insensitive
+        self.words[word.name] = word
 
     def process(self, invoker, target, incantation):
         self.currentInvoker = invoker
         self.currentTarget = target
+        
         word, args = (incantation.split(' ', 1) + [''])[:2]
 
         try:
             return self.doWord(word, args)
+            
         except MagicError as e:
             return e.message
+            
         except Exception:
             return PythonUtil.describeException(backTrace=1)
+            
         finally:
             self.currentInvoker = None
             self.currentTarget = None
 
     def doWord(self, wordName, args):
-        word = self.words.get(wordName.lower())   # look it up by its lower case value
-
+        word = self.words.get(wordName)
         if not word:
-            if process == 'ai':
-                wname = wordName.lower()
-                for key in self.words:
-                    if self.words.get(key).access <= self.getInvokerAccess():
-                        if wname in key:
-                            return 'Did you mean %s' % (self.words.get(key).name)
-            if not word:
-                return
+            return
+            
+        if Spellbook.isLive and word.flags & MW_DEV_ONLY:
+            raise MagicError('Disabled on live server')
 
         ensureAccess(word.access)
         if self.getTarget() and self.getTarget() != self.getInvoker():
             if self.getInvokerAccess() <= self.getTarget().getAdminAccess():
                 raise MagicError('Target must have lower access')
+                
+            ensureAccess(word.accessOther, 'This magic word requires higher access when applying to others')
 
         result = word.run(args)
         if result is not None:
@@ -70,35 +76,75 @@ class Spellbook:
     def getInvokerAccess(self):
         if not self.currentInvoker:
             return 0
+            
         return self.currentInvoker.getAdminAccess()
+        
+    def __repr__(self):
+        r = ''
+        accessToJob = {300: 'MOD', 400: 'DEV', 500: 'ADMIN', 1000: 'TOP ADMIN'}
+        jobToWords = {}
+        
+        for name, word in self.words.items():
+            access = word.access
+            accessOther = word.accessOther
+            job = accessToJob.get(access)
+            if job is None:
+                if access > 500:
+                    job = accessToJob[1000]
+                    
+                else:
+                    job = 'DEFAULT JOB'
+                    
+            flagsText = []
+            if word.flags & MW_DEV_ONLY:
+                flagsText.append('MW_DEV_ONLY')
+               
+            if word.flags & MW_LIVE_ONLY:
+                flagsText.append('MW_LIVE_ONLY')
+                
+            if not flagsText:
+                flagsText.append('0 <none>')
+                
+            chainsText = map(lambda x: x.name, word.chains)
+            jobToWords.setdefault(job, []).append('%s\n  access: %d\n  accessOther: %d\n  flags: %s\n  chains: %s\n'
+                                                  % (name, access, accessOther, ' | '.join(flagsText), ', '.join(chainsText)))
+            
+        jobs = sorted(jobToWords.keys())
+        for job in jobs:
+            r += '--------------------- %s ---------------------\n' % job
+            for word in sorted(jobToWords[job]):
+                r += word + '\n'
+                
+            r += '\n'
+                
+        return r[:-3]
 
 spellbook = Spellbook()
 
-
-# CATEGORIES
-class MagicWordCategory:
-    def __init__(self, name, defaultAccess=600):
+class MagicWordChain:
+    def __init__(self, name, defaultAccess, defaultFlags=0):
         self.name = name
         self.defaultAccess = defaultAccess
+        self.defaultFlags = defaultFlags
 
-CATEGORY_UNKNOWN = MagicWordCategory('Unknown')
-CATEGORY_USER = MagicWordCategory('Community manager', defaultAccess=100)
-CATEGORY_COMMUNITY_MANAGER = MagicWordCategory('Community manager', defaultAccess=200)
-CATEGORY_MODERATOR = MagicWordCategory('Moderator', defaultAccess=300)
-CATEGORY_CREATIVE = MagicWordCategory('Creative', defaultAccess=400)
-CATEGORY_PROGRAMMER = MagicWordCategory('Programmer', defaultAccess=500)
-CATEGORY_ADMINISTRATOR = MagicWordCategory('Administrator', defaultAccess=600)
-CATEGORY_SYSTEM_ADMINISTRATOR = MagicWordCategory('System administrator', defaultAccess=700)
-
-MINIMUM_MAGICWORD_ACCESS = CATEGORY_COMMUNITY_MANAGER.defaultAccess
-
+CHAIN_DEFAULT = MagicWordChain('Default', ACCESS_DEV)
+CHAIN_HEAD = MagicWordChain('God commands', ACCESS_TOP)
+CHAIN_ADM = MagicWordChain('Administrator commands', ACCESS_ADMIN)
+CHAIN_CHEAT = MagicWordChain('Game cheats', ACCESS_DEV)
+CHAIN_CHARACTERSTATS = MagicWordChain('Character-stats cheats', ACCESS_DEV)
+CHAIN_MOD = MagicWordChain('Moderation commands', ACCESS_MOD)
+CHAIN_DISABLED_ON_LIVE = MagicWordChain('Disabled on live', 0, MW_DEV_ONLY)
+CHAIN_DISABLED_ON_DEV = MagicWordChain('Disabled on dev', 0, MW_LIVE_ONLY)
 
 class MagicWord:
-    def __init__(self, name, func, types, access, doc):
+    def __init__(self, name, func, types, access, accessOther, chains, flags, doc):
         self.name = name
         self.func = func
         self.types = types
         self.access = access
+        self.accessOther = accessOther
+        self.chains = chains
+        self.flags = flags
         self.doc = doc
 
     def parseArgs(self, string):
@@ -126,31 +172,40 @@ class MagicWord:
 
 
 class MagicWordDecorator:
-    """
-    This class manages Magic Word decoration. It is aliased as magicWord, so that
-    the @magicWord(...) construct instantiates this class and has the resulting
-    object process the Magic Word's construction.
-    """
-
-    def __init__(self, name=None, types=[str], access=None, category=CATEGORY_UNKNOWN):
+    def __init__(self, name=None, types=[str], access=None, accessOther=None, chains=[CHAIN_DEFAULT]):
         self.name = name
         self.types = types
-        self.category = category
+        self.chains = chains
+        
         if access is not None:
             self.access = access
+            
         else:
-            self.access = self.category.defaultAccess
+            if len(chains) != 1:
+                raise MagicError('magicWord: unable to determine accessLevel\nprovide exactly one chain or specify it explicitly')
+            
+            self.access = chains[0].defaultAccess
+            
+        if not self.access:
+            self.access = CHAIN_DEFAULT.defaultAccess
+            
+        self.accessOther = self.access
+        if accessOther is not None:
+            if accessOther < self.access:
+                raise MagicError('accessOther must be greater or equal to access')
+                
+            self.accessOther = accessOther
+            
+        self.flags = 0
+        for chain in self.chains:
+            self.flags |= chain.defaultFlags
 
     def __call__(self, mw):
-        # This is the actual decoration routine. We add the function 'mw' as a
-        # Magic Word to the Spellbook, using the attributes specified at construction
-        # time.
-
         name = self.name
         if name is None:
             name = mw.func_name
 
-        word = MagicWord(name, mw, self.types, self.access, mw.__doc__)
+        word = MagicWord(name, mw, self.types, self.access, self.accessOther, self.chains, self.flags, mw.__doc__)
         spellbook.addWord(word)
 
         return mw

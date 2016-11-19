@@ -102,8 +102,6 @@ class DistributedCloset(DistributedFurnitureItem.DistributedFurnitureItem):
 
     def disable(self):
         self.notify.debug('disable')
-        self.ignore(self.closetSphereEnterEvent)
-        self.ignoreAll()
         taskMgr.remove(self.uniqueName('popupChangeClothesGUI'))
         taskMgr.remove(self.uniqueName('lerpCamera'))
         taskMgr.remove(self.uniqueName('lerpToon'))
@@ -154,7 +152,7 @@ class DistributedCloset(DistributedFurnitureItem.DistributedFurnitureItem):
             self._openDoors()
             if self.customerId == base.localAvatar.doId:
                 camera.wrtReparentTo(self)
-                camera.posQuatInterval(1, (-7.58, -6.02, 6.9), (286.3, 336.8, 0), other=self, blendType='easeOut').start()
+                camera.lerpPosHpr(-7.58, -6.02, 6.9, 286.3, 336.8, 0, 1, other=self, blendType='easeOut')#task=self.uniqueName('lerpCamera'))
                 camera.setPosHpr(self, -7.58, -6.02, 6.9, 286.3, 336.8, 0)
             if self.av:
                 if self.avMoveTrack:
@@ -211,7 +209,9 @@ class DistributedCloset(DistributedFurnitureItem.DistributedFurnitureItem):
                     self.botList = botList
                     self.oldTopList = self.topList[0:]
                     self.oldBotList = self.botList[0:]
+                    print '-----------Starting closet interaction-----------'
                     self.printInfo()
+                    print '-------------------------------------------------'
                     if not self.isOwner:
                         self.__popupNotOwnerPanel()
                     else:
@@ -384,7 +384,9 @@ class DistributedCloset(DistributedFurnitureItem.DistributedFurnitureItem):
         elif mode == ClosetGlobals.CLOSET_MOVIE_COMPLETE:
             if self.isLocalToon:
                 self._revertGender()
+                print '-----------ending trunk interaction-----------'
                 self.printInfo()
+                print '-------------------------------------------------'
                 self.resetCloset()
                 self.freeAvatar()
                 return

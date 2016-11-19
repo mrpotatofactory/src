@@ -1,17 +1,16 @@
-import random
-
 from otp.ai.MagicWordGlobal import *
 from toontown.fishing import FishGlobals
 from toontown.fishing.FishBase import FishBase
 from toontown.toonbase import TTLocalizer
-
+from toontown.uberdog import TopToonsGlobals
+import random
 
 class FishManagerAI:
-    def __init__(self, air):
-        self.air = air
+
+    def __init__(self):
         self.ponds = {}
         self.requestedFish = {}
-
+        
     def creditFishTank(self, av):
         totalFish = len(av.fishCollection)
         trophies = int(totalFish / 10)
@@ -66,6 +65,7 @@ class FishManagerAI:
             av.fishTank.addFish(fish)
             netlist = av.fishTank.getNetLists()
             av.d_setFishTank(netlist[0], netlist[1], netlist[2])
+            messenger.send('topToonsManager-event', [av.doId, TopToonsGlobals.CAT_FISH, 1])
             return [itemType, genus, species, weight]
         elif itemType == FishGlobals.BootItem:
             return [itemType, 0, 0, 0]
@@ -89,31 +89,26 @@ class FishManagerAI:
                 av.fishTank.addFish(fish)
                 netlist = av.fishTank.getNetLists()
                 av.d_setFishTank(netlist[0], netlist[1], netlist[2])
+                messenger.send('topToonsManager-event', [av.doId, TopToonsGlobals.CAT_FISH, 1])
                 return [itemType, genus, species, weight]
         else:
             money = FishGlobals.Rod2JellybeanDict[av.getFishingRod()]
             av.addMoney(money)
             return [itemType, money, 0, 0]
 
-
-@magicWord(category=CATEGORY_ADMINISTRATOR, types=[str])
-def fish(fishName):
-    """
-    Register/unregister the fish to be caught on the invoker.
-    """
-    invoker = spellbook.getInvoker()
-    if fishName.lower() == 'remove':
-        if invoker.doId not in simbase.air.fishManager.fishRequests:
-            return 'You have not requested a fish.'
-        del simbase.air.fishManager.fishRequests[invoker.doId]
-        return 'Removed your fish request.'
-
-    for genus, species in TTLocalizer.FishSpeciesNames:
-        for name in species:
-            if fishName.lower() != name.lower():
-                continue
-            fishRequest = (genus, species.index(name))
-            simbase.air.fishManager.fishRequests[invoker.doId] = fishRequest
-            return 'A request for the fish %s was saved.' % name
-
-    return "Couldn't find a fish with the name %s!" % fishName
+@magicWord(chains=[CHAIN_MOD], types=[int], accessOther=ACCESS_ADMIN)    
+def setFishingRod(rodVal):
+    if not 0 <= rodVal <= 4:
+        return 'Rod value must be between 0 and 4.'
+        
+    spellbook.getTarget().b_setFishingRod(rodVal)
+    return 'Rod changed to ' + str(rodVal)
+    
+@magicWord(chains=[CHAIN_MOD], types=[int], accessOther=ACCESS_ADMIN)
+def setMaxFishTank(tankVal):
+    if not 20 <= tankVal <= 99:
+        return 'Max fish tank value must be between 20 and 99'
+        
+    spellbook.getTarget().b_setMaxFishTank(tankVal)
+    return 'Max size of fish tank changed to ' + str(tankVal)
+    

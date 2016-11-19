@@ -1,3 +1,4 @@
+from direct.directnotify import DirectNotifyGlobal
 from toontown.catalog.CatalogItemList import CatalogItemList
 from toontown.catalog.CatalogFurnitureItem import CatalogFurnitureItem
 from toontown.catalog import CatalogItem
@@ -31,17 +32,15 @@ DNA2Furniture = {
 
 }
 
-
 class DNAFurnitureReaderAI:
     # This object processes the house_interior*.dna files and produces a
     # CatalogItemList representing the furniture in the DNA file. The resulting
     # list is passed to the FurnitureManager in order to initialize a blank
     # house to the default furniture arrangement.
-    notify = directNotify.newCategory("DNAFurnitureReaderAI")
+    notify = DirectNotifyGlobal.directNotify.newCategory("DNAFurnitureReaderAI")
 
-    def __init__(self, dnaData, phonePos):
+    def __init__(self, dnaData):
         self.dnaData = dnaData
-        self.phonePos = phonePos
         self.itemList = None
 
     def buildList(self):
@@ -49,16 +48,17 @@ class DNAFurnitureReaderAI:
                                                CatalogItem.Location))
 
         # Find the interior node:
-        for child in self.dnaData.children:
+        for i in xrange(self.dnaData.getNumChildren()):
+            child = self.dnaData.at(i)
             if child.getName() == 'interior':
                 interior = child
                 break
         else:
             self.notify.error('Could not find "interior" in DNA!')
 
-        self.itemList.append(CatalogFurnitureItem(1399, posHpr=self.phonePos))
         # Every child in the interior node is a prop, thus:
-        for child in interior.children:
+        for i in xrange(interior.getNumChildren()):
+            child = interior.at(i)
             code = child.getCode()
 
             if code not in DNA2Furniture:

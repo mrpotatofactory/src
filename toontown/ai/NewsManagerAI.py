@@ -1,18 +1,8 @@
-from direct.directnotify.DirectNotifyGlobal import directNotify
+from direct.directnotify import DirectNotifyGlobal
 from direct.distributed.DistributedObjectAI import DistributedObjectAI
 
-
 class NewsManagerAI(DistributedObjectAI):
-    notify = directNotify.newCategory('NewsManagerAI')
-
-    def announceGenerate(self):
-        DistributedObjectAI.announceGenerate(self)
-
-        self.accept('avatarEntered', self.__handleAvatarEntered)
-
-    def __handleAvatarEntered(self, avatar):
-        if self.air.suitInvasionManager.getInvading():
-            self.air.suitInvasionManager.notifyInvasionBulletin(avatar.getDoId())
+    notify = DirectNotifyGlobal.directNotify.newCategory("NewsManagerAI")
 
     def setPopulation(self, todo0):
         pass
@@ -50,8 +40,8 @@ class NewsManagerAI(DistributedObjectAI):
     def setRoamingTrialerWeekendEnd(self):
         pass
 
-    def setInvasionStatus(self, msgType, cogType, numRemaining, skeleton):
-        self.sendUpdate('setInvasionStatus', args=[msgType, cogType, numRemaining, skeleton])
+    def setInvasionStatus(self, todo0, todo1, todo2, todo3):
+        pass
 
     def setHolidayIdList(self, holidays):
         self.sendUpdate('setHolidayIdList', holidays)
@@ -59,8 +49,8 @@ class NewsManagerAI(DistributedObjectAI):
     def holidayNotify(self):
         pass
 
-    def setWeeklyCalendarHolidays(self, todo0):
-        pass
+    def setWeeklyCalendarHolidays(self, holidays):
+        self.sendUpdate('setWeeklyCalendarHolidays', holidays)
 
     def getWeeklyCalendarHolidays(self):
         return []

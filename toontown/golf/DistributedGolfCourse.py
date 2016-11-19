@@ -15,6 +15,7 @@ from toontown.golf import GolfGlobals
 from toontown.golf import GolfScoreBoard
 from toontown.golf import GolfRewardDialog
 from toontown.toon import ToonHeadFrame
+import cPickle
 
 class DistributedGolfCourse(DistributedObject.DistributedObject, FSM, DelayDeletable):
     notify = directNotify.newCategory('DistributedGolfCourse')
@@ -68,7 +69,7 @@ class DistributedGolfCourse(DistributedObject.DistributedObject, FSM, DelayDelet
         self.request('Join')
         self.normalExit = 1
         count = self.modelCount
-        loader.beginBulkLoad('minigame', TTLocalizer.HeadingToMinigameTitle % self.getTitle(), count, 1, TTLocalizer.TIP_GOLF, self.zoneId)
+        loader.beginBulkLoad('minigame', TTLocalizer.HeadingToMinigameTitle % self.getTitle(), count, 1, TTLocalizer.TIP_GOLF)
         self.load()
         globalClock.syncFrameTime()
         self.onstage()
@@ -84,6 +85,7 @@ class DistributedGolfCourse(DistributedObject.DistributedObject, FSM, DelayDelet
         return
 
     def delete(self):
+        print 'GOLF COURSE DELETE'
         self.ignore('clientCleanup')
         if self.scoreBoard:
             self.scoreBoard.delete()
@@ -92,7 +94,7 @@ class DistributedGolfCourse(DistributedObject.DistributedObject, FSM, DelayDelet
             self.golfRewardDialog.delete()
         self.cleanUpReward()
         if self.toonPanels:
-            for x in xrange(len(self.toonPanels)):
+            for x in range(len(self.toonPanels)):
                 self.toonPanels[x].destroy()
 
             self.toonPanels = None
@@ -157,14 +159,13 @@ class DistributedGolfCourse(DistributedObject.DistributedObject, FSM, DelayDelet
                 else:
                     color += 1
 
-            base.setCellsActive(base.leftCells, 0)
-
         else:
             self.toonPanels = None
         for avId in self.exitedAvIdList:
             if avId not in self.exitedToonsWithPanels:
                 self.exitMessageForToon(avId)
 
+        return
 
     def setPlayHole(self):
         self.notify.debug('GOLF COURSE: received setPlayHole')
@@ -201,8 +202,6 @@ class DistributedGolfCourse(DistributedObject.DistributedObject, FSM, DelayDelet
             else:
                 self.notify.warning('GOLF COURSE: Attempting to clean up twice')
 
-            base.setCellsActive(base.leftCells, 1)
-
     def onstage(self):
         self.notify.debug('GOLF COURSE: onstage')
         base.playMusic(self.music, looping=1, volume=0.9)
@@ -222,7 +221,7 @@ class DistributedGolfCourse(DistributedObject.DistributedObject, FSM, DelayDelet
     def exitMessageForToon(self, avId):
         if self.toonPanels and self.localAvId != avId:
             y = 0
-            for x in xrange(len(self.avIdList)):
+            for x in range(len(self.avIdList)):
                 if avId == self.avIdList[x] and y < len(self.toonPanels):
                     toonPanel = self.toonPanels[y]
                     toonPanel.headModel.hide()
@@ -262,6 +261,7 @@ class DistributedGolfCourse(DistributedObject.DistributedObject, FSM, DelayDelet
         pass
 
     def enterCleanup(self):
+        print 'GOLF COURSE CLEANUP'
         base.localAvatar.stopSleepWatch()
         for action in self.cleanupActions:
             action()
@@ -270,7 +270,7 @@ class DistributedGolfCourse(DistributedObject.DistributedObject, FSM, DelayDelet
         if not self.scoreBoard == None:
             self.scoreBoard.delete()
         if self.toonPanels:
-            for x in xrange(len(self.toonPanels)):
+            for x in range(len(self.toonPanels)):
                 self.toonPanels[x].destroy()
 
         self.toonPanels = None
@@ -311,14 +311,7 @@ class DistributedGolfCourse(DistributedObject.DistributedObject, FSM, DelayDelet
         return retval
 
     def setScores(self, scoreList):
-        scoreList.reverse()
-        for avId in self.avIdList:
-            avScores = []
-            for holeIndex in xrange(self.numHoles):
-                avScores.append(scoreList.pop())
-
-            self.scores[avId] = avScores
-
+        self.scores = cPickle.loads(scoreList)
         self.notify.debug('self.scores=%s' % self.scores)
 
     def setCurHoleIndex(self, holeIndex):

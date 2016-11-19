@@ -1,24 +1,25 @@
-import random
-
-import DistributedBossCogAI
-import DistributedSuitAI
-import SuitDNA
-from direct.directnotify import DirectNotifyGlobal
-from direct.distributed.ClockDelta import *
-from direct.fsm import FSM
 from otp.ai.AIBaseGlobal import *
+from direct.distributed.ClockDelta import *
+import DistributedBossCogAI
+from direct.directnotify import DirectNotifyGlobal
+from otp.avatar import DistributedAvatarAI
+import DistributedSuitAI
 from toontown.battle import BattleExperienceAI
-from toontown.toon import NPCToons
-from toontown.toonbase import TTLocalizer
+from direct.fsm import FSM
 from toontown.toonbase import ToontownGlobals
-from otp.ai.MagicWordGlobal import *
-
+from toontown.toon import InventoryBase
+from toontown.toonbase import TTLocalizer
+from toontown.battle import BattleBase
+from toontown.toon import NPCToons
+import SuitDNA
+import random
 
 class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedSellbotBossAI')
     limitHitCount = 6
     hitCountDamage = 35
     numPies = ToontownGlobals.FullPies
+    BossName = "VP"
 
     def __init__(self, air):
         DistributedBossCogAI.DistributedBossCogAI.__init__(self, air, 's')
@@ -48,12 +49,7 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         if not self.validate(avId, avId in self.involvedToons, 'hitBoss from unknown avatar'):
             return
         self.validate(avId, bossDamage == 1, 'invalid bossDamage %s' % bossDamage)
-        if bossDamage > 1:
-            simbase.air.writeServerEvent('suspicious', avId, 'Toon sent an attack over 1 damage!')
-            simbase.air.banManager.ban(avId, 0, 'sys-hack')
-            return
         if bossDamage < 1:
-            simbase.air.writeServerEvent('suspicious', avId, 'Toon sent an attack less than 1 damage!')
             return
         currState = self.getCurrentOrNextState()
         if currState != 'BattleThree':
@@ -79,9 +75,6 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
 
     def hitToon(self, toonId):
         avId = self.air.getAvatarIdFromSender()
-        if avId == toonId:
-            simbase.air.writeServerEvent('suspicious', avId, 'Toon tried to heal their self!')
-            simbase.air.banManager.ban(avId, 0, 'sys-hack')
         if not self.validate(avId, avId != toonId, 'hitToon on self'):
             return
         if avId not in self.involvedToons or toonId not in self.involvedToons:
@@ -196,17 +189,56 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         self.initializeBattles(1, ToontownGlobals.SellbotBossBattleOnePosHpr)
 
     def generateSuits(self, battleNumber):
+        weakenedValue = ((1, 1), (2, 2), (2, 2), (1, 1), (1, 1, 1, 1, 1))
+        
+        from toontown.building import SuitBuildingGlobals
+        listVersion = list(SuitBuildingGlobals.SuitBuildingInfo)
+        if simbase.config.GetBool('vp-cheat', 0):
+            listVersion[9] = weakenedValue
+            listVersion[10] = weakenedValue
+            SuitBuildingGlobals.SuitBuildingInfo = tuple(listVersion)
+
         if battleNumber == 1:
-            return self.invokeSuitPlanner(9, 0)
+            x, y = 17, 18
+            if self.air.holidayManager.isHolidayRunning(ToontownGlobals.SELLBOT_NERF_HOLIDAY):
+                x = 15
+                y = 15
+            easyCogs = self.invokeSuitPlanner(x, 0)
+            hardCogs = self.invokeSuitPlanner(y, 0)
+            
+            activeSuits = easyCogs['activeSuits'] + hardCogs['activeSuits']
+            reserveSuits = easyCogs['reserveSuits'] + hardCogs['reserveSuits']
+            
+            random.shuffle(activeSuits)
+            
+            while len(activeSuits) > 4:
+                suit = activeSuits.pop()
+                reserveSuits.append((suit, 100))
+
+            def compareJoinChance(a, b):
+                return cmp(a[1], b[1])
+
+            reserveSuits.sort(compareJoinChance)
+            
+            return {'activeSuits': activeSuits,
+                    'reserveSuits': reserveSuits}
+            
         else:
-            return self.invokeSuitPlanner(10, 1)
+            x = 10
+            if self.air.holidayManager.isHolidayRunning(ToontownGlobals.SELLBOT_NERF_HOLIDAY):
+                x = 16
+            return self.invokeSuitPlanner(x, 1)
 
     def removeToon(self, avId):
         toon = simbase.air.doId2do.get(avId)
         if toon:
             toon.b_setNumPies(0)
+            
         DistributedBossCogAI.DistributedBossCogAI.removeToon(self, avId)
 
+    def handleLoserDC(self, avId):
+        self.notify.info("Loser avId DC, killing and removing their parts!")
+        
     def enterOff(self):
         DistributedBossCogAI.DistributedBossCogAI.enterOff(self)
         self.__resetDoobers()
@@ -219,7 +251,6 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         DistributedBossCogAI.DistributedBossCogAI.enterIntroduction(self)
         self.__makeDoobers()
         self.b_setBossDamage(0, 0, 0)
-        self.air.achievementsManager.toonsStartedVP(self.involvedToons)
 
     def exitIntroduction(self):
         DistributedBossCogAI.DistributedBossCogAI.exitIntroduction(self)
@@ -368,7 +399,7 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
 
     def __makeDoobers(self):
         self.__resetDoobers()
-        for i in xrange(8):
+        for i in range(8):
             suit = DistributedSuitAI.DistributedSuitAI(self.air, None)
             level = random.randrange(len(SuitDNA.suitsPerLevel))
             suit.dna = SuitDNA.SuitDNA()
@@ -399,43 +430,30 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             return
         self.b_setAttackCode(ToontownGlobals.BossCogRecoverDizzyAttack)
 
-    def enterReward(self):
-        self.air.achievementsManager.toonsFinishedVP(self.involvedToons)
-        DistributedBossCogAI.DistributedBossCogAI.enterReward(self)
-
-@magicWord(category=CATEGORY_ADMINISTRATOR)
-def skipVP():
-    """
-    Skips to the final round of the VP.
-    """
-    invoker = spellbook.getInvoker()
-    boss = None
-    for do in simbase.air.doId2do.values():
-        if isinstance(do, DistributedSellbotBossAI):
-            if invoker.doId in do.involvedToons:
-                boss = do
-                break
-    if not boss:
-        return "You aren't in a VP!"
-    if boss.state in ('PrepareBattleThree', 'BattleThree'):
-        return "You can't skip this round."
-    boss.exitIntroduction()
-    boss.b_setState('PrepareBattleThree')
-    return 'Skipping the first round...'
-
-@magicWord(category=CATEGORY_ADMINISTRATOR)
-def killVP():
-    """
-    Kills the VP.
-    """
-    invoker = spellbook.getInvoker()
-    boss = None
-    for do in simbase.air.doId2do.values():
-        if isinstance(do, DistributedSellbotBossAI):
-            if invoker.doId in do.involvedToons:
-                boss = do
-                break
-    if not boss:
-        return "You aren't in a VP!"
-    boss.b_setState('Victory')
-    return 'Killed VP.'
+from otp.ai.MagicWordGlobal import *
+from panda3d.core import *
+ 
+@magicWord(chains=[CHAIN_DISABLED_ON_LIVE])
+def setvpcheat():
+    loadPrcFileData('mw cheat', 'vp-cheat 1')
+    
+@magicWord()
+def endvp():
+    toon = spellbook.getTarget()
+    if toon:
+        z = toon.zoneId
+        for obj in simbase.air.doId2do.values():
+            zone = getattr(obj, "zoneId", -1)
+            if zone == z:
+                if obj.__class__.__name__ == "DistributedSellbotBossAI":
+                    obj.b_setState('Victory')
+                    return "VP defeated!"
+    
+        return "VP not found!"
+        
+    return "Error!"
+    
+@magicWord(chains=[CHAIN_MOD], accessOther=ACCESS_ADMIN)
+def sos():
+    spellbook.getTarget().restockAllNPCFriends()
+    

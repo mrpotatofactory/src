@@ -10,7 +10,11 @@ MaxPlannedYear = 2030
 MinPlannedYear = 1975
 JellybeanMultiplier = 1.5
 JellyBeanDayMultiplier = 2
-PARTY_DURATION = 1800
+
+__duration = 30 # min
+PARTY_DURATION = 60 * __duration # s
+DefaultPartyDuration = (__duration / 60.) # h
+
 EventsPageGuestNameMaxWidth = 0.42
 EventsPageGuestNameMaxLetters = 18
 EventsPageHostNameMaxWidth = 0.37
@@ -29,7 +33,6 @@ JarLabelMaxedTextColor = (1.0,
  1.0)
 TuftsOfGrass = 75
 MaxToonsAtAParty = 20
-DefaultPartyDuration = 0.5
 DelayBeforeAutoKick = 1.0
 MaxHostedPartiesPerToon = 1
 PartyEditorGridBounds = ((-0.11, 0.289), (0.55, -0.447))
@@ -164,21 +167,6 @@ DecorationIds = PythonUtil.Enum(('BalloonAnvil',
  'snowman',
  'snowDoodle',
  'BalloonAnvilValentine'))
-TTIUnreleasedDecor = [DecorationIds.HeartTarget,
- DecorationIds.HeartBanner,
- DecorationIds.FlyingHeart,
- DecorationIds.Hydra,
- DecorationIds.BannerVictory,
- DecorationIds.CannonVictory,
- DecorationIds.CogStatueVictory,
- DecorationIds.TubeCogVictory,
- DecorationIds.CogIceCreamVictory,
- DecorationIds.cogIceCreamWinter,
- DecorationIds.StageWinter,
- DecorationIds.CogStatueWinter,
- DecorationIds.snowman,
- DecorationIds.snowDoodle,
- DecorationIds.BalloonAnvilValentine]
 DECORATION_VOLUME = 1.0
 DECORATION_CUTOFF = 45
 VictoryPartyDecorationIds = frozenset([DecorationIds.Hydra,
@@ -231,7 +219,7 @@ PlayGroundToPartyClockColors = {'the_burrrgh': (53.0 / 255.0,
 PartyGridUnitLength = [14.4, 14.6]
 PartyGridHeadingConverter = 15.0
 PartyGridToPandaOffset = (-PartyGridUnitLength[0] * PartyEditorGridSize[0] / 2.0, -PartyGridUnitLength[1] * PartyEditorGridSize[1] / 2.0)
-PartyCostMultiplier = 0 # ALPHA ONLY - remove after parties are legit
+PartyCostMultiplier = .2 # Cheap parties
 MinimumPartyCost = 100 * PartyCostMultiplier
 ActivityInformationDict = {ActivityIds.PartyJukebox: {'cost': int(50 * PartyCostMultiplier),
                             'gridsize': (1, 1),
@@ -667,7 +655,7 @@ for type in DropObjectTypes:
 Name2DOTypeId = {}
 names = Name2DropObjectType.keys()
 names.sort()
-for i in xrange(len(names)):
+for i in range(len(names)):
     Name2DOTypeId[names[i]] = i
 
 DOTypeId2Name = names
@@ -783,7 +771,7 @@ PhaseToMusicData = {3.5: {'TC_SZ.ogg': [TTLocalizer.MusicTcSz, 57]},
 PhaseToMusicData40 = {3.5: {'encntr_general_bg.ogg': [TTLocalizer.MusicEncntrGeneralBg, 30],
        'TC_SZ.ogg': [TTLocalizer.MusicTcSz, 57]},
  3: {'create_a_toon.ogg': [TTLocalizer.MusicCreateAToon, 175],
-     'tt_theme.ogg': [TTLocalizer.MusicTtiTheme, 51]},
+     'tt_theme.ogg': [TTLocalizer.MusicTtTheme, 51]},
  4: {'minigame_race.ogg': [TTLocalizer.MusicMinigameRace, 77],
      'TC_nbrhood.ogg': [TTLocalizer.MusicTcNbrhood, 59],
      'MG_TwoDGame.ogg': [TTLocalizer.MusicMgTwodgame, 60],

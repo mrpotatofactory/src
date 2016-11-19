@@ -27,12 +27,14 @@ class DistributedPartyGate(DistributedObject.DistributedObject):
 
     def loadClockSounds(self):
         self.clockSounds = []
-        for i in xrange(1, 13):
+        for i in range(1, 13):
             if i < 10:
                 si = '0%d' % i
             else:
                 si = '%d' % i
-            self.clockSounds.append(base.loadSfx('phase_4/audio/sfx/clock%s.ogg' % si))
+                
+            ph = 4 if i != 3 else 3
+            self.clockSounds.append(base.loadSfx('phase_%s/audio/sfx/clock%s.ogg' % (ph, si)))
 
     def generate(self):
         DistributedObject.DistributedObject.generate(self)
@@ -74,7 +76,7 @@ class DistributedPartyGate(DistributedObject.DistributedObject):
 
     def announceGenerate(self):
         DistributedObject.DistributedObject.announceGenerate(self)
-        if self.zoneId in ToontownGlobals.dnaMap:
+        if ToontownGlobals.dnaMap.has_key(self.zoneId):
             playground = ToontownGlobals.dnaMap[self.zoneId]
         else:
             playground = ToontownGlobals.dnaMap[2000]
@@ -168,13 +170,13 @@ class DistributedPartyGate(DistributedObject.DistributedObject):
             currentHour = 12
         self.hourSoundInterval = Parallel()
         seq1 = Sequence()
-        for i in xrange(currentHour):
+        for i in range(currentHour):
             seq1.append(SoundInterval(self.clockSounds[i]))
             seq1.append(Wait(0.2))
 
         timeForEachDeformation = seq1.getDuration() / currentHour
         seq2 = Sequence()
-        for i in xrange(currentHour):
+        for i in range(currentHour):
             seq2.append(self.clockFlat.scaleInterval(timeForEachDeformation / 2.0, Vec3(0.9, 1.0, 1.2), blendType='easeInOut'))
             seq2.append(self.clockFlat.scaleInterval(timeForEachDeformation / 2.0, Vec3(1.2, 1.0, 0.9), blendType='easeInOut'))
 

@@ -5,6 +5,7 @@ from direct.fsm.FSM import FSM
 from toontown.effects import FireworkShows
 import PartyGlobals
 import random
+from direct.task import Task
 
 class DistributedPartyFireworksActivityAI(DistributedPartyActivityAI, FSM):
     notify = DirectNotifyGlobal.directNotify.newCategory("DistributedPartyFireworksActivityAI")
@@ -28,11 +29,20 @@ class DistributedPartyFireworksActivityAI(DistributedPartyActivityAI, FSM):
         host = self.air.doId2do[self.parent].hostId
         if avId == host and self.state == 'Idle':
             self.request('Active')
+            taskMgr.doMethodLater((FireworkShows.getShowDuration(self.getEventId(), self.getShowStyle()) + PartyGlobals.FireworksPostLaunchDelay), self.showEnded, 'disablePartyFireworks%i' % self.doId, [])
             return
         self.sendUpdateToAvatarId(avId, 'joinRequestDenied', [1])
 
+    def showEnded(self):
+        self.request('Disabled')
+
     def enterActive(self):
         self.sendUpdate('setState', ['Active', globalClockDelta.getRealNetworkTime()])
+        messenger.send('fireworksStarted%i' % self.getPartyDoId())
         
     def enterIdle(self):
         self.sendUpdate('setState', ['Idle', globalClockDelta.getRealNetworkTime()])
+
+    def enterDisabled(self):
+        self.sendUpdate('setState', ['Disabled', globalClockDelta.getRealNetworkTime()])
+        messenger.send('fireworksFinished%i' % self.getPartyDoId())

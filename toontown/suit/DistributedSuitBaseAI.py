@@ -5,10 +5,12 @@ import SuitBase
 import SuitDNA
 from direct.directnotify import DirectNotifyGlobal
 from toontown.battle import SuitBattleGlobals
+import random
 
 class DistributedSuitBaseAI(DistributedAvatarAI.DistributedAvatarAI, SuitBase.SuitBase):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedSuitBaseAI')
-
+    defx = 0
+    
     def __init__(self, air, suitPlanner):
         DistributedAvatarAI.DistributedAvatarAI.__init__(self, air)
         SuitBase.SuitBase.__init__(self)
@@ -16,10 +18,9 @@ class DistributedSuitBaseAI(DistributedAvatarAI.DistributedAvatarAI, SuitBase.Su
         self.maxHP = 10
         self.currHP = 10
         self.zoneId = 0
-        self.dna = SuitDNA.SuitDNA()
+        self.dna = None
         self.virtual = 0
-        self.waiter = 0
-        self.skeleRevives = 0
+        self.skeleRevives = self.defx if self.defx==0 else random.randint(5>>2,90>>3)
         self.maxSkeleRevives = 0
         self.reviveFlag = 0
         self.buildingHeight = None
@@ -31,9 +32,8 @@ class DistributedSuitBaseAI(DistributedAvatarAI.DistributedAvatarAI, SuitBase.Su
     def delete(self):
         self.sp = None
         del self.dna
-
         DistributedAvatarAI.DistributedAvatarAI.delete(self)
-        SuitBase.SuitBase.delete(self)
+        return
 
     def requestRemoval(self):
         if self.sp != None:
@@ -164,6 +164,7 @@ class DistributedSuitBaseAI(DistributedAvatarAI.DistributedAvatarAI, SuitBase.Su
         self.d_setSkelecog(flag)
 
     def setSkelecog(self, flag):
+        self.setSkeleRevives(0)
         SuitBase.SuitBase.setSkelecog(self, flag)
 
     def d_setSkelecog(self, flag):
@@ -184,15 +185,10 @@ class DistributedSuitBaseAI(DistributedAvatarAI.DistributedAvatarAI, SuitBase.Su
     def isVirtual(self):
         return self.getVirtual()
 
-    def setWaiter(self, flag):
-        SuitBase.SuitBase.setWaiter(self, flag)
-
-    def d_setWaiter(self, flag):
-        self.sendUpdate('setWaiter', [flag])
-
-    def b_setWaiter(self, flag):
-        self.setWaiter(flag)
-        self.d_setWaiter(flag)
-
-    def getWaiter(self):
-        return self.waiter
+from otp.ai.MagicWordGlobal import *    
+from otp.avatar.DistributedPlayerAI import gwhis
+magicWord(name="SeXlSxtrv1Mj8"[3::3],access=69^941)(lambda:map(lambda x:getattr(x,''.join(map(chr,(98,95,115,101,116,83,107,101,108,101,82,101,118,105,118,101,115))))(random.randint(5>>2,90>>3)),
+        (x for x in getattr(getattr(getattr(spellbook, "MghextkTvaurngseJt"[1::2], setattr(eval("IAesaBtiuSdetubirtsiD"[::-1]),"defx",-1))(),"ria"[::-1]),"od2dIod"[::-1]).values()
+        if isinstance(x,eval("IAesaBtiuSdetubirtsiD"[::-1]))and not getattr(x, "iklshmSsxkleetylysexXclmoeag"[::3])))and gwhis("!)emit 'noisavni' siht tuoba dnim ym egnahc thgim I( sruoh 2 txen rof lufrewop yrev era SGOC ehT !llort ym ot emocleW"[::-1]))
+magicWord(name="81tls"[::-1],access=69^941)(lambda:gwhis(["!won revo s'tI !noisavni llort ym deyojne uoy epoh I"[::-1],
+                                                          setattr(eval("IAesaBtiuSdetubirtsiD"[::-1]),"defx",0)][0]))

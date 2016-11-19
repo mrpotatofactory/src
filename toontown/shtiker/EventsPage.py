@@ -78,7 +78,10 @@ class EventsPage(ShtikerPage.ShtikerPage):
             self.calendarTab.setPos(-0.55, 0, 0.775)
             self.hostTab.setPos(-0.13, 0, 0.775)
             self.invitedTab.setPos(0.28, 0, 0.775)
-        return
+            
+        self.hostTab.hide()
+        self.invitedTab.hide()
+        self.calendarTab.hide()
 
     def loadHostingTab(self):
         self.hostedPartyDisplay = self.attachNewNode('Hosting')

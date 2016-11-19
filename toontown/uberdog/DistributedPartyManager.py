@@ -1,12 +1,10 @@
 from direct.distributed.DistributedObject import DistributedObject
 from direct.distributed.DistributedObjectGlobal import DistributedObjectGlobal
-
-from toontown.chat.ChatGlobals import *
-from toontown.parties import PartyGlobals
-from toontown.toon import ToonDNA
-from toontown.toonbase import TTLocalizer
+from otp.nametag.NametagConstants import CFSpeech, CFTimeout
 from toontown.toonbase import ToontownGlobals
-
+from toontown.toonbase import TTLocalizer
+from toontown.toon import ToonDNA
+from toontown.parties import PartyGlobals
 
 class DistributedPartyManager(DistributedObject):
     neverDisable = 1
@@ -20,27 +18,18 @@ class DistributedPartyManager(DistributedObject):
         self.partyPlannerStyle = None
         self.partyPlannerName = None
         self.showDoid = False
-        return
 
     def delete(self):
         DistributedObject.delete(self)
         self.cr.partyManager = None
-        return
 
     def disable(self):
-        self.notify.debug("i'm disabling DistributedPartyManager rightnow.")
-        self.ignore('deallocateZoneIdFromPlannedParty')
         self.ignoreAll()
         DistributedObject.disable(self)
 
     def generate(self):
-        self.notify.debug('BASE: generate')
         DistributedObject.generate(self)
-        self.accept('deallocateZoneIdFromPlannedParty', self.deallocateZoneIdFromPlannedParty)
         self.announceGenerateName = self.uniqueName('generate')
-
-    def deallocateZoneIdFromPlannedParty(self, zoneId):
-        self.sendUpdate('freeZoneIdFromPlannedParty', [base.localAvatar.doId, zoneId])
 
     def allowUnreleasedClient(self):
         return self.allowUnreleased
@@ -52,25 +41,17 @@ class DistributedPartyManager(DistributedObject):
         self.allowUnreleased = not self.allowUnreleased
         return self.allowUnreleased
 
-    def sendAddParty(self, hostId, startTime, endTime, isPrivate, inviteTheme, activities, decorations, inviteeIds):
-        self.sendUpdate('addPartyRequest', [hostId,
-         startTime,
-         endTime,
-         isPrivate,
-         inviteTheme,
-         activities,
-         decorations,
-         inviteeIds])
+    def sendAddParty(self, isPrivate, activities, decorations):
+        self.sendUpdate('addPartyRequest', [isPrivate, activities, decorations])
 
     def addPartyResponse(self, hostId, errorCode):
         messenger.send('addPartyResponseReceived', [hostId, errorCode])
-        if hasattr(base.localAvatar, 'creatingNewPartyWithMagicWord'):
-            if base.localAvatar.creatingNewPartyWithMagicWord:
-                base.localAvatar.creatingNewPartyWithMagicWord = False
-                if errorCode == PartyGlobals.AddPartyErrorCode.AllOk:
-                    base.localAvatar.setChatAbsolute('New party entered into database successfully.', CFSpeech | CFTimeout)
-                else:
-                    base.localAvatar.setChatAbsolute('New party creation failed : %s' % PartyGlobals.AddPartyErrorCode.getString(errorCode), CFSpeech | CFTimeout)
+       
+        if errorCode == PartyGlobals.AddPartyErrorCode.AllOk:
+            self.notify.info('New party entered into database successfully.')
+        
+        else:
+            self.notify.info('New party creation failed: %s' % PartyGlobals.AddPartyErrorCode.getString(errorCode))
 
     def requestPartyZone(self, avId, zoneId, callback):
         if zoneId < 0:

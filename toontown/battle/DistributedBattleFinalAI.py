@@ -78,6 +78,7 @@ class DistributedBattleFinalAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
 
             self.d_setMembers()
             self.b_setState('ReservesJoining')
+            
         elif len(self.suits) == 0:
             battleMultiplier = getBossBattleCreditMultiplier(self.battleNumber)
             for toonId in self.activeToons:
@@ -90,6 +91,7 @@ class DistributedBattleFinalAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
             self.d_setMembers()
             self.d_setBattleExperience()
             self.b_setState('Reward')
+            
         else:
             if self.resumeNeedUpdate == 1:
                 self.d_setMembers()

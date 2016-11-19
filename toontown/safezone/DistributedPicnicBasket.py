@@ -42,7 +42,7 @@ class DistributedPicnicBasket(DistributedObject.DistributedObject):
          'phase_6/models/golf/picnic_chocolate_cake.bam']
         self.fullSeat = []
         self.food = []
-        for i in xrange(4):
+        for i in range(4):
             self.food.append(None)
             self.fullSeat.append(self.seatState.Empty)
 
@@ -56,18 +56,22 @@ class DistributedPicnicBasket(DistributedObject.DistributedObject):
         self.seats = []
         self.jumpOffsets = []
         self.basket = None
-        for i in xrange(self.numSeats):
-            self.seats.append(self.picnicTable.find('**/*seat%d' % (i + 1)))
-            self.jumpOffsets.append(self.picnicTable.find('**/*jumpOut%d' % (i + 1)))
+        for i in range(self.numSeats):
+            seat = self.picnicTable.find('**/*seat%d' % (i + 1))
+            jumpout = self.picnicTable.find('**/*jumpOut%d' % (i + 1))
+            if not seat.isEmpty() and not jumpout.isEmpty():
+                self.seats.append(seat)
+                self.jumpOffsets.append(jumpout)
 
-        self.tablecloth = self.picnicTable.find('**/basket_locator')
+        self.tablecloth = self.picnicTable.find('**/basket_locator')        
         DistributedObject.DistributedObject.announceGenerate(self)
-        for i in xrange(self.numSeats):
-            self.picnicTableSphereNodes.append(self.seats[i].attachNewNode(CollisionNode('picnicTable_sphere_%d_%d' % (self.getDoId(), i))))
-            self.picnicTableSphereNodes[i].node().addSolid(CollisionSphere(0, 0, 0, 2))
+        if not self.tablecloth.isEmpty():
+            for i in range(self.numSeats):
+                self.picnicTableSphereNodes.append(self.seats[i].attachNewNode(CollisionNode('picnicTable_sphere_%d_%d' % (self.getDoId(), i))))
+                self.picnicTableSphereNodes[i].node().addSolid(CollisionSphere(0, 0, 0, 2))
 
-        self.tableclothSphereNode = self.tablecloth.attachNewNode(CollisionNode('tablecloth_sphere'))
-        self.tableclothSphereNode.node().addSolid(CollisionSphere(0, 0, -1, 4))
+            self.tableclothSphereNode = self.tablecloth.attachNewNode(CollisionNode('tablecloth_sphere'))
+            self.tableclothSphereNode.node().addSolid(CollisionSphere(0, 0, -1, 4))
         angle = self.startingHpr[0]
         angle -= 90
         radAngle = deg2Rad(angle)
@@ -87,7 +91,7 @@ class DistributedPicnicBasket(DistributedObject.DistributedObject):
         DistributedObject.DistributedObject.disable(self)
         self.fsm.request('off')
         self.clearToonTracks()
-        for i in xrange(self.numSeats):
+        for i in range(self.numSeats):
             del self.picnicTableSphereNodes[0]
 
         del self.picnicTableSphereNodes
@@ -149,7 +153,7 @@ class DistributedPicnicBasket(DistributedObject.DistributedObject):
                 if hasattr(self.loader.place, 'trolley'):
                     self.loader.place.trolley.fsm.request('boarded')
                     self.loader.place.trolley.exitButton.hide()
-            if avId in self.cr.doId2do:
+            if self.cr.doId2do.has_key(avId):
                 toon = self.cr.doId2do[avId]
                 toon.stopSmooth()
                 toon.wrtReparentTo(self.tablecloth)
@@ -216,7 +220,7 @@ class DistributedPicnicBasket(DistributedObject.DistributedObject):
             track.start()
         else:
             self.fullSeat[index] = self.seatState.Empty
-            if avId in self.cr.doId2do:
+            if self.cr.doId2do.has_key(avId):
                 if avId == base.localAvatar.getDoId():
                     if self.clockNode:
                         self.clockNode.hide()
@@ -243,17 +247,18 @@ class DistributedPicnicBasket(DistributedObject.DistributedObject):
         self.loader.place.trolley.handleRejectBoard()
 
     def __enableCollisions(self):
-        for i in xrange(self.numSeats):
+        print self.picnicTableSphereNodes
+        for i in range(self.numSeats):
             self.accept('enterpicnicTable_sphere_%d_%d' % (self.getDoId(), i), self.handleEnterPicnicTableSphere, [i])
             self.accept('enterPicnicTableOK_%d_%d' % (self.getDoId(), i), self.handleEnterPicnicTable, [i])
             self.picnicTableSphereNodes[i].setCollideMask(ToontownGlobals.WallBitmask)
 
     def __disableCollisions(self):
-        for i in xrange(self.numSeats):
+        for i in range(self.numSeats):
             self.ignore('enterpicnicTable_sphere_%d_%d' % (self.getDoId(), i))
             self.ignore('enterPicnicTableOK_%d_%d' % (self.getDoId(), i))
 
-        for i in xrange(self.numSeats):
+        for i in range(self.numSeats):
             self.picnicTableSphereNodes[i].setCollideMask(BitMask32(0))
 
     def enterOff(self):
@@ -302,7 +307,7 @@ class DistributedPicnicBasket(DistributedObject.DistributedObject):
             keyList.append(key)
 
         for key in keyList:
-            if key in self.__toonTracks:
+            if self.__toonTracks.has_key(key):
                 self.clearToonTrack(key)
 
     def doneExit(self, avId):

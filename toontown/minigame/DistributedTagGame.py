@@ -89,7 +89,7 @@ class DistributedTagGame(DistributedMinigame):
         camera.setPosHpr(0, -24, 16, 0, -30, 0)
         base.camLens.setFar(450.0)
         base.transitions.irisIn(0.4)
-        NametagGlobals.setWant2dNametags(True)
+        NametagGlobals.setMasterArrowsOn(1)
         DistributedSmoothNode.activateSmoothing(1, 1)
         self.IT = None
         return
@@ -97,7 +97,7 @@ class DistributedTagGame(DistributedMinigame):
     def offstage(self):
         self.notify.debug('offstage')
         DistributedSmoothNode.activateSmoothing(1, 0)
-        NametagGlobals.setWant2dNametags(False)
+        NametagGlobals.setMasterArrowsOn(0)
         DistributedMinigame.offstage(self)
         self.sky.reparentTo(hidden)
         self.ground.reparentTo(hidden)
@@ -114,7 +114,7 @@ class DistributedTagGame(DistributedMinigame):
             self.acceptTagEvent(avId)
 
         myPos = self.avIdList.index(self.localAvId)
-        for i in xrange(self.numPlayers):
+        for i in range(self.numPlayers):
             avId = self.avIdList[i]
             avatar = self.getAvatar(avId)
             if avatar:
@@ -141,7 +141,7 @@ class DistributedTagGame(DistributedMinigame):
 
     def enterPlay(self):
         self.notify.debug('enterPlay')
-        for i in xrange(self.numPlayers):
+        for i in range(self.numPlayers):
             avId = self.avIdList[i]
             avName = self.getAvatarName(avId)
             scorePanel = MinigameAvatarScorePanel.MinigameAvatarScorePanel(avId, avName)
@@ -149,7 +149,7 @@ class DistributedTagGame(DistributedMinigame):
             scorePanel.reparentTo(base.a2dBottomRight)
             self.scorePanels.append(scorePanel)
 
-        base.setCellsActive(base.rightCells, 0)
+        base.setCellsAvailable(base.rightCells, 0)
         self.walkStateData.enter()
         self.walkStateData.fsm.request('walking')
         if base.localAvatar.isIt:
@@ -182,7 +182,7 @@ class DistributedTagGame(DistributedMinigame):
             panel.cleanup()
 
         self.scorePanels = []
-        base.setCellsActive(base.rightCells, 1)
+        base.setCellsAvailable(base.rightCells, 1)
         base.mouseInterfaceNode.setForwardSpeed(ToontownGlobals.ToonForwardSpeed)
         base.mouseInterfaceNode.setRotateSpeed(ToontownGlobals.ToonRotateSpeed)
         self.itPointer.reparentTo(hidden)
@@ -228,7 +228,7 @@ class DistributedTagGame(DistributedMinigame):
         spinTrack = LerpHprInterval(toon.getGeomNode(), duration, Point3(0, 0, 0), startHpr=Point3(-5.0 * 360.0, 0, 0), blendType='easeOut')
         growTrack = Parallel()
         gs = 2.5
-        for hi in xrange(toon.headParts.getNumPaths()):
+        for hi in range(toon.headParts.getNumPaths()):
             head = toon.headParts[hi]
             growTrack.append(LerpScaleInterval(head, duration, Point3(gs, gs, gs)))
 
@@ -259,7 +259,7 @@ class DistributedTagGame(DistributedMinigame):
         if self.IT:
             it = self.getAvatar(self.IT)
             shrinkTrack = Parallel()
-            for hi in xrange(it.headParts.getNumPaths()):
+            for hi in range(it.headParts.getNumPaths()):
                 head = it.headParts[hi]
                 scale = ToontownGlobals.toonHeadScales[it.style.getAnimal()]
                 shrinkTrack.append(LerpScaleInterval(head, duration, scale))
@@ -282,5 +282,5 @@ class DistributedTagGame(DistributedMinigame):
         if not self.hasLocalToon:
             return
         self.notify.debug('setTreasureScore: %s' % scores)
-        for i in xrange(len(self.scorePanels)):
+        for i in range(len(self.scorePanels)):
             self.scorePanels[i].setScore(scores[i])

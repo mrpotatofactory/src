@@ -16,21 +16,25 @@ class DistributedPartyGateAI(DistributedObjectAI):
         return self.area
 
     def getPartyList(self, avId):
-        partyManager = simbase.air.partyManager
-        self.sendUpdateToAvatarId(avId, 'listAllPublicParties', [partyManager.getPublicParties()])
+        # Let the UD handle this shit
+        self.air.sendNetEvent('PARTY_gate', [self.air.getAvatarIdFromSender(), self.doId])
 
     def partyChoiceRequest(self, avId, shardId, zoneId):
         # Try to get a spot for them in the party
         # find partyId
-        party = None
-        pid = 0
-        for partyId in self.air.partyManager.pubPartyInfo:
-            p = self.air.partyManager.pubPartyInfo[partyId]
+        avId = self.air.getAvatarIdFromSender()
+        
+        for partyId in self.air.partyManager.partyId2PubInfo:
+            p = self.air.partyManager.partyId2PubInfo[partyId]
             if p.get('shardId', 0) == shardId and p.get('zoneId', 0) == zoneId:
-                party = p
                 pid = partyId
                 break
-        if not party:
-            self.sendUpdateToAvatarId(self.air.getAvatarIdFromSender(), 'partyRequestDenied', [PartyGlobals.PartyGateDenialReasons.Unavailable])
-            return #dafuq
-        self.air.globalPartyMgr.d_requestPartySlot(pid, self.air.getAvatarIdFromSender(), self.doId)
+                
+        else:
+            self.air.writeServerEvent('suspicious', avId, 'Tried to request non-existing party')
+            self.sendUpdateToAvatarId(avId, 'partyRequestDenied', [PartyGlobals.PartyGateDenialReasons.Unavailable])
+            return
+        
+        # Let the UD handle this shit yet again      
+        self.air.sendNetEvent('PARTY_request_slot', [pid, avId, self.doId])
+        

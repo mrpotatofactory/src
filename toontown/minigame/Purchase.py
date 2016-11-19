@@ -1,19 +1,16 @@
-from direct.directnotify import DirectNotifyGlobal
-from direct.gui import DirectGuiGlobals as DGG
-from direct.showbase.PythonUtil import Functor
-from direct.task.Task import Task
-
-import MinigameGlobals
 from PurchaseBase import *
-from toontown.distributed import DelayDelete
-from toontown.minigame import TravelGameGlobals
-from toontown.nametag import NametagGlobals
-from toontown.nametag.NametagFloat2d import *
+from otp.nametag.NametagFloat2d import *
+from otp.nametag import NametagGlobals
+from direct.task.Task import Task
 from toontown.toon import ToonHead
-from toontown.toonbase import ToontownGlobals
 from toontown.toonbase import ToontownTimer
-
-
+from direct.gui import DirectGuiGlobals as DGG
+from direct.directnotify import DirectNotifyGlobal
+from direct.showbase.PythonUtil import Functor
+from toontown.minigame import TravelGameGlobals
+from toontown.distributed import DelayDelete
+from toontown.toonbase import ToontownGlobals
+import MinigameGlobals
 COUNT_UP_RATE = 0.15
 COUNT_UP_DURATION = 0.5
 DELAY_BEFORE_COUNT_UP = 1.0
@@ -80,7 +77,7 @@ class Purchase(PurchaseBase):
         numAvs = 0
         count = 0
         localToonIndex = 0
-        for index in xrange(len(self.ids)):
+        for index in range(len(self.ids)):
             avId = self.ids[index]
             if avId == base.localAvatar.doId:
                 localToonIndex = index
@@ -102,11 +99,11 @@ class Purchase(PurchaseBase):
         TOON_INDEX = 2
         self.avInfoArray = [(base.localAvatar.doId, headFramePosList[0], localToonIndex)]
         pos = 1
-        for index in xrange(len(self.ids)):
+        for index in range(len(self.ids)):
             avId = self.ids[index]
             if self.states[index] != PURCHASE_NO_CLIENT_STATE and self.states[index] != PURCHASE_DISCONNECTED_STATE:
                 if avId != base.localAvatar.doId:
-                    if avId in base.cr.doId2do:
+                    if base.cr.doId2do.has_key(avId):
                         self.avInfoArray.append((avId, headFramePosList[layout[pos]], index))
                         pos = pos + 1
 
@@ -314,8 +311,8 @@ class Purchase(PurchaseBase):
         floorNode = CollisionNode('collision_floor')
         floorNode.addSolid(floor)
         self.collisionFloor = render.attachNewNode(floorNode)
-        NametagGlobals.setForceOnscreenChat(True)
-        for index in xrange(len(self.ids)):
+        NametagGlobals.setOnscreenChatForced(1)
+        for index in range(len(self.ids)):
             avId = self.ids[index]
             if self.states[index] != PURCHASE_NO_CLIENT_STATE and self.states[index] != PURCHASE_DISCONNECTED_STATE and avId in base.cr.doId2do:
                 numToons += 1
@@ -383,10 +380,10 @@ class Purchase(PurchaseBase):
                 counter.hide()
 
             winningPoints = max(task.pointsArray)
-            for i in xrange(len(task.ids)):
+            for i in range(len(task.ids)):
                 if task.pointsArray[i] == winningPoints:
                     avId = task.ids[i]
-                    if avId in base.cr.doId2do:
+                    if base.cr.doId2do.has_key(avId):
                         toon = base.cr.doId2do[avId]
                         toon.setAnimState('jump', 1.0)
 
@@ -518,7 +515,7 @@ class Purchase(PurchaseBase):
         if base.cr.newsManager.isHolidayRunning(ToontownGlobals.JELLYBEAN_TROLLEY_HOLIDAY) or base.cr.newsManager.isHolidayRunning(ToontownGlobals.JELLYBEAN_TROLLEY_HOLIDAY_MONTH):
             self.rewardDoubledJellybeanLabel.show()
         counterIndex = 0
-        for index in xrange(len(self.ids)):
+        for index in range(len(self.ids)):
             avId = self.ids[index]
             if self.states[index] != PURCHASE_NO_CLIENT_STATE and self.states[index] != PURCHASE_DISCONNECTED_STATE and avId in base.cr.doId2do:
                 self.counters[counterIndex].count = 0
@@ -533,7 +530,7 @@ class Purchase(PurchaseBase):
                 base.playSfx(state.countSound)
             return Task.done
 
-        for count in xrange(0, self.maxVotes):
+        for count in range(0, self.maxVotes):
             for counter in self.counters:
                 index = self.counters.index(counter)
                 if count < counter.max:
@@ -562,7 +559,7 @@ class Purchase(PurchaseBase):
                     base.playSfx(state.overMaxSound)
             return Task.done
 
-        for count in xrange(0, self.maxVotes):
+        for count in range(0, self.maxVotes):
             for counter in self.counters:
                 if count < counter.max:
                     index = self.counters.index(counter)
@@ -611,7 +608,7 @@ class Purchase(PurchaseBase):
         self.convertingVotesToBeansLabel.hide()
         self.rewardDoubledJellybeanLabel.hide()
         base.camLens.setMinFov(ToontownGlobals.DefaultCameraFov/(4./3.))
-        NametagGlobals.setForceOnscreenChat(False)
+        NametagGlobals.setOnscreenChatForced(0)
 
     def _handleClientCleanup(self):
         if hasattr(self, 'toonsKeep'):
@@ -706,7 +703,7 @@ class Purchase(PurchaseBase):
             return self.metagamePlayAgainResult
         numToons = 0
         for avId in self.ids:
-            if avId in base.cr.doId2do and avId not in self.unexpectedExits:
+            if base.cr.doId2do.has_key(avId) and avId not in self.unexpectedExits:
                 numToons += 1
 
         self.metagamePlayAgainResult = False
@@ -717,7 +714,7 @@ class Purchase(PurchaseBase):
 
     def setupUnexpectedExitHooks(self):
         for avId in self.ids:
-            if avId in base.cr.doId2do:
+            if base.cr.doId2do.has_key(avId):
                 toon = base.cr.doId2do[avId]
                 eventName = toon.uniqueName('disable')
                 self.accept(eventName, self.__handleUnexpectedExit, extraArgs=[avId])
@@ -747,19 +744,17 @@ class PurchaseHeadFrame(DirectFrame):
         self.headModel.setupHead(self.av.style, forGui=1)
         self.headModel.reparentTo(self.head)
         self.tag2Node = NametagFloat2d()
-        self.tag2Node.hideChat()
-        self.tag2Node.hideThought()
-        self.tag2Node.update()
-        self.av.nametag.add(self.tag2Node)
+        self.tag2Node.setContents(Nametag.CName)
+        self.av.nametag.addNametag(self.tag2Node)
         self.tag2 = self.attachNewNode(self.tag2Node)
         self.tag2.setPosHprScale(-0.22, 10.0, 0.12, 0, 0, 0, 0.046, 0.046, 0.046)
         self.tag1Node = NametagFloat2d()
-        self.tag1Node.hideNametag()
-        self.tag1Node.update()
-        self.av.nametag.add(self.tag1Node)
+        self.tag1Node.setContents(Nametag.CSpeech | Nametag.CThought)
+        self.av.nametag.addNametag(self.tag1Node)
         self.tag1 = self.attachNewNode(self.tag1Node)
         self.tag1.setPosHprScale(-0.15, 0, -0.1, 0, 0, 0, 0.046, 0.046, 0.046)
         self.hide()
+        return
 
     def destroy(self):
         DirectFrame.destroy(self)
@@ -768,8 +763,8 @@ class PurchaseHeadFrame(DirectFrame):
         del self.headModel
         self.head.removeNode()
         del self.head
-        self.av.nametag.remove(self.tag1Node)
-        self.av.nametag.remove(self.tag2Node)
+        self.av.nametag.removeNametag(self.tag1Node)
+        self.av.nametag.removeNametag(self.tag2Node)
         self.tag1.removeNode()
         self.tag2.removeNode()
         del self.tag1

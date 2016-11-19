@@ -1,131 +1,134 @@
 from direct.directnotify import DirectNotifyGlobal
 from direct.distributed.DistributedObjectUD import DistributedObjectUD
+from datetime import datetime
+from toontown.parties.PartyGlobals import *
 
 class DistributedPartyManagerUD(DistributedObjectUD):
-    notify = DirectNotifyGlobal.directNotify.newCategory("DistributedPartyManagerUD")
+    notify = DirectNotifyGlobal.directNotify.newCategory('DistributedPartyManagerUD')
 
     def announceGenerate(self):
         DistributedObjectUD.announceGenerate(self)
+        self.partyId2PubInfo = {}
 
-        self.sendUpdate('partyManagerUdStartingUp') # Shouldn't have to send to anyone special, as the field is airecv
+        self.accept('PARTY_query', self.__handleQueryParty)
+        self.accept('PARTY_start', self.__handlePartyHasStarted)
+        self.accept('PARTY_end', self.__handlePartyDone)
+        self.accept('PARTY_toon_joined', self.__handleToonJoinedParty)
+        self.accept('PARTY_toon_left', self.__handleToonLeftParty)
+        self.accept('PARTY_gate', self.__handleToonAtGate)
+        self.accept('PARTY_request_slot', self.__handleRequestPartySlot)
+        
+        self.accept('shardDied', self.__handleShardDeath)
+       
+    def __handleQueryParty(self):
+        self.air.sendNetEvent('PARTY_queryRes', [self.partyId2PubInfo])
 
-    def addParty(self, todo0, todo1, todo2, todo3, todo4, todo5, todo6, todo7, todo8, todo9):
-        pass
+    def _formatParty(self, partyDict):
+        return [partyDict['hostId'],
+                partyDict['isPrivate'],
+                partyDict['activities'],
+                partyDict['decorations']]
 
-    def addPartyRequest(self, hostId, startTime, endTime, isPrivate, inviteTheme, activities, decorations, inviteeIds):
-        pass
+    def __handlePartyHasStarted(self, partyId, isPrivate, shardId, zoneId, hostName, activities, decorations):
+        partyDict = {'hostId': partyId, 'shardId': shardId, 'zoneId': zoneId, 'hostName': hostName,
+                     'numGuests': 0, 'maxGuests': MaxToonsAtAParty, 'started': datetime.now(),
+                     'activities': activities, 'decorations': decorations, 'isPrivate': isPrivate}           
+        self.partyId2PubInfo[partyId] = partyDict
+        self.air.writeServerEvent('party-start', partyId=partyId)
+        self.__handleQueryParty()
+        
+        # Notify friends
+        hostName = self.air.friendsManager.getToonName(partyId)
+        msg = '%s is hosting a party right now! Head yourself to a party gate and join it!' % hostName
+        
+        friends = self.air.friendsManager.friendsLists.get(partyId, [])
+        nf = set()
+        for f in friends:
+            if f[0] not in nf:
+                self.air.sendSysMsg(msg, self.GetPuppetConnectionChannel(f[0]))
+                nf.add(f[0])
 
-    def addPartyResponse(self, hostId, errorCode):
-        pass
+    def __handlePartyDone(self, partyId):
+        if partyId not in self.partyId2PubInfo:
+            self.notify.warning("didn't find details for ending party id %d" % partyId)
+            return
+            
+        del self.partyId2PubInfo[partyId]
+        self.air.writeServerEvent('party-done', partyId=partyId)
+        self.__handleQueryParty()
 
-    def addPartyResponseUdToAi(self, todo0, todo1, todo2):
-        pass
+    def __handleToonJoinedParty(self, partyId, avId):
+        party = self.partyId2PubInfo.get(partyId)
+        if party:
+            party['numGuests'] += 1
 
-    def markInviteAsReadButNotReplied(self, todo0, todo1):
-        pass
+    def __handleToonLeftParty(self, partyId, avId):
+        party = self.partyId2PubInfo.get(partyId)
+        if party:
+            party['numGuests'] = max(0, party['numGuests'] - 1)
+        
+    def __handleRequestPartySlot(self, partyId, avId, gateId):
+        shardId = self.air.getMsgSender()
+        recepient = self.GetPuppetConnectionChannel(avId)
+        
+        def _doDeny(reason):
+            field = self.air.dclassesByName['DistributedPartyGateAI'].getFieldByName('partyRequestDenied')
+            dg = field.aiFormatUpdate(gateId, recepient, shardId, [reason])
+            self.air.send(dg)
+        
+        if partyId not in self.partyId2PubInfo:
+            return self._doDeny(PartyGateDenialReasons.Unavailable)
+            
+        party = self.partyId2PubInfo[partyId]
+        if party['numGuests'] >= party['maxGuests']:
+            return self._doDeny(PartyGateDenialReasons.Full)
 
-    def respondToInvite(self, todo0, todo1, todo2, todo3, todo4):
-        pass
+        actIds = []
+        for activity in party['activities']:
+            actIds.append(activity[0])
+            
+        info = [party['shardId'], party['zoneId'], party['numGuests'], party['hostName'], actIds, 0]
+        field = self.air.dclassesByName['DistributedPartyGateAI'].getFieldByName('setParty')
+        dg = field.aiFormatUpdate(gateId, recepient, shardId, [info, partyId])
+        self.air.send(dg)
 
-    def respondToInviteResponse(self, todo0, todo1, todo2, todo3, todo4):
-        pass
-
-    def changePrivateRequest(self, todo0, todo1):
-        pass
-
-    def changePrivateRequestAiToUd(self, todo0, todo1, todo2):
-        pass
-
-    def changePrivateResponseUdToAi(self, todo0, todo1, todo2, todo3):
-        pass
-
-    def changePrivateResponse(self, todo0, todo1, todo2):
-        pass
-
-    def changePartyStatusRequest(self, partyId, newPartyStatus):
-        pass
-
-    def changePartyStatusRequestAiToUd(self, todo0, todo1, todo2):
-        pass
-
-    def changePartyStatusResponseUdToAi(self, todo0, todo1, todo2, todo3):
-        pass
-
-    def changePartyStatusResponse(self, todo0, todo1, todo2, todo3):
-        pass
-
-    def partyInfoOfHostRequestAiToUd(self, todo0, todo1):
-        pass
-
-    def partyInfoOfHostFailedResponseUdToAi(self, todo0):
-        pass
-
-    def partyInfoOfHostResponseUdToAi(self, todo0, todo1):
-        pass
-
-    def givePartyRefundResponse(self, todo0, todo1, todo2, todo3, todo4):
-        pass
-
-    def getPartyZone(self, avId, zoneId, isAvAboutToPlanParty):
-        pass
-
-    def receivePartyZone(self, todo0, todo1, todo2):
-        pass
-
-    def freeZoneIdFromPlannedParty(self, avId, zoneId):
-        pass
-
-    def sendAvToPlayground(self, todo0, todo1):
-        pass
-
-    def exitParty(self, zoneIdOfAv):
-        pass
-
-    def removeGuest(self, ownerId, avId):
-        pass
-
-    def partyManagerAIStartingUp(self, todo0, todo1):
-        pass
-
-    def partyManagerAIGoingDown(self, todo0, todo1):
-        pass
-
-    def partyHasStartedAiToUd(self, todo0, todo1, todo2, todo3, todo4):
-        pass
-
-    def toonHasEnteredPartyAiToUd(self, todo0):
-        pass
-
-    def toonHasExitedPartyAiToUd(self, todo0):
-        pass
-
-    def partyHasFinishedUdToAllAi(self, todo0):
-        pass
-
-    def updateToPublicPartyInfoUdToAllAi(self, todo0, todo1, todo2, todo3, todo4, todo5, todo6, todo7, todo8):
-        pass
-
-    def updateToPublicPartyCountUdToAllAi(self, todo0, todo1):
-        pass
-
-    def requestShardIdZoneIdForHostId(self, hostId):
-        pass
-
-    def sendShardIdZoneIdToAvatar(self, shardId, zoneId):
-        pass
-
-    def partyManagerUdStartingUp(self):
-        pass
-
-    def updateAllPartyInfoToUd(self, todo0, todo1, todo2, todo3, todo4, todo5, todo6, todo7, todo8):
-        pass
-
-    def forceCheckStart(self):
-        pass
-
-    def requestMw(self, todo0, todo1, todo2, todo3):
-        pass
-
-    def mwResponseUdToAllAi(self, todo0, todo1, todo2, todo3):
-        pass
-
+    def __handleToonAtGate(self, avId, gateId):
+        shardId = self.air.getMsgSender()
+        recepient = self.GetPuppetConnectionChannel(avId)
+        
+        parties = []
+        for pid, party in self.partyId2PubInfo.items():
+            if party.get('isPrivate', 0) and pid != avId:
+                friends = self.air.friendsManager.friendsLists.get(pid, [])
+                if not any(f[0] == avId for f in friends):
+                    continue
+               
+            elapsed = (datetime.now() - party['started']).seconds
+            minLeft = int((PARTY_DURATION - elapsed) / 60)
+            guests = max(0, min(255, party.get('numGuests', 0)))
+            actIds = []
+            for activity in party['activities']:
+                actIds.append(activity[0])
+            
+            parties.append([party['shardId'],
+                            party['zoneId'],
+                            guests,
+                            party.get('hostName', ''),
+                            actIds,
+                            minLeft])
+                
+        field = self.air.dclassesByName['DistributedPartyGateAI'].getFieldByName('listAllPublicParties')
+        dg = field.aiFormatUpdate(gateId, recepient, shardId, [parties])
+        self.air.send(dg)
+        
+    def __handleShardDeath(self):
+        shardId = self.air.getMsgSender()
+        
+        partiesToKill = set()
+        for partyId, party in self.partyId2PubInfo.items():
+            if party['shardId'] == shardId:
+                partiesToKill.add(partyId)
+        
+        for partyId in partiesToKill:
+            self.__handlePartyDone(partyId)
+        

@@ -3,14 +3,12 @@ from direct.task.Task import Task
 from pandac.PandaModules import *
 from DistributedNPCToonBaseAI import *
 from toontown.quest import Quests
-from toontown.nametag.NametagGlobals import *
 
 class DistributedNPCSpecialQuestGiverAI(DistributedNPCToonBaseAI):
-
-    def __init__(self, air, npcId, questCallback = None, hq = 0, tutorial = 0):
+    def __init__(self, air, npcId, questCallback = None, hq = 0):
         DistributedNPCToonBaseAI.__init__(self, air, npcId, questCallback)
         self.hq = hq
-        self.tutorial = tutorial
+        self.tutorial = 0
         self.pendingAvId = None
         return
 
@@ -20,16 +18,32 @@ class DistributedNPCSpecialQuestGiverAI(DistributedNPCToonBaseAI):
     def setTutorial(self, val):
         self.tutorial = val
 
-    def setHq(self, hq):
-        self.hq = hq
-
     def getHq(self):
         return self.hq
+        
+    def setHq(self, hq):
+        self.hq = hq
 
     def avatarEnter(self):
         avId = self.air.getAvatarIdFromSender()
         self.notify.debug('avatar enter ' + str(avId))
-        self.air.questManager.requestInteract(avId, self)
+
+        if self.npcId == 20002:
+            av = self.air.doId2do[avId]
+            
+            q = av.getQuests()
+            if q:
+                if q[0] == 110:
+                    self.rejectAvatar(avId)
+                    return
+                    
+            self.air.questManager._QuestManagerAI__goToNextQuest(av, self, 101, (110, 1000))             
+            messenger.send('tutorial-door-event-%d-2' % avId)
+        
+        elif not self.air.questManager.requestInteract(avId, self):
+            self.rejectAvatar(avId)
+            return
+            
         DistributedNPCToonBaseAI.avatarEnter(self)
 
     def chooseQuest(self, questId, quest = None):

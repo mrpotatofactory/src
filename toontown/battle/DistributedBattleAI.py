@@ -8,7 +8,6 @@ from direct.task import Task
 from direct.directnotify import DirectNotifyGlobal
 import random
 
-
 class DistributedBattleAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedBattleAI')
 
@@ -85,6 +84,7 @@ class DistributedBattleAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
         if len(self.toons) == 0:
             self.d_setMembers()
             self.b_setState('Resume')
+            
         elif len(self.suits) == 0:
             for toonId in self.activeToons:
                 toon = self.getToon(toonId)
@@ -98,6 +98,7 @@ class DistributedBattleAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
             self.d_setMembers()
             self.d_setBattleExperience()
             self.b_setState('Reward')
+            
         else:
             if needUpdate == 1:
                 self.d_setMembers()

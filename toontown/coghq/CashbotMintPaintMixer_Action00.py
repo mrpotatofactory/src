@@ -37,7 +37,7 @@ GlobalEntities = {1000: {'type': 'levelMgr',
          'pos': Point3(0.0, 0.0, 4.13999986649),
          'hpr': Vec3(349.358764648, 0.0, 0.0),
          'scale': Vec3(1.0, 1.0, 1.0),
-         'rewardPerGrab': 8,
+         'rewardPerGrab': 15,#8
          'rewardPerGrabMax': 0},
  10000: {'type': 'nodepath',
          'name': 'mixers',

@@ -21,9 +21,9 @@ class DistributedGridAI(DistributedEntityAI.DistributedEntityAI):
         if not self.initialized:
             self.objPos = {}
             self.gridCells = [None] * self.numRow
-            for i in xrange(len(self.gridCells)):
+            for i in range(len(self.gridCells)):
                 self.gridCells[i] = [None] * self.numCol
-                for j in xrange(len(self.gridCells[i])):
+                for j in range(len(self.gridCells[i])):
                     self.gridCells[i][j] = []
 
             self.initialized = 1
@@ -224,27 +224,5 @@ class DistributedGridAI(DistributedEntityAI.DistributedEntityAI):
         return 1
 
     def printGrid(self):
-        if not __debug__:
-            return
-        for i in xrange(len(self.gridCells)):
-            str = ''
-            for j in xrange(len(self.gridCells[i])):
-                col = self.gridCells[i][j]
-                active = 0
-                for cell in self.activeCellList:
-                    if cell.getRowCol() == [i, j]:
-                        active = 1
-
-                if len(col) > 0:
-                    if active:
-                        str += '[X]'
-                    else:
-                        str += ' X '
-                elif active:
-                    str += '[.]'
-                else:
-                    str += ' . '
-
-            print str + '  : %d' % i
-
-        print ''
+        pass
+        

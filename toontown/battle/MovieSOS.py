@@ -1,15 +1,10 @@
-from direct.directnotify import DirectNotifyGlobal
 from direct.interval.IntervalGlobal import *
-from pandac.PandaModules import *
-
 import MovieCamera
-from toontown.chat.ChatGlobals import *
-from toontown.nametag.NametagGlobals import *
+from direct.directnotify import DirectNotifyGlobal
 from toontown.toonbase import TTLocalizer
-
-
+from pandac.PandaModules import *
+from otp.nametag.NametagConstants import CFSpeech, CFTimeout
 notify = DirectNotifyGlobal.directNotify.newCategory('MovieSOS')
-
 
 def doSOSs(calls):
     if len(calls) == 0:

@@ -1,5 +1,4 @@
 from BattleBase import *
-from DistributedBattleAI import *
 from toontown.toonbase.ToontownBattleGlobals import *
 import random
 from toontown.suit import DistributedSuitBaseAI
@@ -7,7 +6,6 @@ import SuitBattleGlobals
 import BattleExperienceAI
 from toontown.toon import NPCToons
 from toontown.pets import PetTricks, DistributedPetProxyAI
-from toontown.hood import ZoneUtil
 from direct.showbase.PythonUtil import lerp
 import sys
 
@@ -66,13 +64,12 @@ class BattleCalculatorAI:
         self.__clearBonuses(hp=1)
         self.__clearBonuses(hp=0)
         self.delayedUnlures = []
-        self.__skillCreditMultiplier = simbase.air.baseXpMultiplier
+        self.__skillCreditMultiplier = 1
         self.tutorialFlag = tutorialFlag
         self.trainTrapTriggered = False
-        self.fireDifficulty = 0
 
     def setSkillCreditMultiplier(self, mult):
-        self.__skillCreditMultiplier = simbase.air.baseXpMultiplier * mult
+        self.__skillCreditMultiplier = mult
 
     def getSkillCreditMultiplier(self):
         return self.__skillCreditMultiplier
@@ -86,6 +83,11 @@ class BattleCalculatorAI:
             return (0, 0)
         if self.tutorialFlag:
             return (1, 95)
+        
+        # fixes +1 glitch when uniorzed
+        if self.__getActualTrackLevel(self.battle.toonAttacks[attackIndex])[0] == FIRE:
+            return (1, 95)
+            
         if self.toonsAlways5050:
             roll = random.randint(0, 99)
             if roll < 50:
@@ -99,18 +101,7 @@ class BattleCalculatorAI:
         debug = self.notify.getDebug()
         attack = self.battle.toonAttacks[attackIndex]
         atkTrack, atkLevel = self.__getActualTrackLevel(attack)
-        
-        hasAccuracyBuff = False
-        toon = simbase.air.doId2do.get(attack[TOON_ID_COL])
-        if toon:
-            if toon.hasBuff(BGagAccuracy):
-                if not ZoneUtil.isDynamicZone(toon.zoneId):
-                    if ZoneUtil.getWhereName(toon.zoneId, True) in ('street', 'factoryExterior', 'cogHQExterior'):
-                        hasAccuracyBuff = True
-            
         if atkTrack == NPCSOS:
-            return (1, 95)
-        if atkTrack == FIRE:
             return (1, 95)
         if atkTrack == TRAP:
             if debug:
@@ -128,7 +119,7 @@ class BattleCalculatorAI:
                 return (0, 0)
         elif atkTrack == DROP:
             allLured = True
-            for i in xrange(len(atkTargets)):
+            for i in range(len(atkTargets)):
                 if self.__suitIsLured(atkTargets[i].getDoId()):
                     pass
                 else:
@@ -171,9 +162,8 @@ class BattleCalculatorAI:
             randChoice = 0
         else:
             randChoice = random.randint(0, 99)
-        propAcc = AvPropAccuracy[atkTrack][atkLevel]
-        if hasAccuracyBuff:
-            propAcc *= BGagAccuracyMultiplier
+        propAcc = int(AvPropAccuracy[atkTrack][atkLevel] * 1.4)
+        propAcc = min(propAcc, 95)
         if atkTrack == LURE:
             treebonus = self.__toonCheckGagBonus(attack[TOON_ID_COL], atkTrack, atkLevel)
             propBonus = self.__checkPropBonus(atkTrack)
@@ -194,8 +184,8 @@ class BattleCalculatorAI:
             prevAtkId = self.toonAtkOrder[currAtk - 1]
             prevAttack = self.battle.toonAttacks[prevAtkId]
             prevAtkTrack = self.__getActualTrack(prevAttack)
-            lure = atkTrack == LURE and (not attackAffectsGroup(atkTrack, atkLevel,
-             attack[TOON_TRACK_COL]) and attack[TOON_TGT_COL] in self.successfulLures or attackAffectsGroup(atkTrack, atkLevel, attack[TOON_TRACK_COL]))
+            lure = atkTrack == LURE and (not attackAffectsGroup(atkTrack, atkLevel, 
+             attack[TOON_TRACK_COL]) and self.successfulLures.has_key(attack[TOON_TGT_COL]) or attackAffectsGroup(atkTrack, atkLevel, attack[TOON_TRACK_COL]))
             if atkTrack == prevAtkTrack and (attack[TOON_TGT_COL] == prevAttack[TOON_TGT_COL] or lure):
                 if prevAttack[TOON_ACCBONUS_COL] == 1:
                     if debug:
@@ -308,7 +298,7 @@ class BattleCalculatorAI:
                 return NO_ATTACK
 
     def getSuitTrapType(self, suitId):
-        if suitId in self.traps:
+        if self.traps.has_key(suitId):
             if self.traps[suitId][0] == self.TRAP_CONFLICT:
                 return NO_TRAP
             else:
@@ -317,7 +307,7 @@ class BattleCalculatorAI:
             return NO_TRAP
 
     def __suitTrapDamage(self, suitId):
-        if suitId in self.traps:
+        if self.traps.has_key(suitId):
             return self.traps[suitId][2]
         else:
             return 0
@@ -338,14 +328,14 @@ class BattleCalculatorAI:
 
     def __addSuitGroupTrap(self, suitId, trapLvl, attackerId, allSuits, npcDamage = 0):
         if npcDamage == 0:
-            if suitId in self.traps:
+            if self.traps.has_key(suitId):
                 if self.traps[suitId][0] == self.TRAP_CONFLICT:
                     pass
                 else:
                     self.traps[suitId][0] = self.TRAP_CONFLICT
                 for suit in allSuits:
                     id = suit.doId
-                    if id in self.traps:
+                    if self.traps.has_key(id):
                         self.traps[id][0] = self.TRAP_CONFLICT
                     else:
                         self.traps[id] = [self.TRAP_CONFLICT, 0, 0]
@@ -361,7 +351,7 @@ class BattleCalculatorAI:
                     self.traps[suitId] = [trapLvl, 0, damage]
                 self.notify.debug('calling __addLuredSuitsDelayed')
                 self.__addLuredSuitsDelayed(attackerId, targetId=-1, ignoreDamageCheck=True)
-        elif suitId in self.traps:
+        elif self.traps.has_key(suitId):
             if self.traps[suitId][0] == self.TRAP_CONFLICT:
                 self.traps[suitId] = [trapLvl, 0, npcDamage]
         elif not self.__suitIsLured(suitId):
@@ -369,7 +359,7 @@ class BattleCalculatorAI:
 
     def __addSuitTrap(self, suitId, trapLvl, attackerId, npcDamage = 0):
         if npcDamage == 0:
-            if suitId in self.traps:
+            if self.traps.has_key(suitId):
                 if self.traps[suitId][0] == self.TRAP_CONFLICT:
                     pass
                 else:
@@ -383,14 +373,14 @@ class BattleCalculatorAI:
                     self.traps[suitId] = [trapLvl, attackerId, damage]
                 else:
                     self.traps[suitId] = [trapLvl, 0, damage]
-        elif suitId in self.traps:
+        elif self.traps.has_key(suitId):
             if self.traps[suitId][0] == self.TRAP_CONFLICT:
                 self.traps[suitId] = [trapLvl, 0, npcDamage]
         elif not self.__suitIsLured(suitId):
             self.traps[suitId] = [trapLvl, 0, npcDamage]
 
     def __removeSuitTrap(self, suitId):
-        if suitId in self.traps:
+        if self.traps.has_key(suitId):
             del self.traps[suitId]
 
     def __clearTrapCreator(self, creatorId, suitId = None):
@@ -399,12 +389,12 @@ class BattleCalculatorAI:
                 if creatorId == self.traps[currTrap][1]:
                     self.traps[currTrap][1] = 0
 
-        elif suitId in self.traps:
+        elif self.traps.has_key(suitId):
             self.traps[suitId][1] = 0
         return
 
     def __trapCreator(self, suitId):
-        if suitId in self.traps:
+        if self.traps.has_key(suitId):
             return self.traps[suitId][1]
         else:
             return 0
@@ -426,7 +416,7 @@ class BattleCalculatorAI:
         validTargetAvail = 0
         lureDidDamage = 0
         currLureId = -1
-        for currTarget in xrange(len(targetList)):
+        for currTarget in range(len(targetList)):
             attackLevel = -1
             attackTrack = None
             attackDamage = 0
@@ -454,7 +444,7 @@ class BattleCalculatorAI:
                             targetLured = 1
                 else:
                     attackTrack = TRAP
-                    if targetId in self.traps:
+                    if self.traps.has_key(targetId):
                         trapInfo = self.traps[targetId]
                         attackLevel = trapInfo[0]
                     else:
@@ -484,7 +474,7 @@ class BattleCalculatorAI:
                         targetLured = 1
                     if attackLevel != -1:
                         self.__addLuredSuitsDelayed(toonId, targetId)
-                if targetLured and (not targetId in self.successfulLures or targetId in self.successfulLures and self.successfulLures[targetId][1] < atkLevel):
+                if targetLured and (not self.successfulLures.has_key(targetId) or self.successfulLures.has_key(targetId) and self.successfulLures[targetId][1] < atkLevel):
                     self.notify.debug('Adding target ' + str(targetId) + ' to successfulLures list')
                     self.successfulLures[targetId] = [toonId,
                      atkLevel,
@@ -519,13 +509,12 @@ class BattleCalculatorAI:
                 elif atkTrack == FIRE:
                     suit = self.battle.findSuit(targetId)
                     if suit:
-                        costToFire = 1 + self.fireDifficulty
+                        costToFire = 1
                         abilityToFire = toon.getPinkSlips()
                         numLeft = abilityToFire - costToFire
                         if numLeft < 0:
                             numLeft = 0
                         toon.b_setPinkSlips(numLeft)
-                        self.fireDifficulty += 1
                         if costToFire > abilityToFire:
                             simbase.air.writeServerEvent('suspicious', toonId, 'Toon attempting to fire a %s cost cog with %s pinkslips' % (costToFire, abilityToFire))
                             print 'Not enough PinkSlips to fire cog - print a warning here'
@@ -572,7 +561,7 @@ class BattleCalculatorAI:
                     result = result / len(targetList)
                     if self.notify.getDebug():
                         self.notify.debug('Splitting heal among ' + str(len(targetList)) + ' targets')
-                if targetId in self.successfulLures and atkTrack == LURE:
+                if self.successfulLures.has_key(targetId) and atkTrack == LURE:
                     self.notify.debug('Updating lure damage to ' + str(result))
                     self.successfulLures[targetId][3] = result
                 else:
@@ -635,7 +624,7 @@ class BattleCalculatorAI:
     def __calcToonAccBonus(self, attackKey):
         numPrevHits = 0
         attackIdx = self.toonAtkOrder.index(attackKey)
-        for currPrevAtk in xrange(attackIdx - 1, -1, -1):
+        for currPrevAtk in range(attackIdx - 1, -1, -1):
             attack = self.battle.toonAttacks[attackKey]
             atkTrack, atkLevel = self.__getActualTrackLevel(attack)
             prevAttackKey = self.toonAtkOrder[currPrevAtk]
@@ -656,7 +645,7 @@ class BattleCalculatorAI:
         track = self.__getActualTrack(attack)
         if track != NO_ATTACK and track != SOS and track != TRAP and track != NPCSOS:
             targets = self.__getToonTargets(attack)
-            for position in xrange(len(targets)):
+            for position in range(len(targets)):
                 if hpbonus:
                     if targets[position] in self.__createToonTargetList(toonId):
                         damageDone = attack[TOON_HPBONUS_COL]
@@ -774,12 +763,12 @@ class BattleCalculatorAI:
             attack = self.battle.toonAttacks[attackerId]
             track = self.__getActualTrack(attack)
             if hp:
-                if track in self.hpBonuses[tgtPos]:
+                if self.hpBonuses[tgtPos].has_key(track):
                     self.hpBonuses[tgtPos][track].append([attackIndex, dmg])
                 else:
                     self.hpBonuses[tgtPos][track] = [[attackIndex, dmg]]
             elif self.__suitIsLured(currTgt.getDoId()):
-                if track in self.kbBonuses[tgtPos]:
+                if self.kbBonuses[tgtPos].has_key(track):
                     self.kbBonuses[tgtPos][track].append([attackIndex, dmg])
                 else:
                     self.kbBonuses[tgtPos][track] = [[attackIndex, dmg]]
@@ -865,7 +854,7 @@ class BattleCalculatorAI:
             self.battle.toonAttacks[attackIdx] = getToonAttack(attackIdx)
             longest = max(len(self.battle.activeToons), len(self.battle.activeSuits))
             taList = self.battle.toonAttacks
-            for j in xrange(longest):
+            for j in range(longest):
                 taList[attackIdx][TOON_HP_COL].append(-1)
                 taList[attackIdx][TOON_KBBONUS_COL].append(-1)
 
@@ -875,9 +864,9 @@ class BattleCalculatorAI:
             self.notify.warning('__clearAttack not implemented for suits!')
 
     def __rememberToonAttack(self, suitId, toonId, damage):
-        if not suitId in self.SuitAttackers:
+        if not self.SuitAttackers.has_key(suitId):
             self.SuitAttackers[suitId] = {toonId: damage}
-        elif not toonId in self.SuitAttackers[suitId]:
+        elif not self.SuitAttackers[suitId].has_key(toonId):
             self.SuitAttackers[suitId][toonId] = damage
         elif self.SuitAttackers[suitId][toonId] <= damage:
             self.SuitAttackers[suitId] = [toonId, damage]
@@ -899,7 +888,7 @@ class BattleCalculatorAI:
                         if damageDone > 0:
                             self.__rememberToonAttack(currTgt.getDoId(), attack[TOON_ID_COL], damageDone)
                         if atkTrack == TRAP:
-                            if currTgt.doId in self.traps:
+                            if self.traps.has_key(currTgt.doId):
                                 trapInfo = self.traps[currTgt.doId]
                                 currTgt.battleTrap = trapInfo[0]
                         targetDead = 0
@@ -912,13 +901,13 @@ class BattleCalculatorAI:
                                     self.__clearTgtDied(currTgt, currLastAtk, attack)
 
                         tgtId = currTgt.getDoId()
-                        if tgtId in self.successfulLures and atkTrack == LURE:
+                        if self.successfulLures.has_key(tgtId) and atkTrack == LURE:
                             lureInfo = self.successfulLures[tgtId]
                             self.notify.debug('applying lure data: ' + repr(lureInfo))
                             toonId = lureInfo[0]
                             lureAtk = self.battle.toonAttacks[toonId]
                             tgtPos = self.battle.activeSuits.index(currTgt)
-                            if currTgt.doId in self.traps:
+                            if self.traps.has_key(currTgt.doId):
                                 trapInfo = self.traps[currTgt.doId]
                                 if trapInfo[0] == UBER_GAG_LEVEL_INDEX:
                                     self.notify.debug('train trap triggered for %d' % currTgt.doId)
@@ -1090,7 +1079,7 @@ class BattleCalculatorAI:
     def __calcSuitTarget(self, attackIndex):
         attack = self.battle.suitAttacks[attackIndex]
         suitId = attack[SUIT_ID_COL]
-        if suitId in self.SuitAttackers and random.randint(0, 99) < 75:
+        if self.SuitAttackers.has_key(suitId) and random.randint(0, 99) < 75:
             totalDamage = 0
             for currToon in self.SuitAttackers[suitId].keys():
                 totalDamage += self.SuitAttackers[suitId][currToon]
@@ -1173,7 +1162,7 @@ class BattleCalculatorAI:
     def __calcSuitAtkHp(self, attackIndex):
         targetList = self.__createSuitTargetList(attackIndex)
         attack = self.battle.suitAttacks[attackIndex]
-        for currTarget in xrange(len(targetList)):
+        for currTarget in range(len(targetList)):
             toonId = targetList[currTarget]
             toon = self.battle.getToon(toonId)
             result = 0
@@ -1191,7 +1180,7 @@ class BattleCalculatorAI:
 
     def __getToonHp(self, toonDoId):
         handle = self.battle.getToon(toonDoId)
-        if handle != None and toonDoId in self.toonHPAdjusts:
+        if handle != None and self.toonHPAdjusts.has_key(toonDoId):
             return handle.hp + self.toonHPAdjusts[toonDoId]
         else:
             return 0
@@ -1229,7 +1218,7 @@ class BattleCalculatorAI:
         return 1
 
     def __updateSuitAtkStat(self, toonId):
-        if toonId in self.suitAtkStats:
+        if self.suitAtkStats.has_key(toonId):
             self.suitAtkStats[toonId] += 1
         else:
             self.suitAtkStats[toonId] = 1
@@ -1245,7 +1234,7 @@ class BattleCalculatorAI:
         self.notify.debug('\n')
 
     def __calculateSuitAttacks(self):
-        for i in xrange(len(self.battle.suitAttacks)):
+        for i in range(len(self.battle.suitAttacks)):
             if i < len(self.battle.activeSuits):
                 suitId = self.battle.activeSuits[i].doId
                 self.battle.suitAttacks[i][SUIT_ID_COL] = suitId
@@ -1320,7 +1309,7 @@ class BattleCalculatorAI:
         for atk in attacks:
             self.toonAtkOrder.append(atk[TOON_ID_COL])
 
-        for track in xrange(HEAL, DROP + 1):
+        for track in range(HEAL, DROP + 1):
             attacks = findToonAttack(self.battle.activeToons, self.battle.toonAttacks, track)
             if track == TRAP:
                 sortedTraps = []
@@ -1342,8 +1331,14 @@ class BattleCalculatorAI:
         for special in specials:
             npc_track = NPCToons.getNPCTrack(special[TOON_TGT_COL])
             if npc_track == NPC_TOONS_HIT:
-                BattleCalculatorAI.toonsAlwaysHit = 1
-                toonsHit = 1
+                if NPCToons.isUnior(special[TOON_TGT_COL]):
+                    print 'Detected Unior SOS HUE HUE HUE'
+                    self.toonsAlwaysMiss = 1
+                    
+                else:
+                    BattleCalculatorAI.toonsAlwaysHit = 1
+                    toonsHit = 1
+                
             elif npc_track == NPC_COGS_MISS:
                 BattleCalculatorAI.suitsAlwaysMiss = 1
                 cogsMiss = 1
@@ -1368,12 +1363,12 @@ class BattleCalculatorAI:
     def calculateRound(self):
         longest = max(len(self.battle.activeToons), len(self.battle.activeSuits))
         for t in self.battle.activeToons:
-            for j in xrange(longest):
+            for j in range(longest):
                 self.battle.toonAttacks[t][TOON_HP_COL].append(-1)
                 self.battle.toonAttacks[t][TOON_KBBONUS_COL].append(-1)
 
-        for i in xrange(4):
-            for j in xrange(len(self.battle.activeToons)):
+        for i in range(4):
+            for j in range(len(self.battle.activeToons)):
                 self.battle.suitAttacks[i][SUIT_HP_COL].append(-1)
 
         toonsHit, cogsMiss = self.__initRound()
@@ -1405,14 +1400,14 @@ class BattleCalculatorAI:
     def toonLeftBattle(self, toonId):
         if self.notify.getDebug():
             self.notify.debug('toonLeftBattle()' + str(toonId))
-        if toonId in self.toonSkillPtsGained:
+        if self.toonSkillPtsGained.has_key(toonId):
             del self.toonSkillPtsGained[toonId]
-        if toonId in self.suitAtkStats:
+        if self.suitAtkStats.has_key(toonId):
             del self.suitAtkStats[toonId]
         if not self.CLEAR_SUIT_ATTACKERS:
             oldSuitIds = []
             for s in self.SuitAttackers.keys():
-                if toonId in self.SuitAttackers[s]:
+                if self.SuitAttackers[s].has_key(toonId):
                     del self.SuitAttackers[s][toonId]
                     if len(self.SuitAttackers[s]) == 0:
                         oldSuitIds.append(s)
@@ -1427,7 +1422,7 @@ class BattleCalculatorAI:
         if self.notify.getDebug():
             self.notify.debug('suitLeftBattle(): ' + str(suitId))
         self.__removeLured(suitId)
-        if suitId in self.SuitAttackers:
+        if self.SuitAttackers.has_key(suitId):
             del self.SuitAttackers[suitId]
         self.__removeSuitTrap(suitId)
 
@@ -1460,7 +1455,7 @@ class BattleCalculatorAI:
         return luredSuits
 
     def __suitIsLured(self, suitId, prevRound = 0):
-        inList = suitId in self.currentlyLuredSuits
+        inList = self.currentlyLuredSuits.has_key(suitId)
         if prevRound:
             return inList and self.currentlyLuredSuits[suitId][0] != -1
         return inList
@@ -1494,9 +1489,9 @@ class BattleCalculatorAI:
             credit = 0
         else:
             credit = self.itemIsCredit(LURE, lureLvl)
-        if suitId in self.currentlyLuredSuits:
+        if self.currentlyLuredSuits.has_key(suitId):
             lureInfo = self.currentlyLuredSuits[suitId]
-            if not lurer in lureInfo[3]:
+            if not lureInfo[3].has_key(lurer):
                 lureInfo[1] += maxRounds
                 if wakeChance < lureInfo[2]:
                     lureInfo[2] = wakeChance
@@ -1587,7 +1582,7 @@ class BattleCalculatorAI:
         if toonAttack[TOON_TRACK_COL] == NPCSOS:
             track, level, hp = NPCToons.getNPCTrackLevelHp(toonAttack[TOON_TGT_COL])
             if track != None:
-                return (track, level, hp)
+                return (track, level, int(hp))
             else:
                 self.notify.warning('No NPC with id: %d' % toonAttack[TOON_TGT_COL])
         elif toonAttack[TOON_TRACK_COL] == PETSOS:
@@ -1596,7 +1591,7 @@ class BattleCalculatorAI:
             trickId = toonAttack[TOON_LVL_COL]
             healRange = PetTricks.TrickHeals[trickId]
             hp = 0
-            if petProxyId in simbase.air.doId2do:
+            if simbase.air.doId2do.has_key(petProxyId):
                 petProxy = simbase.air.doId2do[petProxyId]
                 if trickId < len(petProxy.trickAptitudes):
                     aptitude = petProxy.trickAptitudes[trickId]
@@ -1608,7 +1603,7 @@ class BattleCalculatorAI:
 
     def __calculatePetTrickSuccess(self, toonAttack):
         petProxyId = toonAttack[TOON_TGT_COL]
-        if not petProxyId in simbase.air.doId2do:
+        if not simbase.air.doId2do.has_key(petProxyId):
             self.notify.warning('pet proxy %d not in doId2do!' % petProxyId)
             toonAttack[TOON_ACCBONUS_COL] = 1
             return (0, 0)

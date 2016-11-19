@@ -1,5 +1,12 @@
-from toontown.town import Street
-
+import Street
 
 class DLStreet(Street.Street):
-    pass
+
+    def __init__(self, loader, parentFSM, doneEvent):
+        Street.Street.__init__(self, loader, parentFSM, doneEvent)
+
+    def load(self):
+        Street.Street.load(self)
+
+    def unload(self):
+        Street.Street.unload(self)

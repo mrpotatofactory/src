@@ -44,7 +44,7 @@ class InteractiveAnimatedProp(GenericAnimatedProp.GenericAnimatedProp, FSM.FSM):
         self.curIval = None
         self.okToStartNextAnim = False
         cellIndexStr = node.getTag('DNACellIndex')
-        self.cellIndex = ord(cellIndexStr)
+        self.cellIndex = int(cellIndexStr)
         self.origAnimNameToSound = {}
         self.lastPlayingAnimPhase = 0
         self.buildingsMakingMeSad = set()

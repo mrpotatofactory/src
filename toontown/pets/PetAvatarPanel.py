@@ -273,16 +273,20 @@ class PetAvatarPanel(AvatarPanel.AvatarPanel):
         self.notify.debug('__fillPetInfo(): doId=%s' % avatar.doId)
         self.petView = self.frame.attachNewNode('petView')
         self.petView.setPos(0, 0, 5.4)
+        avatar.announceGenerate()
         self.petModel = Pet.Pet(forGui=1)
         self.petModel.setDNA(avatar.getDNA())
         self.petModel.fitAndCenterHead(3.575, forGui=1)
         self.petModel.reparentTo(self.petView)
         self.petModel.enterNeutralHappy()
         self.petModel.startBlink()
+        self.petModel.setBin('gui-popup', 60)
+        
         self.nameLabel = DirectLabel(parent=self.frame, pos=(0, 0, 5.2), relief=None, text=avatar.getName(), text_font=avatar.getFont(), text_fg=Vec4(0, 0, 0, 1), text_pos=(0, 0), text_scale=0.4, text_wordwrap=7.5, text_shadow=(1, 1, 1, 1))
+        self.nameLabel.setBin('gui-popup', 61)
         self.stateLabel = DirectLabel(parent=self.frame, pos=TTLocalizer.PAPstateLabelPos, relief=None, text='', text_font=avatar.getFont(), text_fg=Vec4(0, 0, 0, 1), text_scale=TTLocalizer.PAPstateLabel, text_wordwrap=TTLocalizer.PAPstateLabelWordwrap, text_shadow=(1, 1, 1, 1))
+        self.stateLabel.setBin('gui-popup', 61)
         self.__refreshPetInfo(avatar)
-        return
 
     def __refreshPetInfo(self, avatar):
         self.notify.debug('__refreshPetInfo(): doId=%s' % avatar.doId)

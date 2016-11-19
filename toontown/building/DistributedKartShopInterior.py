@@ -5,9 +5,6 @@ from toontown.building import ToonInteriorColors
 from toontown.hood import ZoneUtil
 from toontown.toonbase.ToonBaseGlobal import *
 from toontown.toonbase.ToontownGlobals import *
-from toontown.toon.DistributedNPCToonBase import DistributedNPCToonBase
-if (__debug__):
-    import pdb
 
 class DistributedKartShopInterior(DistributedObject):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedKartShopInterior')
@@ -36,5 +33,3 @@ class DistributedKartShopInterior(DistributedObject):
         self.interior = loader.loadModel('phase_6/models/karting/KartShop_Interior')
         self.interior.reparentTo(render)
         self.interior.flattenMedium()
-        for npcToon in self.cr.doFindAllInstances(DistributedNPCToonBase):
-            npcToon.initToonState()

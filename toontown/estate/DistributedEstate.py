@@ -74,6 +74,7 @@ class DistributedEstate(DistributedObject.DistributedObject):
         self.loadFlowerSellBox()
         self.oldClear = base.win.getClearColor()
         base.win.setClearColor(Vec4(0.09, 0.55, 0.21, 1.0))
+        self.startGame()
 
     def unload(self):
         self.ignoreAll()
@@ -100,6 +101,7 @@ class DistributedEstate(DistributedObject.DistributedObject):
             self.flowerSellBox.removeNode()
             del self.flowerSellBox
             self.flowerSellBox = None
+        GardenDropGame.GardenDropGame().endGame()
         return
 
     def announceGenerate(self):
@@ -107,7 +109,7 @@ class DistributedEstate(DistributedObject.DistributedObject):
         self.accept('gardenGame', self.startGame)
 
     def startGame(self):
-        self.game = GardenDropGame.GardenDropGame()
+        self.game = GardenDropGame.GardenDropGame().playGardenDrop()
 
     def loadAirplane(self):
         self.airplane = loader.loadModel('phase_4/models/props/airplane.bam')
@@ -118,12 +120,14 @@ class DistributedEstate(DistributedObject.DistributedObject):
         bannerText.setTextColor(1, 0, 0, 1)
         bannerText.setAlign(bannerText.ACenter)
         bannerText.setFont(ToontownGlobals.getSignFont())
-        bannerText.setText('Cog invasion!!!')
+        bannerText.setText(TTLocalizer.EstatePlaneReturn)
         self.bn = self.banner.attachNewNode(bannerText.generate())
         self.bn.setHpr(180, 0, 0)
-        self.bn.setPos(-1.8, 0.1, 0)
-        self.bn.setScale(0.35)
-        self.banner.hide()
+        self.bn.setPos(-5.8, 0.1, -0.25)
+        self.bn.setScale(0.95)
+        self.bn.setDepthTest(1)
+        self.bn.setDepthWrite(1)
+        self.bn.setDepthOffset(500)
 
     def loadWitch(self):
         if not self.airplane:
@@ -135,15 +139,19 @@ class DistributedEstate(DistributedObject.DistributedObject):
             self.airplane = loader.loadModel('phase_4/models/props/tt_m_prp_ext_flyingWitch.bam')
             self.airplane.setScale(2)
             self.airplane.setPos(0, 0, 1)
+            self.airplane.find('**/').setH(180)
             bannerText = TextNode('bannerText')
             bannerText.setTextColor(1, 0, 0, 1)
             bannerText.setAlign(bannerText.ACenter)
             bannerText.setFont(ToontownGlobals.getSignFont())
-            bannerText.setText('Happy halloween!!!')
+            bannerText.setText(TTLocalizer.EstatePlaneHoliday)
             self.bn = self.airplane.attachNewNode(bannerText.generate())
-            self.bn.setHpr(0, 0, 0)
-            self.bn.setPos(20.0, -.1, 0)
+            self.bn.setPos(-20.0, -.1, 0)
+            self.bn.setH(180)
             self.bn.setScale(2.35)
+            self.bn.setDepthTest(1)
+            self.bn.setDepthWrite(1)
+            self.bn.setDepthOffset(500)
 
         replacement = Sequence(LerpColorScaleInterval(self.airplane, 0.1, Vec4(1, 1, 1, 0)), Func(__replaceAirplane__), LerpColorScaleInterval(self.airplane, 0.1, Vec4(1, 1, 1, 1)))
         replacement.start()
@@ -162,12 +170,14 @@ class DistributedEstate(DistributedObject.DistributedObject):
             bannerText.setTextColor(1, 0, 0, 1)
             bannerText.setAlign(bannerText.ACenter)
             bannerText.setFont(ToontownGlobals.getSignFont())
-            bannerText.setText('Happy halloween!!!')
+            bannerText.setText(TTLocalizer.EstatePlaneReturn)
             self.bn = self.banner.attachNewNode(bannerText.generate())
             self.bn.setHpr(180, 0, 0)
-            self.bn.setPos(-1.8, 0.1, 0)
-            self.bn.setScale(0.35)
-            self.banner.hide()
+            self.bn.setPos(-5.8, 0.1, -0.25)
+            self.bn.setScale(0.95)
+            self.bn.setDepthTest(1)
+            self.bn.setDepthWrite(1)
+            self.bn.setDepthOffset(500)
 
         replacement = Sequence(LerpColorScaleInterval(self.airplane, 0.1, Vec4(1, 1, 1, 0)), Func(__replaceWitch__), LerpColorScaleInterval(self.airplane, 0.1, Vec4(1, 1, 1, 1)))
         replacement.start()
@@ -201,7 +211,7 @@ class DistributedEstate(DistributedObject.DistributedObject):
     def __pauseAirplaneTask(self):
         pause = 45
         self.phi = 0
-        self.airplane.hide()
+        self.airplane.reparentTo(hidden)
         self.theta = (self.theta + 10) % 360
         taskMgr.remove(self.taskName('estate-airplane'))
         taskMgr.doMethodLater(pause, self.airplaneFlyTask, self.taskName('estate-airplane'))
@@ -222,7 +232,7 @@ class DistributedEstate(DistributedObject.DistributedObject):
         y = rad * math.sin(angle)
         z = amp * sinPhi
         self.airplane.reparentTo(render)
-        self.airplane.setH(90 + self.theta + 180)
+        self.airplane.setH(90 + self.theta)
         self.airplane.setPos(x, y, z)
         return Task.cont
 
@@ -270,7 +280,7 @@ class DistributedEstate(DistributedObject.DistributedObject):
 
     def __dayTimeTask(self, task):
         taskName = self.taskName('daytime')
-        track = Sequence(Parallel(LerpColorScaleInterval(base.cr.playGame.hood.loader.geom, HouseGlobals.HALF_DAY_PERIOD, Vec4(1, 0.6, 0.6, 1)), LerpColorScaleInterval(base.cr.playGame.hood.sky, HouseGlobals.HALF_DAY_PERIOD, Vec4(1, 0.8, 0.8, 1))), Parallel(LerpColorScaleInterval(base.cr.playGame.hood.loader.geom, HouseGlobals.HALF_NIGHT_PERIOD, Vec4(0.2, 0.2, 0.5, 1)), LerpColorScaleInterval(base.cr.playGame.hood.sky, HouseGlobals.HALF_NIGHT_PERIOD, Vec4(0.4, 0.4, 0.6, 1))), Parallel(LerpColorScaleInterval(base.cr.playGame.hood.loader.geom, HouseGlobals.HALF_NIGHT_PERIOD, Vec4(0.6, 0.6, 0.8, 1)), LerpColorScaleInterval(base.cr.playGame.hood.sky, HouseGlobals.HALF_NIGHT_PERIOD, Vec4(0.7, 0.7, 0.8, 1))), Parallel(LerpColorScaleInterval(base.cr.playGame.hood.loader.geom, HouseGlobals.HALF_DAY_PERIOD, Vec4(1, 1, 1, 1)), LerpColorScaleInterval(base.cr.playGame.hood.sky, HouseGlobals.HALF_DAY_PERIOD, Vec4(1, 1, 1, 1))), Func(base.cr.playGame.hood.loader.geom.clearColorScale), Func(base.cr.playGame.hood.sky.clearColorScale))
+        track = Sequence(Parallel(LerpColorScaleInterval(base.cr.playGame.hood.loader.geom, HouseGlobals.HALF_DAY_PERIOD, Vec4(1, 0.6, 0.6, 1)), LerpColorScaleInterval(base.cr.playGame.hood.sky, HouseGlobals.HALF_DAY_PERIOD, Vec4(1, 0.8, 0.8, 1))), Parallel(LerpColorScaleInterval(base.cr.playGame.hood.loader.geom, HouseGlobals.HALF_NIGHT_PERIOD, Vec4(0.2, 0.2, 0.5, 1)), LerpColorScaleInterval(base.cr.playGame.hood.sky, HouseGlobals.HALF_NIGHT_PERIOD, Vec4(0.2, 0.2, 0.4, 1))), Parallel(LerpColorScaleInterval(base.cr.playGame.hood.loader.geom, HouseGlobals.HALF_NIGHT_PERIOD, Vec4(0.6, 0.6, 0.8, 1)), LerpColorScaleInterval(base.cr.playGame.hood.sky, HouseGlobals.HALF_NIGHT_PERIOD, Vec4(0.5, 0.5, 0.6, 1))), Parallel(LerpColorScaleInterval(base.cr.playGame.hood.loader.geom, HouseGlobals.HALF_DAY_PERIOD, Vec4(1, 1, 1, 1)), LerpColorScaleInterval(base.cr.playGame.hood.sky, HouseGlobals.HALF_DAY_PERIOD, Vec4(1, 1, 1, 1))), Func(base.cr.playGame.hood.loader.geom.clearColorScale), Func(base.cr.playGame.hood.sky.clearColorScale))
         if self.dayTrack:
             self.dayTrack.finish()
         self.dayTrack = track
@@ -334,8 +344,8 @@ class DistributedEstate(DistributedObject.DistributedObject):
         taskMgr.doMethodLater(1, self.__crickets, 'estate-crickets')
 
     def __crickets(self, task):
-        sfx = random.choice(base.cr.playGame.hood.loader.cricketSound)
-        track = Sequence(Func(base.playSfx, sfx), Wait(1))
+        sfx = base.cr.playGame.hood.loader.cricketSound
+        track = Sequence(Func(base.playSfx, random.choice(sfx)), Wait(1))
         track.start()
         t = random.random() * 20.0 + 1
         taskMgr.doMethodLater(t, self.__crickets, 'estate-crickets')

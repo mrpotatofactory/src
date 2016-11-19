@@ -1,18 +1,17 @@
-import cPickle
-import random
-import ToonInteriorColors
-from direct.directnotify import DirectNotifyGlobal
-from direct.distributed import DistributedObject
-from direct.task.Task import Task
-from pandac.PandaModules import *
-from toontown.toonbase import TTLocalizer
 from toontown.toonbase.ToonBaseGlobal import *
+from pandac.PandaModules import *
 from toontown.toonbase.ToontownGlobals import *
-from toontown.dna.DNAParser import DNADoor
-from toontown.toon.DistributedNPCToonBase import DistributedNPCToonBase
-
+import random
+from direct.task.Task import Task
+from direct.distributed import DistributedObject
+from direct.directnotify import DirectNotifyGlobal
+import ToonInteriorColors
+import cPickle
+from toontown.toonbase import TTLocalizer
+from toontown.dna.DNAParser import *
 
 class DistributedHQInterior(DistributedObject.DistributedObject):
+
     def __init__(self, cr):
         DistributedObject.DistributedObject.__init__(self, cr)
         self.dnaStore = cr.playGame.dnaStore
@@ -36,8 +35,8 @@ class DistributedHQInterior(DistributedObject.DistributedObject):
         self.interior.flattenMedium()
         emptyBoard = self.interior.find('**/empty_board')
         self.leaderBoard.reparentTo(emptyBoard.getChild(0))
-        for npcToon in self.cr.doFindAllInstances(DistributedNPCToonBase):
-            npcToon.initToonState()
+        base.cr.hqLoaded = True #hack while a real fix is in the work
+        messenger.send('hqInternalDone')
 
     def setTutorial(self, flag):
         if self.tutorial == flag:
@@ -66,8 +65,8 @@ class DistributedHQInterior(DistributedObject.DistributedObject):
         self.nameTextNodes = []
         self.scoreTextNodes = []
         self.trophyStars = []
-        for i in xrange(self.numLeaders):
-            (row, nameText, scoreText, trophyStar) = self.buildLeaderRow()
+        for i in range(self.numLeaders):
+            row, nameText, scoreText, trophyStar = self.buildLeaderRow()
             self.nameTextNodes.append(nameText)
             self.scoreTextNodes.append(scoreText)
             self.trophyStars.append(trophyStar)
@@ -77,13 +76,14 @@ class DistributedHQInterior(DistributedObject.DistributedObject):
 
     def updateLeaderBoard(self):
         taskMgr.remove(self.uniqueName('starSpinHQ'))
-        for i in xrange(len(self.leaderNames)):
+        for i in range(len(self.leaderNames)):
             name = self.leaderNames[i]
             score = self.leaderScores[i]
             self.nameTextNodes[i].setText(name)
             self.scoreTextNodes[i].setText(str(score))
             self.updateTrophyStar(self.trophyStars[i], score)
-        for i in xrange(len(self.leaderNames), self.numLeaders):
+
+        for i in range(len(self.leaderNames), self.numLeaders):
             self.nameTextNodes[i].setText('-')
             self.scoreTextNodes[i].setText('-')
             self.trophyStars[i].hide()
@@ -118,10 +118,13 @@ class DistributedHQInterior(DistributedObject.DistributedObject):
         scorePath.setPos(*TTLocalizer.DHQIscorePathPos)
         trophyStar = self.buildTrophyStar()
         trophyStar.reparentTo(row)
-        return (row, nameText, scoreText, trophyStar)
+        return (row,
+         nameText,
+         scoreText,
+         trophyStar)
 
     def setLeaderBoard(self, leaderData):
-        (avIds, names, scores) = cPickle.loads(leaderData)
+        avIds, names, scores = cPickle.loads(leaderData)
         self.notify.debug('setLeaderBoard: avIds: %s, names: %s, scores: %s' % (avIds, names, scores))
         self.leaderAvIds = avIds
         self.leaderNames = names
@@ -129,8 +132,8 @@ class DistributedHQInterior(DistributedObject.DistributedObject):
         self.updateLeaderBoard()
 
     def chooseDoor(self):
-        doorModelName = 'door_double_round_ul'
-        if doorModelName[-1:] == 'r':
+        doorModelName = 'door_double_round_ur'
+        if doorModelName[-1:] == 'l':
             doorModelName = doorModelName[:-1] + 'l'
         else:
             doorModelName = doorModelName[:-1] + 'r'
@@ -144,7 +147,7 @@ class DistributedHQInterior(DistributedObject.DistributedObject):
         door = self.chooseDoor()
         doorOrigins = render.findAllMatches('**/door_origin*')
         numDoorOrigins = doorOrigins.getNumPaths()
-        for npIndex in xrange(numDoorOrigins):
+        for npIndex in range(numDoorOrigins):
             doorOrigin = doorOrigins[npIndex]
             doorOriginNPName = doorOrigin.getName()
             doorOriginIndexStr = doorOriginNPName[len('door_origin_'):]
@@ -155,10 +158,11 @@ class DistributedHQInterior(DistributedObject.DistributedObject):
             doorOrigin.setScale(0.8, 0.8, 0.8)
             doorOrigin.setPos(doorOrigin, 0, -0.025, 0)
             doorColor = self.randomGenerator.choice(self.colors['TI_door'])
-            triggerId = str(self.block) + '_' + doorOriginIndexStr
-            DNADoor.setupDoor(doorNP, newNodePath, doorOrigin, self.dnaStore, triggerId, doorColor)
+            triggerId = str(self.block + 500) + '_' + doorOriginIndexStr
+            setupDoor(doorNP, newNodePath, doorOrigin, self.dnaStore, triggerId, doorColor)
             doorFrame = doorNP.find('door_*_flat')
             doorFrame.setColor(doorColor)
+
         del self.dnaStore
         del self.randomGenerator
 
@@ -170,6 +174,7 @@ class DistributedHQInterior(DistributedObject.DistributedObject):
         del self.nameTextNodes
         del self.scoreTextNodes
         del self.trophyStars
+        del base.cr.hqLoaded
         taskMgr.remove(self.uniqueName('starSpinHQ'))
         DistributedObject.DistributedObject.disable(self)
 

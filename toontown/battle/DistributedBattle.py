@@ -1,17 +1,21 @@
-from direct.directnotify import DirectNotifyGlobal
-from direct.interval.IntervalGlobal import *
 from pandac.PandaModules import *
+from direct.interval.IntervalGlobal import *
+from BattleBase import *
+from toontown.toonbase import ToontownGlobals
+from toontown.toonbase import ToontownBattleGlobals
+import DistributedBattleBase
+from direct.directnotify import DirectNotifyGlobal
+import MovieUtil
+from toontown.suit import Suit
+from direct.actor import Actor
+from toontown.toon import TTEmote
+from otp.avatar import Emote
+import SuitBattleGlobals
+from toontown.distributed import DelayDelete
 import random
 
-from BattleBase import *
-import DistributedBattleBase
-import SuitBattleGlobals
-from otp.avatar import Emote
-from toontown.chat.ChatGlobals import *
-from toontown.distributed import DelayDelete
-from toontown.nametag import NametagGlobals
-from toontown.toonbase import ToontownBattleGlobals
-
+from otp.nametag.NametagConstants import *
+from otp.nametag import NametagGlobals
 
 class DistributedBattle(DistributedBattleBase.DistributedBattleBase):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedBattle')
@@ -119,7 +123,7 @@ class DistributedBattle(DistributedBattleBase.DistributedBattleBase):
             camTrack.append(Func(camera.setPos, self.camFOPos))
             camTrack.append(Func(camera.lookAt, suit.getPos(self)))
             camTrack.append(Wait(faceoffTime))
-            if self.interactiveProp:
+            if self.interactiveProp and config.GetBool('want-battle-prop-show', False):
                 camTrack.append(Func(camera.lookAt, self.interactiveProp.node.getPos(self)))
                 camTrack.append(Wait(FACEOFF_LOOK_AT_PROP_T))
         suitTrack.append(Wait(delay))
@@ -139,10 +143,13 @@ class DistributedBattle(DistributedBattleBase.DistributedBattleBase):
             soundTrack = Sequence(Wait(delay), SoundInterval(base.localAvatar.soundRun, loop=1, duration=faceoffTime, node=base.localAvatar))
         else:
             soundTrack = Wait(delay + faceoffTime)
+            
         mtrack = Parallel(suitTrack, toonTrack, soundTrack)
+        
         if self.hasLocalToon():
-            NametagGlobals.setWant2dNametags(False)
+            NametagGlobals.setMasterArrowsOn(0)
             mtrack = Parallel(mtrack, camTrack)
+            
         done = Func(callback)
         track = Sequence(mtrack, done, name=name)
         track.delayDeletes = [DelayDelete.DelayDelete(toon, '__faceOff'), DelayDelete.DelayDelete(suit, '__faceOff')]
@@ -177,7 +184,7 @@ class DistributedBattle(DistributedBattleBase.DistributedBattleBase):
         self.delayDeleteMembers()
         Emote.globalEmote.disableAll(base.localAvatar, 'dbattle, enterReward')
         if self.hasLocalToon():
-            NametagGlobals.setWant2dNametags(False)
+            NametagGlobals.setMasterArrowsOn(0)
             if self.localToonActive() == 0:
                 self.removeInactiveLocalToon(base.localAvatar)
         for toon in self.toons:
@@ -206,7 +213,7 @@ class DistributedBattle(DistributedBattleBase.DistributedBattleBase):
         self.ignore('resumeAfterReward')
         self.movie.resetReward(finish=1)
         self._removeMembersKeep()
-        NametagGlobals.setWant2dNametags(True)
+        NametagGlobals.setMasterArrowsOn(1)
         Emote.globalEmote.releaseAll(base.localAvatar, 'dbattle, exitReward')
 
     def enterResume(self, ts = 0):

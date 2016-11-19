@@ -14,18 +14,19 @@ class LevelSpec:
     def __init__(self, spec = None, scenario = 0):
         newSpec = 0
         if type(spec) is types.ModuleType:
-            if __dev__:
-                reload(spec)
+            #if __dev__:
+            #    reload(spec)
             self.specDict = spec.levelSpec
-            if __dev__:
-                self.setFilename(spec.__file__)
+            #if __dev__:
+            #    self.setFilename(spec.__file__)
         elif type(spec) is types.DictType:
             self.specDict = spec
         elif spec is None:
-            if __dev__:
-                newSpec = 1
-                self.specDict = {'globalEntities': {},
-                 'scenarios': [{}]}
+            pass
+            #if __dev__:
+            #    newSpec = 1
+            #    self.specDict = {'globalEntities': {},
+            #     'scenarios': [{}]}
         self.entId2specDict = {}
         self.entId2specDict.update(list2dict(self.getGlobalEntIds(), value=self.privGetGlobalEntityDict()))
         for i in xrange(self.getNumScenarios()):
@@ -90,7 +91,12 @@ class LevelSpec:
         return specDict[entId]
 
     def getCopyOfSpec(self, spec):
-        return __import__(self.getSpecImportsModuleName(), fromlist=['*']).__dict__
+        specCopy = {}
+        exec 'from %s import *' % self.getSpecImportsModuleName()
+        for key in spec.keys():
+            specCopy[key] = eval(repr(spec[key]))
+
+        return specCopy
 
     def getEntitySpecCopy(self, entId):
         specDict = self.entId2specDict[entId]
@@ -362,8 +368,13 @@ class LevelSpec:
             else:
                 return 0
 
-        def testPrettyString(self, prettyString=None):
-            pass
+        def testPrettyString(self, prettyString = None):
+            if prettyString is None:
+                prettyString = self.getPrettyString()
+            exec prettyString
+            if self._recurKeyTest(levelSpec, self.specDict):
+                return 1
+            return
 
         def checkSpecIntegrity(self):
             entIds = self.getGlobalEntIds()
@@ -386,7 +397,7 @@ class LevelSpec:
                             del spec[attrib]
 
                     for attribName in attribNames:
-                        if attribName not in spec:
+                        if not spec.has_key(attribName):
                             LevelSpec.notify.warning("entId %s (%s): missing attrib '%s'" % (entId, spec['type'], attribName))
 
             return

@@ -20,7 +20,7 @@ class EstateManager(DistributedObject.DistributedObject):
         return
 
     def disable(self):
-        self.notify.debug("i'm disabling EstateManager rightnow.")
+        self.notify.debug("I'm disabling EstateManager right now.")
         self.ignore('getLocalEstateZone')
         self.ignoreAll()
         if self.popupInfo:

@@ -59,8 +59,13 @@ class PetHandle:
     def updateMoodFromServer(self, callWhenDone = None):
 
         def handleGotDetails(avatar, callWhenDone = callWhenDone):
+            avatar.announceGenerate()
             self._grabMood(avatar)
             if callWhenDone:
                 callWhenDone()
 
         PetDetail.PetDetail(self.doId, handleGotDetails)
+
+    def announceGenerate(self):
+        pass
+        

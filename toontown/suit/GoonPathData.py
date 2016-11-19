@@ -1,6 +1,8 @@
 from pandac.PandaModules import *
 from toontown.toonbase import ToontownGlobals
-taskZoneId2pathId = {ToontownGlobals.SellbotFactoryInt: 'sellbotFactory',
+
+taskZoneId2pathId = {
+ ToontownGlobals.SellbotFactoryInt: 'sellbotFactory',
  ToontownGlobals.CashbotMintIntA: 'cashbotMint',
  ToontownGlobals.CashbotMintIntB: 'cashbotMint',
  ToontownGlobals.CashbotMintIntC: 'cashbotMint',
@@ -9,6 +11,7 @@ taskZoneId2pathId = {ToontownGlobals.SellbotFactoryInt: 'sellbotFactory',
  ToontownGlobals.LawbotStageIntB: 'lawOfficeStage',
  ToontownGlobals.LawbotStageIntC: 'lawOfficeStage',
  ToontownGlobals.LawbotStageIntD: 'lawOfficeStage'}
+
 Paths = {'sellbotFactory': {0: [Vec3(10.0, 0.0, 0.0),
                         Vec3(10.0, 10.0, 0.0),
                         Vec3(-10.0, 10.0, 0.0),

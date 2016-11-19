@@ -1,3 +1,4 @@
+from direct.directnotify import DirectNotifyGlobal
 from pandac.PandaModules import *
 from toontown.toonbase import TTLocalizer
 from toontown.toonbase import ToontownGlobals
@@ -6,8 +7,6 @@ from direct.distributed.PyDatagram import PyDatagram
 from direct.distributed.PyDatagramIterator import PyDatagramIterator
 import types
 import sys
-
-
 CatalogReverseType = None
 CatalogItemVersion = 8
 CatalogBackorderMarkup = 1.2
@@ -23,9 +22,8 @@ CatalogTypeBackorder = 2
 CatalogTypeMonthly = 3
 CatalogTypeLoyalty = 4
 
-
 class CatalogItem:
-    notify = directNotify.newCategory('CatalogItem')
+    notify = DirectNotifyGlobal.directNotify.newCategory('CatalogItem')
 
     def __init__(self, *args, **kw):
         self.saleItem = 0
@@ -130,10 +128,16 @@ class CatalogItem:
         return 0
 
     def setLoyaltyRequirement(self, days):
-        self.loyaltyDays = 0
+        self.loyaltyDays = days
 
     def loyaltyRequirement(self):
-        return 0
+        if config.GetBool('catalog-forbid-loyalty', True):
+            return 0
+            
+        if not hasattr(self, 'loyaltyDays'):
+            return 0
+        else:
+            return self.loyaltyDays
 
     def getPrice(self, catalogType):
         if catalogType == CatalogTypeBackorder:
@@ -153,7 +157,7 @@ class CatalogItem:
         return int(self.getBasePrice() * CatalogSaleMarkdown)
 
     def getDeliveryTime(self):
-        return 1
+        return 0
 
     def getPicture(self, avatar):
         self.hasPicture = True
@@ -163,7 +167,7 @@ class CatalogItem:
         self.hasPicture = False
 
     def requestPurchase(self, phone, callback, optional = -1):
-        phone.requestPurchase(self, callback, optional)
+        phone.requestPurchase(self, callback, optional, getattr(self, 'payMethod', 0))
 
     def requestGiftPurchase(self, phone, targetDoID, callback, optional = -1):
         phone.requestGiftPurchase(self, targetDoID, callback, optional)
@@ -178,7 +182,7 @@ class CatalogItem:
             return TTLocalizer.CatalogPurchaseItemOnOrder
         elif retcode == ToontownGlobals.P_MailboxFull:
             return TTLocalizer.CatalogPurchaseMailboxFull
-        elif retcode == ToontownGlobals.P_OnOrderListFull:
+        elif retcode in (ToontownGlobals.P_OnOrderListFull, ToontownGlobals.P_ReachedPurchaseLimit):
             return TTLocalizer.CatalogPurchaseOnOrderListFull
         else:
             return TTLocalizer.CatalogPurchaseGeneralError % retcode
@@ -208,6 +212,7 @@ class CatalogItem:
         mailbox.acceptItem(self, index, callback)
 
     def discardItem(self, mailbox, index, callback):
+        print 'Item discardItem'
         mailbox.discardItem(self, index, callback)
 
     def acceptItemCleanup(self):
@@ -300,7 +305,7 @@ class CatalogItem:
              p,
              r)
         if store & GiftTag:
-            self.giftTag = di.getString()
+            self.giftTag = di.getUint32()
         if versionNumber >= 8:
             self.specialEventId = di.getUint8()
         else:
@@ -317,7 +322,7 @@ class CatalogItem:
             dg.putArg(self.posHpr[4], STInt8, 256.0 / 360.0)
             dg.putArg(self.posHpr[5], STInt8, 256.0 / 360.0)
         if store & GiftTag:
-            dg.addString(self.giftTag)
+            dg.addUint32(self.giftTag)
         dg.addUint8(self.specialEventId)
 
     def getTypeCode(self):
@@ -335,13 +340,13 @@ class CatalogItem:
                 tex = loader.loadTexture(color)
                 tex.setMinfilter(Texture.FTLinearMipmapLinear)
                 tex.setMagfilter(Texture.FTLinear)
-                for i in xrange(matches.getNumPaths()):
+                for i in range(matches.getNumPaths()):
                     matches.getPath(i).setTexture(tex, 1)
 
             else:
                 needsAlpha = color[3] != 1
                 color = VBase4(color[0], color[1], color[2], color[3])
-                for i in xrange(matches.getNumPaths()):
+                for i in range(matches.getNumPaths()):
                     matches.getPath(i).setColorScale(color, 1)
                     if needsAlpha:
                         matches.getPath(i).setTransparency(1)
@@ -400,6 +405,8 @@ class CatalogItem:
             daysToGo = 0
         return int(daysToGo)
 
+    def isSpecial(self):
+        return 0
 
 def encodeCatalogItem(dg, item, store):
     import CatalogItemTypes

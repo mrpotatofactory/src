@@ -96,7 +96,6 @@ suitsPerLevel = [1,
  1,
  1]
 suitsPerDept = 8
-levelsPerSuit = 5
 goonTypes = ['pg', 'sg']
 
 def getSuitBodyType(name):
@@ -143,10 +142,6 @@ def getSuitType(name):
     return index % suitsPerDept + 1
 
 
-def getSuitName(deptIndex, typeIndex):
-    return suitHeadTypes[(suitsPerDept*deptIndex) + typeIndex]
-
-
 def getRandomSuitType(level, rng = random):
     return random.randint(max(level - 4, 1), min(level, 8))
 
@@ -155,10 +150,6 @@ def getRandomSuitByDept(dept):
     deptNumber = suitDepts.index(dept)
     return suitHeadTypes[suitsPerDept * deptNumber + random.randint(0, 7)]
 
-def getSuitsInDept(dept):
-    start = dept * suitsPerDept
-    end = start + suitsPerDept
-    return suitHeadTypes[start:end]
 
 class SuitDNA(AvatarDNA.AvatarDNA):
 
@@ -248,7 +239,7 @@ class SuitDNA(AvatarDNA.AvatarDNA):
         base = index * suitsPerDept
         offset = 0
         if level > 1:
-            for i in xrange(1, level):
+            for i in range(1, level):
                 offset = offset + suitsPerLevel[i - 1]
 
         bottom = base + offset

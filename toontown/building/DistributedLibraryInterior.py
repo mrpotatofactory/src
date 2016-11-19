@@ -1,73 +1,77 @@
-from direct.distributed.DistributedObject import DistributedObject
 import random
-
-from toontown.building import  ToonInteriorColors
+import ToonInteriorColors
+import ToonInteriorTextures
+import DistributedToonInterior
+from direct.distributed.DistributedObject import DistributedObject
 from toontown.dna.DNAParser import DNADoor
 from toontown.hood import ZoneUtil
 from toontown.toon.DistributedNPCToonBase import DistributedNPCToonBase
-
-
-class DistributedLibraryInterior(DistributedObject):
+ 
+class DistributedLibraryInterior(DistributedToonInterior.DistributedToonInterior):
+ 
     def announceGenerate(self):
         DistributedObject.announceGenerate(self)
-
-        self.interior = loader.loadModel('phase_4/models/modules/ttc_library_interior.bam')
+        self.setup()
+ 
+    def setup(self):
+        self.dnaStore = base.cr.playGame.dnaStore
+        for npc in self.cr.doFindAllInstances(DistributedNPCToonBase):
+            npc.initToonState()
+        self.randomGenerator = random.Random()
+        self.randomGenerator.seed(self.zoneId)
+        self.interior = loader.loadModel('phase_4/models/modules/library_interior.bam')
         self.interior.reparentTo(render)
-
-        generator = random.Random()
-        generator.seed(self.zoneId)
-        self.replaceRandom(self.interior, generator=generator)
-
-        doorOrigin = self.interior.find('**/door_origin;+s')
-        doorOrigin.setScale(0.8)
-        doorOrigin.setY(doorOrigin, -0.025)
-
-        door = self.cr.playGame.dnaStore.findNode('door_double_round_ur')
-        doorNodePath = door.copyTo(doorOrigin)
-
         hoodId = ZoneUtil.getCanonicalHoodId(self.zoneId)
-        doorColor = ToonInteriorColors.colors[hoodId]['TI_door'][0]
-        DNADoor.setupDoor(
-            doorNodePath, self.interior, doorOrigin, self.cr.playGame.dnaStore,
-            str(self.block), doorColor)
-
-        doorFrame = doorNodePath.find('door_double_round_ur_flat')
+        self.textures = ToonInteriorTextures.textures[hoodId]
+        self.colors = ToonInteriorColors.colors[hoodId]
+        self.replaceRandomInModel(self.interior)
+        doorModelName = 'door_double_round_ul'
+        if doorModelName[-1:] == 'r':
+            doorModelName = doorModelName[:-1] + 'l'
+        else:
+            doorModelName = doorModelName[:-1] + 'r'
+        door = self.dnaStore.findNode(doorModelName)
+        door_origin = render.find('**/door_origin;+s')
+        doorNP = door.copyTo(door_origin)
+        door_origin.setScale(0.8, 0.8, 0.8)
+        door_origin.setPos(door_origin, 0, -0.025, 0)
+        color = self.randomGenerator.choice(self.colors['TI_door'])
+        DNADoor.setupDoor(doorNP, self.interior, door_origin, self.dnaStore, self.block + 500, color)
+        doorFrame = doorNP.find('door_*_flat')
         doorFrame.wrtReparentTo(self.interior)
-        doorFrame.setColor(doorColor)
-
-        for npcToon in self.cr.doFindAllInstances(DistributedNPCToonBase):
-            npcToon.initToonState()
-
+        doorFrame.setColor(color)
+ 
+    def replaceRandomInModel(self, model):
+        baseTag = 'random_'
+        npc = model.findAllMatches('**/' + baseTag + '???_*')
+        for i in xrange(npc.getNumPaths()):
+            np = npc.getPath(i)
+            name = np.getName()
+            b = len(baseTag)
+            category = name[b + 4:]
+            key1 = name[b]
+            key2 = name[b + 1]
+            if key1 == 'm':
+                model = self.randomDNAItem(category, self.dnaStore.findNode)
+                newNP = model.copyTo(np)
+                if key2 == 'r':
+                    self.replaceRandomInModel(newNP)
+            elif key1 == 't':
+                texture = self.randomGenerator.choice(self.textures[category])
+                np.setTexture(loader.loadTexture(texture), 100)
+                newNP = np
+            if key2 == 'c':
+                if category == 'TI_wallpaper' or category == 'TI_wallpaper_border':
+                    self.randomGenerator.seed(self.zoneId)
+                    newNP.setColorScale(self.randomGenerator.choice(self.colors[category]))
+                else:
+                    newNP.setColorScale(self.randomGenerator.choice(self.colors[category]))
+ 
     def disable(self):
+        DistributedObject.disable(self)
         self.interior.removeNode()
         del self.interior
-
-        DistributedObject.disable(self)
-
+ 
     def setZoneIdAndBlock(self, zoneId, block):
         self.zoneId = zoneId
         self.block = block
-
-    def replaceRandom(self, root, generator=random):
-        for nodePath in root.findAllMatches('**/random_???_*'):
-            name = nodePath.getName()
-
-            category = name[11:]
-
-            if name[7] in ('m', 't'):
-                codeCount = self.cr.playGame.dnaStore.getNumCatalogCodes(category)
-                index = generator.randint(0, codeCount - 1)
-                code = self.cr.playGame.dnaStore.getCatalogCode(category, index)
-                if name[7] == 'm':
-                    _nodePath = self.cr.playGame.dnaStore.findNode(code).copyTo(nodePath)
-                    if name[8] == 'r':
-                        self.replaceRandom(_nodePath, generator=generator)
-                else:
-                    texture = self.cr.playGame.dnaStore.findTexture(code)
-                    nodePath.setTexture(texture, 100)
-                    _nodePath = nodePath
-
-            if name[8] == 'c':
-                hoodId = ZoneUtil.getCanonicalHoodId(self.zoneId)
-                colors = ToonInteriorColors.colors[hoodId]
-                _nodePath.setColorScale(generator.choice(colors[category]))

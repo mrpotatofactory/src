@@ -27,7 +27,7 @@ class DistributedElevatorAI(DistributedObjectAI.DistributedObjectAI):
             simbase.air.elevatorTripId += 1
         else:
             self.elevatorTripId = 0
-        for seat in xrange(numSeats):
+        for seat in range(numSeats):
             self.seats.append(None)
 
         self.accepting = 0
@@ -35,7 +35,7 @@ class DistributedElevatorAI(DistributedObjectAI.DistributedObjectAI):
          State.State('opening', self.enterOpening, self.exitOpening, ['waitEmpty', 'waitCountdown']),
          State.State('waitEmpty', self.enterWaitEmpty, self.exitWaitEmpty, ['waitCountdown']),
          State.State('waitCountdown', self.enterWaitCountdown, self.exitWaitCountdown, ['waitEmpty', 'allAboard']),
-         State.State('allAboard', self.enterAllAboard, self.exitAllAboard, ['closing', 'waitEmpty', 'waitCountdown']),
+         State.State('allAboard', self.enterAllAboard, self.exitAllAboard, ['closing', 'waitEmpty']),
          State.State('closing', self.enterClosing, self.exitClosing, ['closed', 'waitEmpty']),
          State.State('closed', self.enterClosed, self.exitClosed, ['opening'])], 'off', 'off')
         self.fsm.enterInitialState()
@@ -60,27 +60,33 @@ class DistributedElevatorAI(DistributedObjectAI.DistributedObjectAI):
         return self.bldgDoId
 
     def findAvailableSeat(self):
-        for i in xrange(len(self.seats)):
+        for i in range(len(self.seats)):
             if self.seats[i] == None:
                 return i
 
+        return
+
     def findAvatar(self, avId):
-        for i in xrange(len(self.seats)):
+        for i in range(len(self.seats)):
             if self.seats[i] == avId:
                 return i
+
+        return None
 
     def countFullSeats(self):
         avCounter = 0
         for i in self.seats:
             if i:
                 avCounter += 1
+
         return avCounter
 
     def countOpenSeats(self):
         openSeats = 0
-        for i in xrange(len(self.seats)):
-            if self.seats[i] is None:
+        for i in range(len(self.seats)):
+            if self.seats[i] == None:
                 openSeats += 1
+
         return openSeats
 
     def rejectingBoardersHandler(self, avId, reason = 0, wantBoardingShow = 0):
@@ -212,7 +218,7 @@ class DistributedElevatorAI(DistributedObjectAI.DistributedObjectAI):
         self.timeOfBoarding = None
         self.timeOfGroupBoarding = None
         if hasattr(self, 'doId'):
-            for seatIndex in xrange(len(self.seats)):
+            for seatIndex in range(len(self.seats)):
                 taskMgr.remove(self.uniqueName('clearEmpty-' + str(seatIndex)))
 
         return
@@ -228,6 +234,9 @@ class DistributedElevatorAI(DistributedObjectAI.DistributedObjectAI):
         self.accepting = 0
         for seat in self.seats:
             seat = None
+
+        return
+
 
     def exitOpening(self):
         self.accepting = 0
@@ -258,7 +267,14 @@ class DistributedElevatorAI(DistributedObjectAI.DistributedObjectAI):
         taskMgr.remove(self.uniqueName('closing-timer'))
 
     def enterClosed(self):
+        def reopen(task):
+            self.open()
+            return task.done
+            
         self.d_setState('closed')
+        
+        if self.zoneId == ToontownGlobals.TowersLobby:
+            taskMgr.doMethodLater(1, reopen, self.taskName('reopen'))
 
     def exitClosed(self):
         pass

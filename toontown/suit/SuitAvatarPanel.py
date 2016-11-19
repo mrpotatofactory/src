@@ -51,8 +51,7 @@ class SuitAvatarPanel(AvatarPanel.AvatarPanel):
         base.localAvatar.obscureFriendsListButton(1)
         self.frame.show()
         messenger.send('avPanelDone')
-        self.frame.reparentTo(base.a2dTopRight)
-        self.frame.setPos(-0.25, 0, -0.5)
+        return
 
     def cleanup(self):
         if self.frame == None:

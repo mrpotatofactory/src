@@ -1,3 +1,5 @@
+# File: C (Python 2.4)
+
 from pandac.PandaModules import *
 from direct.showbase import DirectObject
 from direct.fsm import ClassicFSM, State
@@ -10,7 +12,7 @@ class CountryClubRoom(DirectObject.DirectObject):
     notify = DirectNotifyGlobal.directNotify.newCategory('CountryClubRoom')
     FloorCollPrefix = 'mintFloorColl'
     CashbotMintDoorFrame = 'phase_10/models/cashbotHQ/DoorFrame'
-
+    
     def __init__(self, path = None):
         if path is not None:
             if path in CountryClubRoomSpecs.BossbotCountryClubConnectorRooms:
@@ -18,41 +20,57 @@ class CountryClubRoom(DirectObject.DirectObject):
             else:
                 loadFunc = loader.loadModel
             self.setGeom(loadFunc(path))
-        self.localToonFSM = ClassicFSM.ClassicFSM('CountryClubRoomLocalToonPresent', [State.State('off', self.enterLtOff, self.exitLtOff, ['notPresent']), State.State('notPresent', self.enterLtNotPresent, self.exitLtNotPresent, ['present']), State.State('present', self.enterLtPresent, self.exitLtPresent, ['notPresent'])], 'notPresent', 'notPresent')
+        
+        self.localToonFSM = ClassicFSM.ClassicFSM('CountryClubRoomLocalToonPresent', [
+            State.State('off', self.enterLtOff, self.exitLtOff, [
+                'notPresent']),
+            State.State('notPresent', self.enterLtNotPresent, self.exitLtNotPresent, [
+                'present']),
+            State.State('present', self.enterLtPresent, self.exitLtPresent, [
+                'notPresent'])], 'notPresent', 'notPresent')
         self.localToonFSM.enterInitialState()
-        return
 
+    
     def delete(self):
         del self.localToonFSM
 
+    
     def enter(self):
         self.localToonFSM.request('notPresent')
 
+    
     def exit(self):
         self.localToonFSM.requestFinalState()
 
+    
     def setRoomNum(self, num):
         self.roomNum = num
 
+    
     def getRoomNum(self):
         return self.roomNum
 
+    
     def setGeom(self, geom):
         if geom == None:
-            import pdb
+            import pdb as pdb
             pdb.set_trace()
-        self.__geom = geom
-        return
+        
+        self._CountryClubRoom__geom = geom
 
+    
     def getGeom(self):
-        return self.__geom
+        return self._CountryClubRoom__geom
 
+    
     def _getEntrances(self):
-        return self.__geom.findAllMatches('**/ENTRANCE*')
+        return self._CountryClubRoom__geom.findAllMatches('**/ENTRANCE*')
 
+    
     def _getExits(self):
-        return self.__geom.findAllMatches('**/EXIT*')
+        return self._CountryClubRoom__geom.findAllMatches('**/EXIT*')
 
+    
     def attachTo(self, other, rng):
         otherExits = other._getExits()
         entrances = self._getEntrances()
@@ -67,10 +85,12 @@ class CountryClubRoom(DirectObject.DirectObject):
         debugAxis1 = None
         if debugAxis1:
             debugAxis1.reparentTo(thisDoor)
+        
         debugAxis2 = None
         if debugAxis2:
             debugAxis2.reparentTo(otherDoor)
             debugAxis2.setColorScale(0.5, 0.5, 0.5, 1)
+        
         tempNode = otherDoor.attachNewNode('tempRotNode')
         geom.reparentTo(tempNode)
         geom.clearMat()
@@ -82,11 +102,12 @@ class CountryClubRoom(DirectObject.DirectObject):
         tempNode.setH(newTempNodeH)
         geom.wrtReparentTo(otherGeom.getParent())
         tempNode.removeNode()
-        return
 
+    
     def getFloorCollName(self):
         return '%s%s' % (CountryClubRoom.FloorCollPrefix, self.roomNum)
 
+    
     def initFloorCollisions(self):
         allColls = self.getGeom().findAllMatches('**/+CollisionNode')
         floorColls = []
@@ -94,30 +115,41 @@ class CountryClubRoom(DirectObject.DirectObject):
             bitmask = coll.node().getIntoCollideMask()
             if not (bitmask & ToontownGlobals.FloorBitmask).isZero():
                 floorColls.append(coll)
-
+                continue
+        
         if len(floorColls) > 0:
             floorCollName = self.getFloorCollName()
             others = self.getGeom().findAllMatches('**/%s' % floorCollName)
             for other in others:
                 other.setName('%s_renamed' % floorCollName)
-
+            
             for floorColl in floorColls:
                 floorColl.setName(floorCollName)
+            
+        
 
+    
     def enterLtOff(self):
         pass
 
+    
     def exitLtOff(self):
         pass
 
+    
     def enterLtNotPresent(self):
         pass
 
+    
     def exitLtNotPresent(self):
         pass
 
+    
     def enterLtPresent(self):
         pass
 
+    
     def exitLtPresent(self):
         pass
+
+

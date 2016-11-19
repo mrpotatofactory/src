@@ -70,7 +70,15 @@ class QuestRewardCounter:
         cogTypes = av.getCogTypes()
         suitHp = 0
         for dept in HQdepts:
-            suitHp += levels[dept]
+            level = levels[dept]
+            type = cogTypes[dept]
+            if type >= SuitDNA.suitsPerDept - 1:
+                for milestoneLevel in ToontownGlobals.CogSuitHPLevels:
+                    if level >= milestoneLevel:
+                        suitHp += 1
+                    else:
+                        break
+
         self.notify.debug('Adding %s hp for cog suits' % suitHp)
         self.maxHp += suitHp
         kartingHp = int(av.kartingTrophies.count(1) / RaceGlobals.TrophiesPerCup)
@@ -82,7 +90,7 @@ class QuestRewardCounter:
 
     def setRewardIndex(self, tier, rewardIds, rewardHistory):
         self.reset()
-        for tierNum in xrange(tier):
+        for tierNum in range(tier):
             for rewardId in Quests.getRewardsInTier(tierNum):
                 reward = Quests.getReward(rewardId)
                 reward.countReward(self)
@@ -123,6 +131,7 @@ class QuestRewardCounter:
             anyChanged = 1
         if self.maxMoney != av.maxMoney:
             self.notify.info('Changed avatar %d to have maxMoney %d instead of %d' % (av.doId, self.maxMoney, av.maxMoney))
+            av.b_setMaxMoney(self.maxMoney)
             anyChanged = 1
         if self.questCarryLimit != av.questCarryLimit:
             self.notify.info('Changed avatar %d to have questCarryLimit %d instead of %d' % (av.doId, self.questCarryLimit, av.questCarryLimit))

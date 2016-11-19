@@ -43,12 +43,6 @@ class CatalogNametagItem(CatalogItem.CatalogItem):
         else:
             name = name + TTLocalizer.NametagLabel
         return name
-        if self.nametagStyle == 0:
-            name = TTLocalizer.NametagPaid
-        elif self.nametagStyle == 1:
-            name = TTLocalizer.NametagAction
-        elif self.nametagStyle == 2:
-            name = TTLocalizer.NametagFrilly
 
     def recordPurchase(self, avatar, optional):
         if avatar:
@@ -61,7 +55,7 @@ class CatalogNametagItem(CatalogItem.CatalogItem):
             inFont = ToontownGlobals.getToonFont()
         else:
             inFont = ToontownGlobals.getNametagFont(self.nametagStyle)
-        nameTagDemo = DirectLabel(parent=frame, relief=None, pos=(0, 0, 0.24), scale=0.5, text=base.localAvatar.getName(), text_fg=(1.0, 1.0, 1.0, 1), text_shadow=(0, 0, 0, 1), text_font=inFont, text_wordwrap=9)
+        nameTagDemo = DirectLabel(parent=frame, relief=None, pos=(0, 0, 0.24), scale=0.5, text=localAvatar.getName(), text_fg=(1.0, 1.0, 1.0, 1), text_shadow=(0, 0, 0, 1), text_font=inFont, text_wordwrap=9)
         self.hasPicture = True
         return (frame, None)
 

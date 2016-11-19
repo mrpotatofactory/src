@@ -28,7 +28,7 @@ GlobalEntities = {1000: {'type': 'levelMgr',
          'pos': Point3(16.9929084778, 7.15916633606, 0.0),
          'hpr': Vec3(107.078933716, 0.0, 0.0),
          'scale': Vec3(1.0, 1.0, 1.0),
-         'rewardPerGrab': 6,
+         'rewardPerGrab': 12, #6
          'rewardPerGrabMax': 0},
  10004: {'type': 'mintShelf',
          'name': '<unnamed>',

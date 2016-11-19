@@ -2,27 +2,53 @@ from pandac.PandaModules import *
 from direct.directnotify.DirectNotifyGlobal import *
 from direct.showbase import Loader
 from toontown.toontowngui import ToontownLoadingScreen
-from toontown.dna.DNAParser import *
 
-class ToontownLoader(Loader.Loader):
+from toontown.dna.DNAParser import DNALoader
+    
+class ToontownLoader(Loader.Loader, DNALoader):
     TickPeriod = 0.2
 
     def __init__(self, base):
         Loader.Loader.__init__(self, base)
+        DNALoader.__init__(self)
         self.inBulkBlock = None
         self.blockName = None
         self.loadingScreen = ToontownLoadingScreen.ToontownLoadingScreen()
-        return
+        
+        self.loadModelNode = self.loadModel
 
     def destroy(self):
         self.loadingScreen.destroy()
         del self.loadingScreen
         Loader.Loader.destroy(self)
 
-    def loadDNAFile(self, dnastore, filename):
-        return loadDNAFile(dnastore, filename)
+    def loadDNAFile(self, dnastore, file):
+        self.notify.info('Loading DNA file %s' % file)
+        self.tick()
+        
+        f = Filename('../resources/' + file)
+        f.setExtension('pdna')
+        f = localizerAgent.findDNA(f)
+        # XXX TO DO: FIX PT DNAs
+        ret = DNALoader.loadDNAFile(self, dnastore, f)
+            
+        if ret.getChild(0).getNumChildren() > 0:
+            ret = ret.getChild(0).getChild(0).getNode(0)
+                
+        else:
+            ret = None
+            
+        self.notify.info('DNA file loaded')
+        return ret
+        
+    def loadDNAFileAI(self, dnastore, filename):
+        self.tick()
+        
+        f = Filename('../resources/' + filename)
+        f.setExtension('pdna')
+        return DNALoader.loadDNAFileAI(self, dnastore, f)
 
-    def beginBulkLoad(self, name, label, range, gui, tipCategory, zoneId):
+    def beginBulkLoad(self, name, label, range, gui, tipCategory):
         self._loadStartT = globalClock.getRealTime()
         Loader.Loader.notify.info("starting bulk load of block '%s'" % name)
         if self.inBulkBlock:
@@ -31,8 +57,11 @@ class ToontownLoader(Loader.Loader):
         self.inBulkBlock = 1
         self._lastTickT = globalClock.getRealTime()
         self.blockName = name
-        self.loadingScreen.begin(range, label, gui, tipCategory, zoneId)
-        return None
+        
+        if name == "hood":
+            range *= 8
+            
+        self.loadingScreen.begin(range, label, gui, tipCategory)
 
     def endBulkLoad(self, name):
         if not self.inBulkBlock:
@@ -70,10 +99,6 @@ class ToontownLoader(Loader.Loader):
 
     def loadModel(self, *args, **kw):
         ret = Loader.Loader.loadModel(self, *args, **kw)
-        if ret:
-            gsg = base.win.getGsg()
-            if gsg:
-                ret.prepareScene(gsg)
         self.tick()
         return ret
 
@@ -88,20 +113,6 @@ class ToontownLoader(Loader.Loader):
         if alphaPath:
             self.tick()
         return ret
-
-    def pdnaModel(self, *args, **kw):
-        ret = Loader.Loader.loadModel(self, *args, **kw)
-        if ret:
-            gsg = base.win.getGsg()
-            if gsg:
-                ret.prepareScene(gsg)
-        return ret
-
-    def pdnaFont(self, *args, **kw):
-        return Loader.Loader.loadFont(self, *args, **kw)
-
-    def pdnaTexture(self, texturePath, alphaPath = None, okMissing = False):
-        return Loader.Loader.loadTexture(self, texturePath, alphaPath, okMissing=okMissing)
 
     def loadSfx(self, soundPath):
         ret = Loader.Loader.loadSfx(self, soundPath)

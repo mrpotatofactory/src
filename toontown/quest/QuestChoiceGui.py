@@ -10,7 +10,7 @@ class QuestChoiceGui(DirectFrame):
     notify = DirectNotifyGlobal.directNotify.newCategory('QuestChoiceGui')
 
     def __init__(self):
-        DirectFrame.__init__(self, relief=None, parent=base.a2dLeftCenter, geom=DGG.getDefaultDialogGeom(), geom_color=Vec4(0.8, 0.6, 0.4, 1), geom_scale=(1.85, 1, 0.9), geom_hpr=(0, 0, -90), pos=(0.5, 0, 0))
+        DirectFrame.__init__(self, relief=None, geom=DGG.getDefaultDialogGeom(), geom_color=Vec4(0.8, 0.6, 0.4, 1), geom_scale=(1.85, 1, 0.9), geom_hpr=(0, 0, -90), pos=(-0.85, 0, 0))
         self.initialiseoptions(QuestChoiceGui)
         self.questChoicePosters = []
         guiButton = loader.loadModel('phase_3/models/gui/quit_button')
@@ -19,11 +19,12 @@ class QuestChoiceGui(DirectFrame):
         self.timer = ToontownTimer.ToontownTimer()
         self.timer.reparentTo(self)
         self.timer.setScale(0.3)
-        base.setCellsActive(base.leftCells, 0)
-        base.setCellsActive([base.bottomCells[0], base.bottomCells[1]], 0)
+        base.setCellsAvailable(base.leftCells, 0)
+        base.setCellsAvailable([base.bottomCells[0], base.bottomCells[1]], 0)
+        return
 
     def setQuests(self, quests, fromNpcId, timeout):
-        for i in xrange(0, len(quests), 3):
+        for i in range(0, len(quests), 3):
             questId, rewardId, toNpcId = quests[i:i + 3]
             qp = QuestPoster.QuestPoster()
             qp.reparentTo(self)
@@ -55,8 +56,8 @@ class QuestChoiceGui(DirectFrame):
         if questId != 0:
             if base.config.GetBool('want-qa-regression', 0):
                 self.notify.info('QA-REGRESSION: CREATEATASK: Create A Task.')
-        base.setCellsActive(base.leftCells, 1)
-        base.setCellsActive([base.bottomCells[0], base.bottomCells[1]], 1)
+        base.setCellsAvailable(base.leftCells, 1)
+        base.setCellsAvailable([base.bottomCells[0], base.bottomCells[1]], 1)
         self.timer.stop()
         messenger.send('chooseQuest', [questId])
 

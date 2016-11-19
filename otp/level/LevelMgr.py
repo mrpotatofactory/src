@@ -39,6 +39,7 @@ class LevelMgr(LevelMgrBase.LevelMgrBase):
         self.zoneNums.sort()
         for i in xrange(len(self.zoneNums)):
             zoneNum = self.zoneNums[i]
+            #print i, self.zoneNums, zoneNum, self.level.zoneIds, len(self.level.zoneIds)
             zoneEnt = self.level.getEntity(zoneNum)
             zoneId = self.level.zoneIds[i]
             zoneEnt.setZoneId(zoneId)

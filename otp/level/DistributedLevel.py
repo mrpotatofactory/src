@@ -32,10 +32,10 @@ class DistributedLevel(DistributedObject.DistributedObject, Level.Level):
         self.titleColor = (1, 1, 1, 1)
         self.titleText = OnscreenText.OnscreenText('', fg=self.titleColor, shadow=(0, 0, 0, 1), font=ToontownGlobals.getSuitFont(), pos=(0, -0.5), scale=0.16, drawOrder=0, mayChange=1)
         self.smallTitleText = OnscreenText.OnscreenText('', fg=self.titleColor, font=ToontownGlobals.getSuitFont(), pos=(0.65, 0.9), scale=0.08, drawOrder=0, mayChange=1, bg=(0.5, 0.5, 0.5, 0.5), align=TextNode.ARight)
-        self.titleSeq = None
         self.zonesEnteredList = []
         self.fColorZones = 0
         self.scenarioIndex = 0
+        self.__waitzoneids = 0
 
     def generate(self):
         DistributedLevel.notify.debug('generate')
@@ -63,12 +63,17 @@ class DistributedLevel(DistributedObject.DistributedObject, Level.Level):
     def setZoneIds(self, zoneIds):
         DistributedLevel.notify.debug('setZoneIds: %s' % zoneIds)
         self.zoneIds = zoneIds
-        self.privGotAllRequired()
+        if self.__waitzoneids:
+            self.privGotAllRequired() 
 
     def setStartTimestamp(self, timestamp):
         DistributedLevel.notify.debug('setStartTimestamp: %s' % timestamp)
         self.startTime = globalClockDelta.networkToLocalTime(timestamp, bits=32)
-        self.privGotAllRequired()
+        if hasattr(self, 'zoneIds'):
+            self.privGotAllRequired()
+            
+        else:
+            self.__waitzoneids = 1
 
     def privGotAllRequired(self):
         if hasattr(self, 'zoneIds') and hasattr(self, 'startTime'):
@@ -78,11 +83,13 @@ class DistributedLevel(DistributedObject.DistributedObject, Level.Level):
         pass
 
     def initializeLevel(self, levelSpec):
+        '''
         if __dev__:
             self.candidateSpec = levelSpec
             self.sendUpdate('requestCurrentLevelSpec', [levelSpec.stringHash(), levelSpec.entTypeReg.getHashStr()])
         else:
-            self.privGotSpec(levelSpec)
+        '''
+        self.privGotSpec(levelSpec)
 
     if __dev__:
 
@@ -249,7 +256,7 @@ class DistributedLevel(DistributedObject.DistributedObject, Level.Level):
         else:
             DistributedLevel.notify.debug('entity %s requesting reparent to %s, not yet created' % (entity, parentId))
             entity.reparentTo(hidden)
-            if parentId not in self.parent2pendingChildren:
+            if not self.parent2pendingChildren.has_key(parentId):
                 self.parent2pendingChildren[parentId] = []
 
                 def doReparent(parentId = parentId, self = self, wrt = wrt):
@@ -492,46 +499,44 @@ class DistributedLevel(DistributedObject.DistributedObject, Level.Level):
             titleSeq = None
             if self.lastCamZone not in self.zonesEnteredList:
                 self.zonesEnteredList.append(self.lastCamZone)
-                titleSeq = Sequence(Func(self.hideSmallTitleText), Func(self.showTitleText), Wait(6.1), LerpColorInterval(self.titleText, 0.5, Vec4(self.titleColor[0], self.titleColor[1], self.titleColor[2], self.titleColor[3]), startColor=Vec4(self.titleColor[0], self.titleColor[1], self.titleColor[2], 0.0)))
-            smallTitleSeq = Sequence(Func(self.hideTitleText), Func(self.showSmallTitle))
+                titleSeq = Sequence(Func(self.hideSmallTitleTextTask), Func(self.showTitleTextTask), Wait(0.1), Wait(6.0), self.titleText.colorInterval(0.5, Vec4(self.titleColor[0], self.titleColor[1], self.titleColor[2], 0.0)))
+            smallTitleSeq = Sequence(Func(self.hideTitleTextTask), Func(self.showSmallTitleTask))
             if titleSeq:
-                self.titleSeq = Sequence(titleSeq, smallTitleSeq)
+                seq = Sequence(titleSeq, smallTitleSeq)
             else:
-                self.titleSeq = smallTitleSeq
-            self.titleSeq.start()
+                seq = smallTitleSeq
+            seq.start()
 
-    def showInfoText(self, text = 'hello world'):
-        description = text
-        if description and description != '':
-            if self.titleSeq is not None:
-                self.titleSeq.finish()
-                self.titleSeq = None
-            self.smallTitleText.setText(description)
-            self.titleText.setText(description)
+    def showInfoText(self, infoText=''):
+        if infoText != '':
+            taskMgr.remove(self.uniqueName('titleText'))
+            self.smallTitleText.setText(infoText)
+            self.titleText.setText(infoText)
             self.titleText.setColor(Vec4(*self.titleColor))
             self.titleText.setFg(self.titleColor)
-            titleSeq = None
-            titleSeq = Sequence(Func(self.hideSmallTitleText), Func(self.showTitleText), Wait(3.1), LerpColorInterval(self.titleText, 0.5, Vec4(self.titleColor[0], self.titleColor[1], self.titleColor[2], self.titleColor[3]), startColor=Vec4(self.titleColor[0], self.titleColor[1], self.titleColor[2], 0.0)))
-            if titleSeq:
-                self.titleSeq = Sequence(titleSeq)
-            self.titleSeq.start()
+            seq = Task.sequence(Task.Task(self.hideSmallTitleTextTask), Task.Task(self.showTitleTextTask), Task.pause(0.1), Task.pause(3.0), self.titleText.lerpColor(Vec4(self.titleColor[0], self.titleColor[1], self.titleColor[2], self.titleColor[3]), Vec4(self.titleColor[0], self.titleColor[1], self.titleColor[2], 0.0), 0.5))
+            taskMgr.add(Task.sequence(seq), self.uniqueName('titleText'))
 
-    def showTitleText(self):
+    def showTitleTextTask(self, task=1):
         self.titleText.show()
+        return Task.done
 
-    def hideTitleText(self):
+    def hideTitleTextTask(self, task=1):
         if self.titleText:
             self.titleText.hide()
+        return Task.done
 
-    def showSmallTitle(self):
+    def showSmallTitleTask(self, task=1):
         if self.titleText:
             self.titleText.hide()
         if self.smallTitleText:
             self.smallTitleText.show()
+        return Task.done
 
-    def hideSmallTitleText(self):
+    def hideSmallTitleTextTask(self, task=1):
         if self.smallTitleText:
             self.smallTitleText.hide()
+        return Task.done
 
     def startOuch(self, ouchLevel, period = 2):
         self.notify.debug('startOuch %s' % ouchLevel)

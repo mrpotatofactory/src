@@ -1,33 +1,28 @@
-import copy
-from direct.directnotify import DirectNotifyGlobal
-from direct.directtools.DirectGeometry import CLAMP
+from pandac.PandaModules import *
+from direct.interval.IntervalGlobal import *
 from direct.distributed.ClockDelta import *
+from direct.directtools.DirectGeometry import CLAMP
+from direct.task import Task
+from otp.avatar import DistributedAvatar
+import Suit
+from toontown.toonbase import ToontownGlobals
+from toontown.battle import DistributedBattle
 from direct.fsm import ClassicFSM, State
 from direct.fsm import State
-from direct.interval.IntervalGlobal import *
-from direct.task import Task
-import math
-from pandac.PandaModules import *
-import random
-
-import DistributedSuitBase
-import DistributedSuitPlanner
-import Suit
-import SuitBase
-import SuitDialog
 import SuitTimings
-from otp.avatar import DistributedAvatar
-from otp.otpbase import OTPLocalizer
+import SuitBase
+import DistributedSuitPlanner
+from direct.directnotify import DirectNotifyGlobal
+import SuitDialog
 from toontown.battle import BattleProps
-from toontown.battle import DistributedBattle
-from toontown.chat.ChatGlobals import *
 from toontown.distributed.DelayDeletable import DelayDeletable
-from toontown.nametag import NametagGlobals
-from toontown.nametag.NametagGlobals import *
-from toontown.suit.SuitLegList import *
-from toontown.toonbase import ToontownGlobals
-
-
+import math
+import copy
+import DistributedSuitBase
+from otp.otpbase import OTPLocalizer
+import random
+from otp.nametag.NametagConstants import *
+from otp.nametag import NametagGlobals
 STAND_OUTSIDE_DOOR = 2.5
 BATTLE_IGNORE_TIME = 6
 BATTLE_WAIT_TIME = 3
@@ -56,7 +51,7 @@ class DistributedSuit(DistributedSuitBase.DistributedSuitBase, DelayDeletable):
         self.pathState = 0
         self.path = None
         self.localPathState = 0
-        self.currentLeg = -1
+        self.currentLeg = 0
         self.pathStartTime = 0.0
         self.legList = None
         self.initState = None
@@ -188,8 +183,11 @@ class DistributedSuit(DistributedSuitBase.DistributedSuitBase, DelayDeletable):
         self.__currentDialogue = None
         return
 
-    def generate(self):
-        DistributedSuitBase.DistributedSuitBase.generate(self)
+    def annnounceGenerate(self):
+        DistributedSuitBase.DistributedSuitBase.annnounceGenerate(self)
+        if hasattr(self.cr, 'DSIMgr'):
+            if self.cr.DSIMgr.waiter:
+                self.makeWaiter()
 
     def disable(self):
         for soundSequence in self.soundSequenceList:
@@ -220,7 +218,7 @@ class DistributedSuit(DistributedSuitBase.DistributedSuitBase, DelayDeletable):
         self.maxPathLen = maxPathLen
         self.path = None
         self.pathLength = 0
-        self.currentLeg = -1
+        self.currentLeg = 0
         self.legList = None
         if self.maxPathLen == 0:
             return
@@ -333,25 +331,30 @@ class DistributedSuit(DistributedSuitBase.DistributedSuitBase, DelayDeletable):
         nextLeg = self.legList.getLegIndexAtTime(elapsed, self.currentLeg)
         numLegs = self.legList.getNumLegs()
         if self.currentLeg != nextLeg:
+            if nextLeg >= numLegs:
+                self.notify.warning('nextLeg (%d) >= numLegs (%d)' % (nextLeg, numLegs))
+                return Task.done
+                
             self.currentLeg = nextLeg
             self.doPathLeg(self.legList.getLeg(nextLeg), elapsed - self.legList.getStartTime(nextLeg))
         nextLeg += 1
         if nextLeg < numLegs:
             nextTime = self.legList.getStartTime(nextLeg)
-            delay = nextTime - elapsed
+            delay = abs(nextTime - elapsed)
             name = self.taskName('move')
             taskMgr.remove(name)
             taskMgr.doMethodLater(delay, self.moveToNextLeg, name)
         return Task.done
 
     def doPathLeg(self, leg, time):
-        self.fsm.request(leg.getTypeName(), [leg, time])
+        from SuitLegList import SuitLeg
+        self.fsm.request(SuitLeg.getTypeName(leg.getType()), [leg, time])
         return 0
 
     def stopPathNow(self):
         name = self.taskName('move')
         taskMgr.remove(name)
-        self.currentLeg = -1
+        self.currentLeg = 0
 
     def calculateHeading(self, a, b):
         xdelta = b[0] - a[0]
@@ -634,11 +637,12 @@ class DistributedSuit(DistributedSuitBase.DistributedSuitBase, DelayDeletable):
             base.playSfx(dialogue, node=self)
         elif chatFlags & CFSpeech != 0:
             if self.nametag.getNumChatPages() > 0:
-                self.playDialogueForString(self.nametag.getChatText())
+                self.playDialogueForString(self.nametag.getChat())
                 if self.soundChatBubble != None:
                     base.playSfx(self.soundChatBubble, node=self)
-            elif self.nametag.getStompChatText():
-                self.playDialogueForString(self.nametag.getStompChatText(), self.nametag.CHAT_STOMP_DELAY)
+            elif self.nametag.getChatStomp() > 0:
+                self.playDialogueForString(self.nametag.getStompText(), self.nametag.getStompDelay())
+        return
 
     def playDialogueForString(self, chatString, delay = 0.0):
         if len(chatString) == 0:
@@ -678,11 +682,14 @@ class DistributedSuit(DistributedSuitBase.DistributedSuitBase, DelayDeletable):
             elif length >= 3:
                 sfxIndex = 2
         elif type == 'question':
-            sfxIndex = 3
+            if length == 1 or length == 2:
+                sfxIndex = 3
+            elif length >= 3:
+                sfxIndex = 4
         elif type == 'exclamation':
-            sfxIndex = 4
+            sfxIndex = 0
         elif type == 'special':
-            sfxIndex = 5
+            sfxIndex = 2
         else:
             notify.error('unrecognized dialogue type: ', type)
         if sfxIndex != None and sfxIndex < len(dialogueArray) and dialogueArray[sfxIndex] != None:

@@ -16,5 +16,6 @@ class ChatAgent(DistributedObjectGlobal):
         self.notify.warning('Admin Chat(%s): %s' % (aboutId, message))
         messenger.send('adminChat', [aboutId, message])
 
-    def sendChatMessage(self, message):
-        self.sendUpdate('chatMessage', [message])
+    def sendChatMessage(self, message):       
+        self.sendUpdate('chatMessage', [message.encode('latin-1')])
+        messenger.send('SEND_CHAT', [message])

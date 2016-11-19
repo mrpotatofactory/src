@@ -11,7 +11,7 @@ class DistributedScavengerHuntTarget(DistributedObject.DistributedObject):
     def setupListenerDetails(self):
         self.triggered = False
         self.triggerDelay = 15
-        self.accept(SpeedChatGlobals.SCCustomMsgEvent, self.phraseSaid)
+        self.accept(SpeedChatGlobals.SCStaticTextMsgEvent, self.phraseSaid)
 
     def phraseSaid(self, phraseId):
         self.notify.debug('Checking if phrase was said')
@@ -29,10 +29,12 @@ class DistributedScavengerHuntTarget(DistributedObject.DistributedObject):
         DistributedObject.DistributedObject.announceGenerate(self)
         DistributedScavengerHuntTarget.notify.debug('announceGenerate')
         self.setupListenerDetails()
+        self.cr.scvMgr = self
 
     def delete(self):
         self.ignoreAll()
         taskMgr.remove('ScavengerHunt-phrase-reset')
+        self.cr.scvMgr = None
         DistributedObject.DistributedObject.delete(self)
 
     def attemptScavengerHunt(self):

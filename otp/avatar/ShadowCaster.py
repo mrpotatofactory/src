@@ -1,11 +1,12 @@
+from pandac.PandaModules import *
+from pandac.PandaModules import *
 from direct.directnotify import DirectNotifyGlobal
 from direct.showbase.ShadowPlacer import ShadowPlacer
-from pandac.PandaModules import *
-
+from direct.showbase.ShadowDemo import Task, ShadowCaster as DirectShadowCaster
 from otp.otpbase import OTPGlobals
-
-
+from toontown.toonbase import Settings
 globalDropShadowFlag = 1
+
 def setGlobalDropShadowFlag(flag):
     global globalDropShadowFlag
     if flag != globalDropShadowFlag:
@@ -14,6 +15,7 @@ def setGlobalDropShadowFlag(flag):
 
 
 globalDropShadowGrayLevel = 0.5
+
 def setGlobalDropShadowGrayLevel(grayLevel):
     global globalDropShadowGrayLevel
     if grayLevel != globalDropShadowGrayLevel:
@@ -23,6 +25,7 @@ def setGlobalDropShadowGrayLevel(grayLevel):
 
 class ShadowCaster:
     notify = DirectNotifyGlobal.directNotify.newCategory('ShadowCaster')
+    WantDecentShadow = config.GetBool('want-decent-shadow', False)
 
     def __init__(self, squareShadow = False):
         if squareShadow:
@@ -37,16 +40,27 @@ class ShadowCaster:
         if hasattr(base, 'wantDynamicShadows') and base.wantDynamicShadows:
             messenger.accept('globalDropShadowFlagChanged', self, self.__globalDropShadowFlagChanged)
             messenger.accept('globalDropShadowGrayLevelChanged', self, self.__globalDropShadowGrayLevelChanged)
+        
+        self.sc = None
+        self.shadowTaskName = 'shadow-task-%x' % id(self)
+        messenger.accept('SHADOWS_SETTINGS_CHANGED', self, self.__shadowSettingsChanged)
+        self.initDecentShadow()
+        
+    def __shadowSettingsChanged(self, value):
+        self.deleteDropShadow()
+        self.initializeDropShadow()
 
     def delete(self):
         if hasattr(base, 'wantDynamicShadows') and base.wantDynamicShadows:
             messenger.ignore('globalDropShadowFlagChanged', self)
             messenger.ignore('globalDropShadowGrayLevelChanged', self)
+        messenger.ignore('SHADOWS_SETTINGS_CHANGED', self)
         self.deleteDropShadow()
         self.shadowJoint = None
 
     def initializeDropShadow(self, hasGeomNode = True):
         self.deleteDropShadow()
+        self.setBin('fixed', 25)
         if hasGeomNode:
             self.getGeomNode().setTag('cam', 'caster')
         dropShadow = loader.loadModel(self.shadowFileName)
@@ -65,6 +79,7 @@ class ShadowCaster:
         self.setActiveShadow(self.wantsActive)
         self.__globalDropShadowFlagChanged()
         self.__globalDropShadowGrayLevelChanged()
+        self.initDecentShadow()
 
     def update(self):
         pass
@@ -76,6 +91,10 @@ class ShadowCaster:
         if self.dropShadow:
             self.dropShadow.removeNode()
             self.dropShadow = None
+        if self.sc:
+            self.sc.clear()
+            self.sc = None
+            taskMgr.remove(self.shadowTaskName)
 
     def setActiveShadow(self, isActive = 1):
         isActive = isActive and self.wantsActive
@@ -89,6 +108,7 @@ class ShadowCaster:
                     self.shadowPlacer.on()
                 else:
                     self.shadowPlacer.off()
+        return
 
     def setShadowHeight(self, shadowHeight):
         if self.dropShadow:
@@ -122,7 +142,54 @@ class ShadowCaster:
             elif self.activeShadow == 0:
                 self.setActiveShadow(1)
             self.showShadow()
+        return
 
     def __globalDropShadowGrayLevelChanged(self):
         if self.dropShadow != None:
             self.dropShadow.setColor(0.0, 0.0, 0.0, globalDropShadowGrayLevel, 1)
+        return
+
+    def initDecentShadow(self):
+        try:
+            objectPath = self.getGeomNode()
+            if not objectPath:
+                objectPath = self
+            
+        except:
+            objectPath = self
+
+        if self.sc:
+            self.sc.clear()
+            shadowCamera = objectPath.find('**/shadowCamera')
+            if shadowCamera:
+                shadowCamera.removeNode()
+            
+        if self.dropShadow:
+            self.dropShadow.stash()
+        
+        shadowCamera = objectPath.attachNewNode('shadowCamera')
+        lightPath = shadowCamera.attachNewNode('lightPath')
+        # TO DO: Day-night system to fix angle
+        height = 0
+        lightPath.setPos(height, 0, 0)
+
+        def shadowCameraRotate(task, shadowCamera=shadowCamera):
+            shadowCamera.setHpr(render, 0, 0, 0)
+            lightPath.lookAt(shadowCamera, 0, 0, 3)
+            return Task.cont
+            
+        doShadow = config.GetBool('want-decent-shadow-%s' % self.__class__.__name__, ShadowCaster.WantDecentShadow)
+        if doShadow:
+            doShadow = Settings.getEnableShadows()
+            
+        if doShadow:
+            taskMgr.remove(self.shadowTaskName)
+            taskMgr.add(shadowCameraRotate, self.shadowTaskName)
+
+            self.sc = DirectShadowCaster(lightPath, objectPath, 4, 6)
+            self.sc.setGround(render)
+        
+        else:
+            if self.dropShadow:
+                self.dropShadow.unstash()
+                

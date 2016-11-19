@@ -53,7 +53,6 @@ class DistributedPet(DistributedSmoothNode.DistributedSmoothNode, Pet.Pet, PetBa
         self.movieTrack = None
         self.traitList = [0] * PetTraits.PetTraits.NumTraits
         self.requiredMoodComponents = {}
-        return
 
     def b_setLocation(self, parentId, zoneId):
         if not self.bFake:
@@ -244,6 +243,7 @@ class DistributedPet(DistributedSmoothNode.DistributedSmoothNode, Pet.Pet, PetBa
             self.handleMoodChange()
             self.accept(self.mood.getDominantMoodChangeEvent(), self.handleMoodChange)
             self.accept(self.mood.getMoodChangeEvent(), self.moodComponentChanged)
+            self.clearBin()
 
     def disable(self):
         DistributedPet.notify.debug('disable(), fake=%s' % self.bFake)

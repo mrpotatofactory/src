@@ -1,18 +1,21 @@
-from direct.directnotify import DirectNotifyGlobal
-import random
-import types
-
-import SuitBuildingGlobals
 from otp.ai.AIBaseGlobal import *
-from toontown.suit import DistributedSuitAI
+import random
 from toontown.suit import SuitDNA
-from toontown.suit.SuitInvasionGlobals import IFSkelecog, IFWaiter, IFV2
+from direct.directnotify import DirectNotifyGlobal
+from toontown.suit import DistributedSuitAI
+import SuitBuildingGlobals
+import types, random
 
+def generateTrack(x):
+    return x if x != "x" else random.choice(["s", "c", "m", "l"])
+    
+def generateRevives(x):
+    return x if x >= 0 else random.randint(config.GetInt('min-lt-vs', 0), config.GetInt('max-lt-vs', 2))
 
 class SuitPlannerInteriorAI:
     notify = DirectNotifyGlobal.directNotify.newCategory('SuitPlannerInteriorAI')
 
-    def __init__(self, numFloors, bldgLevel, bldgTrack, zone):
+    def __init__(self, numFloors, bldgLevel, bldgTrack, zone, forceCogIndex=-1):
         self.dbg_4SuitsPerFloor = config.GetBool('4-suits-per-floor', 0)
         self.dbg_1SuitPerFloor = config.GetBool('1-suit-per-floor', 0)
         self.zoneId = zone
@@ -26,12 +29,12 @@ class SuitPlannerInteriorAI:
         if isinstance(bldgLevel, types.StringType):
             self.notify.warning('bldgLevel is a string!')
             bldgLevel = int(bldgLevel)
-        self._genSuitInfos(numFloors, bldgLevel, bldgTrack)
-        return
-
+        self.forceCogIndex = forceCogIndex
+        self._genSuitInfos(numFloors, bldgLevel if bldgTrack != "x" else 19, bldgTrack)
+        
     def __genJoinChances(self, num):
         joinChances = []
-        for currChance in xrange(num):
+        for currChance in range(num):
             joinChances.append(random.randint(1, 100))
 
         joinChances.sort(cmp)
@@ -40,7 +43,7 @@ class SuitPlannerInteriorAI:
     def _genSuitInfos(self, numFloors, bldgLevel, bldgTrack):
         self.suitInfos = []
         self.notify.debug('\n\ngenerating suitsInfos with numFloors (' + str(numFloors) + ') bldgLevel (' + str(bldgLevel) + '+1) and bldgTrack (' + str(bldgTrack) + ')')
-        for currFloor in xrange(numFloors):
+        for currFloor in range(numFloors):
             infoDict = {}
             lvls = self.__genLevelList(bldgLevel, currFloor, numFloors)
             activeDicts = []
@@ -62,28 +65,28 @@ class SuitPlannerInteriorAI:
                 revives = bldgInfo[SuitBuildingGlobals.SUIT_BLDG_INFO_REVIVES][0]
             else:
                 revives = 0
-            for currActive in xrange(numActive - 1, -1, -1):
+            for currActive in range(numActive - 1, -1, -1):
                 level = lvls[currActive]
                 type = self.__genNormalSuitType(level)
                 activeDict = {}
                 activeDict['type'] = type
-                activeDict['track'] = bldgTrack
+                activeDict['track'] = generateTrack(bldgTrack)
                 activeDict['level'] = level
-                activeDict['revives'] = revives
+                activeDict['revives'] = generateRevives(revives)
                 activeDicts.append(activeDict)
 
             infoDict['activeSuits'] = activeDicts
             reserveDicts = []
             numReserve = len(lvls) - numActive
             joinChances = self.__genJoinChances(numReserve)
-            for currReserve in xrange(numReserve):
+            for currReserve in range(numReserve):
                 level = lvls[currReserve + numActive]
                 type = self.__genNormalSuitType(level)
                 reserveDict = {}
                 reserveDict['type'] = type
-                reserveDict['track'] = bldgTrack
+                reserveDict['track'] = generateTrack(bldgTrack)
                 reserveDict['level'] = level
-                reserveDict['revives'] = revives
+                reserveDict['revives'] = generateRevives(revives)
                 reserveDict['joinChance'] = joinChances[currReserve]
                 reserveDicts.append(reserveDict)
 
@@ -128,46 +131,60 @@ class SuitPlannerInteriorAI:
         self.notify.debug('LevelList: ' + repr(lvlList))
         return lvlList
 
-    def __setupSuitInfo(self, suit, bldgTrack, suitLevel, suitType):
-        suitDeptIndex, suitTypeIndex, flags = simbase.air.suitInvasionManager.getInvadingCog()
+    def __setupSuitInfo(self, suit, bldgTrack, suitLevel, suitType, revives = 0):
+        suitName, skeleton, v2, dept = simbase.air.suitInvasionManager.getInvadingCog()
+        if self.forceCogIndex != -1:
+            suitName = SuitDNA.suitHeadTypes[self.forceCogIndex]
+            
         if self.respectInvasions:
-            if suitDeptIndex is not None:
-                bldgTrack = SuitDNA.suitDepts[suitDeptIndex]
-            if suitTypeIndex is not None:
-                suitName = SuitDNA.getSuitName(suitDeptIndex, suitTypeIndex)
+            if suitName:
                 suitType = SuitDNA.getSuitType(suitName)
+                bldgTrack = SuitDNA.getSuitDept(suitName)
                 suitLevel = min(max(suitLevel, suitType), suitType + 4)
+            elif dept:
+                bldgTrack = dept
         dna = SuitDNA.SuitDNA()
         dna.newSuitRandom(suitType, bldgTrack)
         suit.dna = dna
+        self.notify.debug('Creating suit type ' + suit.dna.name + ' of level ' + str(suitLevel) + ' from type ' + str(suitType) + ' and track ' + str(bldgTrack))
         suit.setLevel(suitLevel)
-        return flags
+        if v2:
+            revives = 1
+        if revives:
+            skeleton = False
+            
+        return skeleton, revives
 
     def __genSuitObject(self, suitZone, suitType, bldgTrack, suitLevel, revives = 0):
         newSuit = DistributedSuitAI.DistributedSuitAI(simbase.air, None)
-        flags = self.__setupSuitInfo(newSuit, bldgTrack, suitLevel, suitType)
-        if flags & IFSkelecog:
+        skel, revives = self.__setupSuitInfo(newSuit, bldgTrack, suitLevel, suitType, revives)
+        if skel:
             newSuit.setSkelecog(1)
         newSuit.setSkeleRevives(revives)
         newSuit.generateWithRequired(suitZone)
-        if flags & IFWaiter:
-            newSuit.b_setWaiter(1)
-        if flags & IFV2:
-            newSuit.b_setSkeleRevives(1)
         newSuit.node().setName('suit-%s' % newSuit.doId)
         return newSuit
 
     def myPrint(self):
-        self.notify.info('Generated suits for building: ')
-        for currInfo in suitInfos:
-            whichSuitInfo = suitInfos.index(currInfo) + 1
-            self.notify.debug(' Floor ' + str(whichSuitInfo) + ' has ' + str(len(currInfo[0])) + ' active suits.')
-            for currActive in xrange(len(currInfo[0])):
-                self.notify.debug('  Active suit ' + str(currActive + 1) + ' is of type ' + str(currInfo[0][currActive][0]) + ' and of track ' + str(currInfo[0][currActive][1]) + ' and of level ' + str(currInfo[0][currActive][2]))
+        print 'Generated suits for building:'
 
-            self.notify.debug(' Floor ' + str(whichSuitInfo) + ' has ' + str(len(currInfo[1])) + ' reserve suits.')
-            for currReserve in xrange(len(currInfo[1])):
-                self.notify.debug('  Reserve suit ' + str(currReserve + 1) + ' is of type ' + str(currInfo[1][currReserve][0]) + ' and of track ' + str(currInfo[1][currReserve][1]) + ' and of lvel ' + str(currInfo[1][currReserve][2]) + ' and has ' + str(currInfo[1][currReserve][3]) + '% join restriction.')
+        for floor, currInfo in enumerate(self.suitInfos):
+            floor += 1
+                        
+            actives = currInfo['activeSuits']
+            reserves = currInfo['reserveSuits']
+            
+            print ' Floor %d has %d active suits.' % (floor, len(actives))
+            print ' Floor %d has %d reserve suits.' % (floor, len(reserves))
+            
+            for idx, currActive in enumerate(actives):
+                type, track, level, revives = map(lambda x: currActive[x], ('type', 'track', 'level', 'revives'))
+                
+                print '-- Active suit %d is %s, %s and level %d and revives is %d' % (idx, type, track, level, revives)
+            
+            for idx, currReserve in enumerate(reserves):
+                type, track, level, revives, res = map(lambda x: currReserve[x], ('type', 'track', 'level', 'revives', 'joinChance'))
+                print '- Reserve suit %d is %s, %s and level %d and JC = %d and revives is %d' % (idx, type, track, level, res, revives)
 
     def genFloorSuits(self, floor):
         suitHandles = {}
@@ -188,7 +205,7 @@ class SuitPlannerInteriorAI:
 
     def genSuits(self):
         suitHandles = []
-        for floor in xrange(len(self.suitInfos)):
+        for floor in range(len(self.suitInfos)):
             floorSuitHandles = self.genFloorSuits(floor)
             suitHandles.append(floorSuitHandles)
 

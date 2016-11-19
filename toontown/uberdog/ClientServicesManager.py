@@ -1,43 +1,62 @@
-from direct.directnotify.DirectNotifyGlobal import directNotify
 from direct.distributed.DistributedObjectGlobal import DistributedObjectGlobal
-import hmac
-from pandac.PandaModules import *
-
+from direct.directnotify.DirectNotifyGlobal import directNotify
 from otp.distributed.PotentialAvatar import PotentialAvatar
-from otp.otpbase import OTPGlobals
-from toontown.chat.ChatGlobals import WTSystem
-from toontown.chat.WhisperPopup import WhisperPopup
+from pandac.PandaModules import *
+import hashlib
+import sys
 
+try:
+    # N.B. libchallenge is not available in dev source
+    # This is only built in public client
+    sys.path.append('..')
+    import libchallenge
+    sys.path.remove('..')
+    
+except ImportError:
+    class libchallenge:
+        @staticmethod
+        def solve(a, b, c):
+            return 'dev'
 
 class ClientServicesManager(DistributedObjectGlobal):
     notify = directNotify.newCategory('ClientServicesManager')
 
-    # --- LOGIN LOGIC ---
+    def __init__(self, cr):
+        DistributedObjectGlobal.__init__(self, cr)
+        self.__secret = config.GetString('csm-secret', 'dev')
+        loadPrcFileData('', 'csm-secret dev')
+    
     def performLogin(self, doneEvent):
         self.doneEvent = doneEvent
+        self.sendUpdate('requestChallenge', [])
 
-        self.systemMessageSfx = None
+    def challenge(self, data):
+        cookie = self.cr.playToken or 'dev'
+        hash = hashlib.sha512()
+        hash.update(cookie + self.__secret)
+                
+        challengeResp = libchallenge.solve(cookie, data, self.__secret)
+        
+        self.__secret = "dev"
+        
+        self.notify.debug('Sending login cookie: ' + cookie)
+        self.sendUpdate('login', [cookie, hash.digest(), challengeResp])
 
-        token = self.cr.playToken or 'dev'
+    def acceptLogin(self, access):
+        self.cr.setIsPaid(access)
+        messenger.send(self.doneEvent, [{'mode': 'success'}])
+        
+        if not __debug__:
+            # set token to _launcher
+            # fixes "try again leads to login issue" error
+            base.cr.playToken = "_launcher"
 
-        key = 'bG9sLndlLmNoYW5nZS50aGlzLnRvby5tdWNo'
-        digest_maker = hmac.new(key)
-        digest_maker.update(token)
-        clientKey = digest_maker.hexdigest()
-
-        self.sendUpdate('login', [token, clientKey])
-
-    def acceptLogin(self, timestamp):
-        messenger.send(self.doneEvent, [{'mode': 'success', 'timestamp': timestamp}])
-
-
-    # --- AVATARS LIST ---
     def requestAvatars(self):
         self.sendUpdate('requestAvatars')
 
     def setAvatars(self, avatars):
         avList = []
-        for avNum, avName, avDNA, avPosition, nameState in avatars:
+        for avNum, avName, avDNA, avPosition, nameState, hp, maxHp, lastHood in avatars:
             nameOpen = int(nameState == 1)
             names = [avName, '', '', '']
             if nameState == 2: # PENDING
@@ -46,13 +65,18 @@ class ClientServicesManager(DistributedObjectGlobal):
                 names[2] = avName
             elif nameState == 4: # REJECTED
                 names[3] = avName
-            avList.append(PotentialAvatar(avNum, names, avDNA, avPosition, nameOpen))
+            av = PotentialAvatar(avNum, names, avDNA, avPosition, nameOpen)
+            av.hp = maxHp
+            av.maxHp = maxHp
+            av.lastHood = lastHood
+            avList.append(av)
 
         self.cr.handleAvatarsList(avList)
 
     # --- AVATAR CREATION/DELETION ---
-    def sendCreateAvatar(self, avDNA, _, index):
-        self.sendUpdate('createAvatar', [avDNA.makeNetString(), index])
+    def sendCreateAvatar(self, avDNA, name, index, tf):
+        self.notify.info('sendChooseAvatar: %s' % tf)
+        self.sendUpdate('createAvatar', [avDNA.makeNetString(), name, index, tf])
 
     def createAvatarResp(self, avId):
         messenger.send('nameShopCreateAvatarDone', [avId])
@@ -63,19 +87,12 @@ class ClientServicesManager(DistributedObjectGlobal):
     # No deleteAvatarResp; it just sends a setAvatars when the deed is done.
 
     # --- AVATAR NAMING ---
-    def sendSetNameTyped(self, avId, name, callback):
+    def updateAvatarName(self, avId, name, callback):
         self._callback = callback
-        self.sendUpdate('setNameTyped', [avId, name])
+        self.sendUpdate('updateName', [avId, name])
 
-    def setNameTypedResp(self, avId, status):
-        self._callback(avId, status)
-
-    def sendSetNamePattern(self, avId, p1, f1, p2, f2, p3, f3, p4, f4, callback):
-        self._callback = callback
-        self.sendUpdate('setNamePattern', [avId, p1, f1, p2, f2, p3, f3, p4, f4])
-
-    def setNamePatternResp(self, avId, status):
-        self._callback(avId, status)
+    def updateNameResp(self):
+        self._callback()
 
     def sendAcknowledgeAvatarName(self, avId, callback):
         self._callback = callback
@@ -88,11 +105,4 @@ class ClientServicesManager(DistributedObjectGlobal):
     def sendChooseAvatar(self, avId):
         self.sendUpdate('chooseAvatar', [avId])
 
-    def systemMessage(self, message):
-        whisper = WhisperPopup(message, OTPGlobals.getInterfaceFont(), WTSystem)
-        whisper.manage(base.marginManager)
-
-        if self.systemMessageSfx is None:
-            self.systemMessageSfx = base.loadSfx('phase_3/audio/sfx/clock03.ogg')
-
-        base.playSfx(self.systemMessageSfx)
+    # No response: instead, an OwnerView is sent or deleted.

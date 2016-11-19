@@ -27,9 +27,6 @@ class CatalogChatItem(CatalogItem.CatalogItem):
 
     def getDisplayName(self):
         return OTPLocalizer.CustomSCStrings[self.customIndex]
-        
-    def getDeliveryTime(self):
-        return 0
 
     def recordPurchase(self, avatar, optional):
         if avatar.customMessages.count(self.customIndex) != 0:
@@ -103,6 +100,7 @@ class CatalogChatItem(CatalogItem.CatalogItem):
         if status == 'pick':
             self.mailbox.acceptItem(self, self.index, self.callback, pickedMessage)
         else:
+            print 'picker canceled'
             self.callback(ToontownGlobals.P_UserCancelled, None, self.index)
         self.messagePicker.hide()
         self.messagePicker.destroy()

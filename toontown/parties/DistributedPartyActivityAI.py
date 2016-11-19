@@ -46,36 +46,21 @@ class DistributedPartyActivityAI(DistributedObjectAI):
         self.sendUpdate('setToonsPlaying', [self.toonsPlaying])
 
     def toonJoinRequest(self):
-        print 'toon join request'
         avId = self.air.getAvatarIdFromSender()
-        #todo hackyfun i should FSM
+        if avId not in self.air.doId2do:
+            self.air.writeServerEvent('suspicious', avId, "tried to enter activity from another shard!")
+            return
+            
         self.toonsPlaying.append(avId)
         self.updateToonsPlaying()
 
     def toonExitRequest(self):
-        print 'toon exit request'
-
-    def toonExitDemand(self):
-        print 'toon exit demand'
-        avId = self.air.getAvatarIdFromSender()
+        avId = self.air.getAvatarIdFromSender()            
         self.toonsPlaying.remove(avId)
         self.updateToonsPlaying()
 
+    def toonExitDemand(self):
+        pass
+
     def toonReady(self):
-        print 'toon ready'
-
-    def joinRequestDenied(self, todo0):
         pass
-
-    def exitRequestDenied(self, todo0):
-        pass
-
-    def setToonsPlaying(self, todo0):
-        pass
-
-    def setState(self, todo0, todo1):
-        pass
-
-    def showJellybeanReward(self, todo0, todo1, todo2):
-        pass
-

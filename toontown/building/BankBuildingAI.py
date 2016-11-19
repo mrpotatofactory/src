@@ -1,10 +1,8 @@
 from pandac.PandaModules import *
-
 from toontown.building import DistributedBankInteriorAI
 from toontown.building import DistributedDoorAI
 from toontown.building import DoorTypes
 from toontown.toon import NPCToons
-
 
 class BankBuildingAI:
     def __init__(self, air, exteriorZone, interiorZone, blockNumber):
@@ -12,7 +10,7 @@ class BankBuildingAI:
         self.exteriorZone = exteriorZone
         self.interiorZone = interiorZone
         self.setup(blockNumber)
-
+ 
     def cleanup(self):
         for npc in self.npcs:
             npc.requestDelete()
@@ -23,18 +21,13 @@ class BankBuildingAI:
         del self.insideDoor
         self.interior.requestDelete()
         del self.interior
-
+ 
     def setup(self, blockNumber):
-        self.interior = DistributedBankInteriorAI.DistributedBankInteriorAI(
-            blockNumber, self.air, self.interiorZone)
+        self.interior = DistributedBankInteriorAI.DistributedBankInteriorAI(blockNumber, self.air, self.interiorZone)
         self.interior.generateWithRequired(self.interiorZone)
-
         self.npcs = NPCToons.createNpcsInZone(self.air, self.interiorZone)
-
-        door = DistributedDoorAI.DistributedDoorAI(
-            self.air, blockNumber, DoorTypes.EXT_STANDARD)
-        insideDoor = DistributedDoorAI.DistributedDoorAI(
-            self.air, blockNumber, DoorTypes.INT_STANDARD)
+        door = DistributedDoorAI.DistributedDoorAI(self.air, blockNumber, DoorTypes.EXT_STANDARD)
+        insideDoor = DistributedDoorAI.DistributedDoorAI(self.air, blockNumber + 500, DoorTypes.INT_STANDARD)
         door.setOtherDoor(insideDoor)
         insideDoor.setOtherDoor(door)
         door.zoneId = self.exteriorZone

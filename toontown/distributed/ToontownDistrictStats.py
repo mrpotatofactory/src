@@ -4,7 +4,6 @@ from direct.distributed import DistributedObject
 from direct.task import Task
 from direct.distributed import DoInterestManager
 from otp.distributed.OtpDoGlobals import *
-
 _ToonTownDistrictStatInterest = None
 _ToonTownDistrictStatInterestComplete = 0
 _trashObject = DirectObject.DirectObject()
@@ -12,28 +11,34 @@ _trashObject = DirectObject.DirectObject()
 def EventName():
     return 'ShardPopulationSet'
 
+
 def isOpen():
     global _ToonTownDistrictStatInterest
     return _ToonTownDistrictStatInterest is not None
+
 
 def isComplete():
     global _ToonTownDistrictStatInterestComplete
     return _ToonTownDistrictStatInterestComplete
 
+
 def open(event = None):
     global _trashObject
     global _ToonTownDistrictStatInterest
     if not isOpen():
+
         def _CompleteProc(event):
             global _ToonTownDistrictStatInterestComplete
             _ToonTownDistrictStatInterestComplete = 1
             if event is not None:
                 messenger.send(event)
             return
+
         _trashObject.acceptOnce(EventName(), _CompleteProc)
         _ToonTownDistrictStatInterest = base.cr.addInterest(OTP_DO_ID_TOONTOWN, OTP_ZONE_ID_DISTRICTS_STATS, EventName(), EventName())
     elif isComplete():
         messenger.send(EventName())
+
 
 def refresh(event = None):
     global _ToonTownDistrictStatInterest
@@ -43,6 +48,7 @@ def refresh(event = None):
             if event is not none:
                 messenger.send(event)
     else:
+
         def _CompleteProc(event):
             global _ToonTownDistrictStatInterestComplete
             _ToonTownDistrictStatInterestComplete = 1
@@ -50,8 +56,10 @@ def refresh(event = None):
                 messenger.send(event)
             close()
             return
+
         _trashObject.acceptOnce(EventName(), _CompleteProc, [event])
         _ToonTownDistrictStatInterest = base.cr.addInterest(OTP_DO_ID_TOONTOWN, OTP_ZONE_ID_DISTRICTS_STATS, EventName(), EventName())
+
 
 def close():
     global _ToonTownDistrictStatInterest
@@ -60,6 +68,7 @@ def close():
         _ToonTownDistrictStatInterestComplete = 0
         base.cr.removeInterest(_ToonTownDistrictStatInterest, None)
         _ToonTownDistrictStatInterest = None
+    return
 
 
 class ToontownDistrictStats(DistributedObject.DistributedObject):
@@ -73,16 +82,12 @@ class ToontownDistrictStats(DistributedObject.DistributedObject):
         self.toontownDistrictId = value
 
     def setAvatarCount(self, avatarCount):
-        if self.toontownDistrictId in self.cr.activeDistrictMap:
+        if self.cr.activeDistrictMap.has_key(self.toontownDistrictId):
             self.cr.activeDistrictMap[self.toontownDistrictId].avatarCount = avatarCount
 
     def setNewAvatarCount(self, newAvatarCount):
-        if self.toontownDistrictId in self.cr.activeDistrictMap:
+        if self.cr.activeDistrictMap.has_key(self.toontownDistrictId):
             self.cr.activeDistrictMap[self.toontownDistrictId].newAvatarCount = newAvatarCount
-
-    def setInvasionStatus(self, invasionStatus):
-        if self.toontownDistrictId in self.cr.activeDistrictMap:
-            self.cr.activeDistrictMap[self.toontownDistrictId].invasionStatus = invasionStatus
 
     def setStats(self, avatarCount, newAvatarCount):
         self.setAvatarCount(avatarCount)

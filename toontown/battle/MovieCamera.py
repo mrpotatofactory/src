@@ -16,6 +16,7 @@ def chooseHealShot(heals, attackDuration):
             isUber = 1
 
     if isUber:
+        print 'is uber'
         openShot = chooseHealOpenShot(heals, attackDuration, isUber)
         openDuration = openShot.getDuration()
         openName = openShot.getName()
@@ -677,7 +678,7 @@ def suitCameraShakeShot(avatar, duration, shakeIntensity, quake = 0):
         vertShakeTrack = Sequence(Wait(shakeWaitInterval), Func(camera.setZ, camera.getZ() + intensity / 2), Wait(shakeDuration / 2), Func(camera.setZ, camera.getZ() - intensity), Wait(shakeDuration / 2), Func(camera.setZ, camera.getZ() + intensity / 2))
         horizShakeTrack = Sequence(Wait(shakeWaitInterval - shakeDuration / 2), Func(camera.setY, camera.getY() + intensity / 4), Wait(shakeDuration / 2), Func(camera.setY, camera.getY() - intensity / 2), Wait(shakeDuration / 2), Func(camera.setY, camera.getY() + intensity / 4), Wait(shakeDuration / 2), Func(camera.lookAt, Point3(0, 0, 0)))
         shakeTrack = Sequence()
-        for i in xrange(0, numShakes):
+        for i in range(0, numShakes):
             if quake == 0:
                 shakeTrack.append(vertShakeTrack)
             else:

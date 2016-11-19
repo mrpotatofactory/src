@@ -16,18 +16,20 @@ class WhiteList:
     def cleanText(self, text):
         text = text.strip('.,?!')
         text = text.lower()
-        return text
+        
+        
+        # HACK:
+        if game.process == 'server':
+            return text
+        
+        return str(text.encode('latin-1')) #utf-8 latin-1 
 
     def isWord(self, text):
-        try:
-            text = self.cleanText(text)
-            i = bisect_left(self.words, text)
-            if i == self.numWords:
-                return False
-            return self.words[i] == text
-        except UnicodeDecodeError:
-            return False  # Lets not open ourselves up to obscure keyboards...
-      
+        text = self.cleanText(text)
+        i = bisect_left(self.words, text)
+        if i == self.numWords:
+            return False
+        return self.words[i] == text
 
     def isPrefix(self, text):
         text = self.cleanText(text)

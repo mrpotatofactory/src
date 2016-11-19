@@ -343,7 +343,7 @@ for holeId in HoleInfo:
     if type(HoleInfo[holeId]['blockers']) == type(0):
         blockerNum = HoleInfo[holeId]['blockers']
         HoleInfo[holeId]['blockers'] = (blockerNum,)
-    if 'optionalMovers' in HoleInfo[holeId]:
+    if HoleInfo[holeId].has_key('optionalMovers'):
         if type(HoleInfo[holeId]['optionalMovers']) == type(0):
             blockerNum = HoleInfo[holeId]['optionalMovers']
             HoleInfo[holeId]['optionalMovers'] = (blockerNum,)
@@ -366,16 +366,16 @@ MaxHistoryIndex = 9
 NumHistory = MaxHistoryIndex + 1
 CalcOtherHoleBest = False
 CalcOtherCourseBest = False
-TrophyRequirements = {CoursesCompleted: (4, 40, 400),
- CoursesUnderPar: (1, 10, 100),
- HoleInOneShots: (1, 10, 100),
- EagleOrBetterShots: (2, 20, 200),
- BirdieOrBetterShots: (3, 30, 300),
- ParOrBetterShots: (4, 40, 400),
- MultiPlayerCoursesCompleted: (6, 60, 600),
- CourseZeroWins: (1, 10, 100),
- CourseOneWins: (1, 10, 100),
- CourseTwoWins: (1, 10, 100)}
+TrophyRequirements = {CoursesCompleted: (3, 30, 300),
+ CoursesUnderPar: (1, 10, 75),
+ HoleInOneShots: (1, 10, 75),
+ EagleOrBetterShots: (2, 20, 150),
+ BirdieOrBetterShots: (3, 30, 200),
+ ParOrBetterShots: (4, 40, 300),
+ MultiPlayerCoursesCompleted: (5, 50, 150),
+ CourseZeroWins: (1, 10, 75),
+ CourseOneWins: (1, 10, 75),
+ CourseTwoWins: (1, 10, 75)}
 PlayerColors = [(0.925,
   0.168,
   0.168,

@@ -1,10 +1,9 @@
 from otp.avatar.Avatar import teleportNotify
 from toontown.toonbase import ToontownGlobals
-import copy
 from toontown.chat import ToonChatGarbler
 
-
 class FriendHandle:
+
     def __init__(self, doId, name, style, petId, isAPet = False):
         self.doId = doId
         self.style = style
@@ -40,26 +39,27 @@ class FriendHandle:
         return idString + '-' + str(self.getDoId())
 
     def d_battleSOS(self, requesterId):
-        base.cr.ttiFriendsManager.d_battleSOS(self.doId)
+        base.localAvatar.sendUpdate('battleSOS', [requesterId], sendToId=self.doId)
 
     def d_teleportQuery(self, requesterId):
         teleportNotify.debug('sending d_teleportQuery(%s)' % (requesterId,))
-
-        base.cr.ttiFriendsManager.d_teleportQuery(self.doId)
+        base.cr.ttFriendsManager.d_teleportQuery(self.doId)
 
     def d_teleportResponse(self, avId, available, shardId, hoodId, zoneId):
-        teleportNotify.debug('sending teleportResponse%s' % ((avId, available,
-            shardId, hoodId, zoneId),)
-        )
-
-        base.cr.ttiFriendsManager.d_teleportResponse(self.doId, available,
-            shardId, hoodId, zoneId
-        )
+        teleportNotify.debug('sending teleportResponse%s' % ((avId,
+          available,
+          shardId,
+          hoodId,
+          zoneId),))
+        base.cr.ttFriendsManager.sendUpdate('routeTeleportResponse', [avId,
+         available,
+         shardId,
+         hoodId,
+         zoneId])
 
     def d_teleportGiveup(self, requesterId):
         teleportNotify.debug('sending d_teleportGiveup(%s)' % (requesterId,))
-
-        base.cr.ttiFriendsManager.d_teleportGiveup(self.doId)
+        base.localAvatar.sendUpdate('teleportGiveup', [requesterId], sendToId=self.doId)
 
     def isUnderstandable(self):
         if self.commonChatFlags & base.localAvatar.commonChatFlags & ToontownGlobals.CommonChat:
@@ -77,30 +77,28 @@ class FriendHandle:
         return understandable
 
     def scrubTalk(self, message, mods):
-        scrubbed = 0
-        text = copy.copy(message)
-        for mod in mods:
-            index = mod[0]
-            length = mod[1] - mod[0] + 1
-            newText = text[0:index] + length * '\x07' + text[index + length:]
-            text = newText
+        scrub = self is not localAvatar
+        
+        if scrub:
+            for friendId, flags in localAvatar.friendsList:
+                if friendId == self.doId:
+                    if flags & 1:
+                        # True friends detected
+                        scrub = 0
+ 
+        words = message.split()
+        mods = [m[0] for m in mods]
+        
+        for i in xrange(len(words)):
+            if i in mods:
+                if scrub:
+                    words[i] = self.chatGarbler.garbleSingle(self, words[i])
+                    
+                else:
+                    words[i] = '\x01WLDisplay\x01%s\x02' % words[i]
 
-        words = text.split(' ')
-        newwords = []
-        for word in words:
-            if word == '':
-                newwords.append(word)
-            elif word[0] == '\x07':
-                newwords.append('\x01WLDisplay\x01' + self.chatGarbler.garbleSingle(self, word) + '\x02')
-                scrubbed = 1
-            elif base.whiteList.isWord(word):
-                newwords.append(word)
-            else:
-                newwords.append('\x01WLDisplay\x01' + word + '\x02')
-                scrubbed = 1
-
-        newText = ' '.join(newwords)
-        return (newText, scrubbed)
+        newText = ' '.join(words)
+        return (newText, scrub)
 
     def replaceBadWords(self, text):
         words = text.split(' ')

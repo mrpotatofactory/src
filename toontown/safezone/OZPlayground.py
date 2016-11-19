@@ -32,6 +32,14 @@ class OZPlayground(Playground.Playground):
         Playground.Playground.unload(self)
 
     def enter(self, requestStatus):
+        if config.GetBool('want-oz-tunnel', __debug__):
+            vg = self.loader.nodeList[0]
+            tunnel = self.loader.geom.find('**/prop_outdoor_zone_entrance_DNARoot')
+            tunnel.setName('linktunnel_oz_6101')
+            tunnel.wrtReparentTo(vg)
+            sign = self.loader.geom.find('**/prop_golf_construction_sign_DNARoot')
+            if sign:
+                sign.removeNode()
         Playground.Playground.enter(self, requestStatus)
 
     def exit(self):
@@ -106,16 +114,6 @@ class OZPlayground(Playground.Playground):
         self.toonSubmerged = 0
 
     def enterTeleportIn(self, requestStatus):
-        reason = requestStatus.get('reason')
-        if reason == RaceGlobals.Exit_Barrier:
-            requestStatus['nextState'] = 'popup'
-            self.dialog = TTDialog.TTDialog(text=TTLocalizer.KartRace_RaceTimeout, command=self.__cleanupDialog, style=TTDialog.Acknowledge)
-        elif reason == RaceGlobals.Exit_Slow:
-            requestStatus['nextState'] = 'popup'
-            self.dialog = TTDialog.TTDialog(text=TTLocalizer.KartRace_RacerTooSlow, command=self.__cleanupDialog, style=TTDialog.Acknowledge)
-        elif reason == RaceGlobals.Exit_BarrierNoRefund:
-            requestStatus['nextState'] = 'popup'
-            self.dialog = TTDialog.TTDialog(text=TTLocalizer.KartRace_RaceTimeoutNoRefund, command=self.__cleanupDialog, style=TTDialog.Acknowledge)
         self.toonSubmerged = -1
         taskMgr.remove('oz-check-toon-underwater')
         Playground.Playground.enterTeleportIn(self, requestStatus)

@@ -133,7 +133,7 @@ def getDefaultSuitAttack():
 def findToonAttack(toons, attacks, track):
     foundAttacks = []
     for t in toons:
-        if t in attacks:
+        if attacks.has_key(t):
             attack = attacks[t]
             local_track = attack[TOON_TRACK_COL]
             if track != NPCSOS and attack[TOON_TRACK_COL] == NPCSOS:
@@ -253,8 +253,9 @@ class BattleBase:
         self.helpfulToons = []
 
     def calcFaceoffTime(self, centerpos, suitpos):
-        facing = Vec3(centerpos - suitpos)
+        facing = Vec3(Point3(centerpos) - Point3(suitpos))
         facing.normalize()
+        centerpos = Point3(centerpos)
         suitdest = Point3(centerpos - Point3(facing * 6.0))
         dist = Vec3(suitdest - suitpos).length()
         return dist / BattleBase.suitSpeed

@@ -6,19 +6,20 @@ from otp.otpbase import OTPLocalizer
 SellbotNerfMenu = [(OTPLocalizer.SellbotNerfMenuSections[0], [30150,
    30151,
    30152,
-   30153,
-   30154,
-   30155,
-   30156]), (OTPLocalizer.SellbotNerfMenuSections[1], [30157,
+   #30153,
+   #30154,
+   #30155,
+   #30156
+                                                              ]), (OTPLocalizer.SellbotNerfMenuSections[1], [30157,
    30158,
    30159,
    30160,
-   30161,
-   30162,
-   30163,
+   #30161,
+   #30162,
+   #30163,
    30164]), (OTPLocalizer.SellbotNerfMenuSections[2], [30165,
-   30166,
-   30167,
+   #30166,
+   #30167,
    30168,
    30169,
    30170,
@@ -26,7 +27,8 @@ SellbotNerfMenu = [(OTPLocalizer.SellbotNerfMenuSections[0], [30150,
    30172,
    30173,
    30174,
-   30175])]
+   30175
+                                                       ])]
 
 class TTSCSellbotNerfMenu(SCMenu):
 

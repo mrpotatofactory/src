@@ -21,6 +21,7 @@ from toontown.minigame import CogThiefWalk
 CTGG = CogThiefGameGlobals
 
 class DistributedCogThiefGame(DistributedMinigame):
+
     notify = directNotify.newCategory('DistributedCogThiefGame')
     ToonSpeed = CTGG.ToonSpeed
     StageHalfWidth = 200.0
@@ -40,7 +41,6 @@ class DistributedCogThiefGame(DistributedMinigame):
         self.cogInfo = {}
         self.lastTimeControlPressed = 0
         self.stolenBarrels = []
-        self.useOrthoWalk = base.config.GetBool('cog-thief-ortho', 1)
         self.resultIval = None
         self.gameIsEnding = False
         self.__textGen = TextNode('cogThiefGame')
@@ -62,7 +62,7 @@ class DistributedCogThiefGame(DistributedMinigame):
         DistributedMinigame.load(self)
         self.music = base.loadMusic('phase_4/audio/bgm/MG_CogThief.ogg')
         self.initCogInfo()
-        for barrelIndex in xrange(CTGG.NumBarrels):
+        for barrelIndex in range(CTGG.NumBarrels):
             barrel = loader.loadModel('phase_4/models/minigames/cogthief_game_gagTank')
             barrel.setPos(CTGG.BarrelStartingPositions[barrelIndex])
             barrel.setScale(self.BarrelScale)
@@ -131,6 +131,7 @@ class DistributedCogThiefGame(DistributedMinigame):
         self.jarImage.reparentTo(hidden)
         self.rewardPanel = DirectLabel(parent=hidden, relief=None, pos=(-0.173, 0.0, -0.55), scale=0.65, text='', text_scale=0.2, text_fg=(0.95, 0.95, 0, 1), text_pos=(0, -.13), text_font=ToontownGlobals.getSignFont(), image=self.jarImage)
         self.rewardPanelTitle = DirectLabel(parent=self.rewardPanel, relief=None, pos=(0, 0, 0.06), scale=0.08, text=TTLocalizer.CannonGameReward, text_fg=(0.95, 0.95, 0, 1), text_shadow=(0, 0, 0, 1))
+        self.initGameWalk()
         return
 
     def unload(self):
@@ -176,8 +177,6 @@ class DistributedCogThiefGame(DistributedMinigame):
             pos = self.cogInfo[cogIndex]['pos']
             suit.reparentTo(self.gameBoard)
             suit.setPos(pos)
-            suit.nametag.setNametag2d(None)
-            suit.nametag.setNametag3d(None)
 
         for avId in self.avIdList:
             self.toonHitTracks[avId] = Wait(0.1)
@@ -321,36 +320,24 @@ class DistributedCogThiefGame(DistributedMinigame):
         camera.reparentTo(render)
         p = self.cameraTopView
         camera.setPosHpr(p[0], p[1], p[2], p[3], p[4], p[5])
-        base.camLens.setMinFov(46/(4./3.))
         camera.setZ(camera.getZ() + base.config.GetFloat('cog-thief-z-camera-adjust', 0.0))
 
     def destroyGameWalk(self):
         self.notify.debug('destroyOrthoWalk')
-        if self.useOrthoWalk:
-            self.gameWalk.destroy()
-            del self.gameWalk
-        else:
-            self.notify.debug('TODO destroyGameWalk')
+        self.gameWalk.destroy()
+        del self.gameWalk
 
     def initGameWalk(self):
         self.notify.debug('startOrthoWalk')
-        if self.useOrthoWalk:
+        def doCollisions(oldPos, newPos, self = self):
+            x = bound(newPos[0], CTGG.StageHalfWidth, -CTGG.StageHalfWidth)
+            y = bound(newPos[1], CTGG.StageHalfHeight, -CTGG.StageHalfHeight)
+            newPos.setX(x)
+            newPos.setY(y)
+            return newPos
 
-            def doCollisions(oldPos, newPos, self = self):
-                x = bound(newPos[0], CTGG.StageHalfWidth, -CTGG.StageHalfWidth)
-                y = bound(newPos[1], CTGG.StageHalfHeight, -CTGG.StageHalfHeight)
-                newPos.setX(x)
-                newPos.setY(y)
-                return newPos
-
-            orthoDrive = OrthoDrive(self.ToonSpeed, customCollisionCallback=doCollisions, instantTurn=True)
-            self.gameWalk = OrthoWalk(orthoDrive, broadcast=not self.isSinglePlayer())
-        else:
-            self.gameWalk = CogThiefWalk.CogThiefWalk('walkDone')
-            forwardSpeed = self.ToonSpeed / 2.0
-            base.mouseInterfaceNode.setForwardSpeed(forwardSpeed)
-            multiplier = forwardSpeed / ToontownGlobals.ToonForwardSpeed
-            base.mouseInterfaceNode.setRotateSpeed(ToontownGlobals.ToonRotateSpeed * 4)
+        orthoDrive = OrthoDrive(self.ToonSpeed, customCollisionCallback=doCollisions, instantTurn=True)
+        self.gameWalk = OrthoWalk(orthoDrive, broadcast=not self.isSinglePlayer())
 
     def initCogInfo(self):
         for cogIndex in xrange(self.getNumCogs()):
@@ -816,17 +803,10 @@ class DistributedCogThiefGame(DistributedMinigame):
         return result
 
     def startGameWalk(self):
-        if self.useOrthoWalk:
-            self.gameWalk.start()
-        else:
-            self.gameWalk.enter()
-            self.gameWalk.fsm.request('walking')
+        self.gameWalk.start()
 
     def stopGameWalk(self):
-        if self.useOrthoWalk:
-            self.gameWalk.stop()
-        else:
-            self.gameWalk.exit()
+        self.gameWalk.stop()
 
     def getCogThief(self, cogIndex):
         return self.cogInfo[cogIndex]['suit']

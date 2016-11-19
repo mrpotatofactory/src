@@ -1,5 +1,5 @@
 from otp.avatar import Avatar
-from toontown.nametag import NametagGlobals
+from otp.nametag.NametagGroup import *
 from pandac.PandaModules import *
 from direct.task import Task
 import random
@@ -101,9 +101,10 @@ class Char(Avatar.Avatar):
             self.Char_initialized = 1
             Avatar.Avatar.__init__(self)
             self.setPickable(0)
-            self.setPlayerType(NametagGlobals.CCNonPlayer)
+            self.setPlayerType(NametagGroup.CCNonPlayer)
             self.dialogueArray = []
             self.chatterArray = [[], [], []]
+            self.accept('SHADOWS_SETTINGS_CHANGED', self.initDecentShadow)
 
     def delete(self):
         try:
@@ -111,6 +112,7 @@ class Char(Avatar.Avatar):
         except:
             self.Char_deleted = 1
             self.unloadDialogue()
+            self.ignore('SHADOWS_SETTINGS_CHANGED')
             Avatar.Avatar.delete(self)
 
     def updateCharDNA(self, newDNA):
@@ -131,8 +133,10 @@ class Char(Avatar.Avatar):
             self.initializeDropShadow()
             self.initializeNametag3d()
             self.nametag3d.setBin('fixed', 0)
-            if self.name == 'chip' or self.name == 'dale' or self.name == 'police_chip' or self.name == 'jailbird_dale':
-                self.find('**/drop-shadow').setScale(0.33)
+            if not config.GetBool('want-decent-shadow', True):
+                if self.name == 'chip' or self.name == 'dale' or self.name == 'police_chip' or self.name == 'jailbird_dale':
+                    self.find('**/drop-shadow').setScale(0.33)
+            self.clearBin()
 
     def setLODs(self):
         self.setLODNode()
@@ -394,7 +398,7 @@ class Char(Avatar.Avatar):
 
     def loadChatterDialogue(self, name, audioIndexArray, loadPath, language):
         chatterTypes = ['greetings', 'comments', 'goodbyes']
-        for categoryIndex in xrange(len(audioIndexArray)):
+        for categoryIndex in range(len(audioIndexArray)):
             chatterType = chatterTypes[categoryIndex]
             for fileIndex in audioIndexArray[categoryIndex]:
                 if fileIndex:
@@ -414,7 +418,7 @@ class Char(Avatar.Avatar):
         language = base.config.GetString('language', 'english')
         if char == 'mk':
             dialogueFile = base.loadSfx('phase_3/audio/dial/mickey.ogg')
-            for i in xrange(0, 6):
+            for i in range(0, 6):
                 self.dialogueArray.append(dialogueFile)
 
             if language == 'japanese':
@@ -429,7 +433,7 @@ class Char(Avatar.Avatar):
                 self.loadChatterDialogue('mickey', chatterIndexArray, 'phase_3/audio/dial', language)
         elif char == 'vmk':
             dialogueFile = base.loadSfx('phase_3/audio/dial/mickey.ogg')
-            for i in xrange(0, 6):
+            for i in range(0, 6):
                 self.dialogueArray.append(dialogueFile)
 
             if language == 'japanese':
@@ -444,7 +448,7 @@ class Char(Avatar.Avatar):
                 self.loadChatterDialogue('mickey', chatterIndexArray, 'phase_3/audio/dial', language)
         elif char == 'mn' or char == 'wmn':
             dialogueFile = base.loadSfx('phase_3/audio/dial/minnie.ogg')
-            for i in xrange(0, 6):
+            for i in range(0, 6):
                 self.dialogueArray.append(dialogueFile)
 
             if language == 'japanese':
@@ -468,7 +472,7 @@ class Char(Avatar.Avatar):
                 self.loadChatterDialogue('minnie', chatterIndexArray, 'phase_3/audio/dial', language)
         elif char == 'dd' or char == 'shdd':
             dialogueFile = base.loadSfx('phase_4/audio/dial/daisy.ogg')
-            for i in xrange(0, 6):
+            for i in range(0, 6):
                 self.dialogueArray.append(dialogueFile)
 
             if language == 'japanese':
@@ -490,7 +494,7 @@ class Char(Avatar.Avatar):
                 self.loadChatterDialogue('daisy', chatterIndexArray, 'phase_8/audio/dial', language)
         elif char == 'g' or char == 'sg':
             dialogueFile = base.loadSfx('phase_6/audio/dial/goofy.ogg')
-            for i in xrange(0, 6):
+            for i in range(0, 6):
                 self.dialogueArray.append(dialogueFile)
 
             if language == 'japanese':
@@ -512,7 +516,7 @@ class Char(Avatar.Avatar):
                 self.loadChatterDialogue('goofy', chatterIndexArray, 'phase_6/audio/dial', language)
         elif char == 'd' or char == 'dw' or char == 'fd':
             dialogueFile = base.loadSfx('phase_6/audio/dial/donald.ogg')
-            for i in xrange(0, 6):
+            for i in range(0, 6):
                 self.dialogueArray.append(dialogueFile)
 
             if char == 'd':
@@ -534,32 +538,32 @@ class Char(Avatar.Avatar):
                     self.loadChatterDialogue('donald', chatterIndexArray, 'phase_6/audio/dial', language)
         elif char == 'p' or char == 'wp':
             dialogueFile = base.loadSfx('phase_3.5/audio/dial/AV_dog_med.ogg')
-            for i in xrange(0, 6):
+            for i in range(0, 6):
                 self.dialogueArray.append(dialogueFile)
 
         elif char == 'cl':
             dialogueFile = base.loadSfx('phase_3.5/audio/dial/AV_dog_med.ogg')
-            for i in xrange(0, 6):
+            for i in range(0, 6):
                 self.dialogueArray.append(dialogueFile)
 
         elif char == 'ch':
             dialogueFile = base.loadSfx('phase_6/audio/dial/chip.ogg')
-            for i in xrange(0, 6):
+            for i in range(0, 6):
                 self.dialogueArray.append(dialogueFile)
 
         elif char == 'da':
             dialogueFile = base.loadSfx('phase_6/audio/dial/dale.ogg')
-            for i in xrange(0, 6):
+            for i in range(0, 6):
                 self.dialogueArray.append(dialogueFile)
 
         elif char == 'pch':
             dialogueFile = base.loadSfx('phase_6/audio/dial/chip.ogg')
-            for i in xrange(0, 6):
+            for i in range(0, 6):
                 self.dialogueArray.append(dialogueFile)
 
         elif char == 'jda':
             dialogueFile = base.loadSfx('phase_6/audio/dial/dale.ogg')
-            for i in xrange(0, 6):
+            for i in range(0, 6):
                 self.dialogueArray.append(dialogueFile)
 
         else:
@@ -630,3 +634,7 @@ class Char(Avatar.Avatar):
 
     def uniqueName(self, idString):
         return idString + '-' + str(self.this)
+
+    def initDecentShadow(self, x=0):
+        Avatar.Avatar.initDecentShadow(self)
+        self.find('**/lightPath').setPos(1, 0, 1)

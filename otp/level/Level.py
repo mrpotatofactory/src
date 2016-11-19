@@ -17,8 +17,8 @@ class Level:
         self.levelSpec = levelSpec
         self.scenarioIndex = scenarioIndex
         self.levelSpec.setScenario(self.scenarioIndex)
-        if __dev__:
-            self.levelSpec.setLevel(self)
+        #if __dev__:
+        #    self.levelSpec.setLevel(self)
         self.entranceId2entity = {}
         self.entId2createCallbacks = {}
         self.createdEntIds = []

@@ -1,21 +1,18 @@
-from direct.directnotify import DirectNotifyGlobal
-from direct.fsm import ClassicFSM, State
-from direct.fsm import State
-from direct.fsm import StateData
-from direct.showbase import DirectObject
-from direct.task import Task
 from pandac.PandaModules import *
-
-from otp.distributed.TelemetryLimiter import RotationLimitToH, TLGatherAllAvs
+from toontown.toonbase.ToonBaseGlobal import *
+from direct.directnotify import DirectNotifyGlobal
 from toontown.hood import Place
 from toontown.hood import ZoneUtil
-from toontown.nametag import NametagGlobals
-from toontown.toon import HealthForceAcknowledge
-from toontown.toon import NPCForceAcknowledge
-from toontown.toonbase import TTLocalizer
+from direct.showbase import DirectObject
+from direct.fsm import StateData
+from direct.fsm import ClassicFSM, State
+from direct.fsm import State
+from direct.task import Task
+from otp.distributed.TelemetryLimiter import RotationLimitToH, TLGatherAllAvs
 from toontown.toonbase import ToontownGlobals
-from toontown.toonbase.ToonBaseGlobal import *
-
+from toontown.toonbase import TTLocalizer
+from toontown.toon import NPCForceAcknowledge
+from toontown.toon import HealthForceAcknowledge
 
 class ToonInterior(Place.Place):
     notify = DirectNotifyGlobal.directNotify.newCategory('ToonInterior')
@@ -97,7 +94,7 @@ class ToonInterior(Place.Place):
         volume = requestStatus.get('musicVolume', 0.7)
         base.playMusic(self.loader.activityMusic, looping=1, volume=volume)
         self._telemLimiter = TLGatherAllAvs('ToonInterior', RotationLimitToH)
-        NametagGlobals.setWant2dNametags(True)
+        NametagGlobals.setMasterArrowsOn(1)
         self.fsm.request(requestStatus['how'], [requestStatus])
 
     def exit(self):
@@ -105,7 +102,7 @@ class ToonInterior(Place.Place):
         messenger.send('exitToonInterior')
         self._telemLimiter.destroy()
         del self._telemLimiter
-        NametagGlobals.setWant2dNametags(False)
+        NametagGlobals.setMasterArrowsOn(0)
         self.loader.activityMusic.stop()
 
     def setState(self, state):

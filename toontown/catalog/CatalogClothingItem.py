@@ -152,15 +152,15 @@ ClothingTypes = {101: (ABoysShirt, 'bss1', 40),
  1501: (AShirt, 'j4_ss2', 200),
  1502: (ABoysShorts, 'j4_bs1', 200),
  1503: (AGirlsSkirt, 'j4_gs1', 200),
- 1600: (AShirt, 'pj_ss1', 500),
- 1601: (AShirt, 'pj_ss2', 500),
- 1602: (AShirt, 'pj_ss3', 500),
- 1603: (ABoysShorts, 'pj_bs1', 500),
- 1604: (ABoysShorts, 'pj_bs2', 500),
- 1605: (ABoysShorts, 'pj_bs3', 500),
- 1606: (AGirlsShorts, 'pj_gs1', 500),
- 1607: (AGirlsShorts, 'pj_gs2', 500),
- 1608: (AGirlsShorts, 'pj_gs3', 500),
+ 1600: (AShirt, 'pj_ss1', 0, (85, 40)),
+ 1601: (AShirt, 'pj_ss2', 0, (85, 40)),
+ 1602: (AShirt, 'pj_ss3', 0, (85, 40)),
+ 1603: (ABoysShorts, 'pj_bs1', 0, (85, 40)),
+ 1604: (ABoysShorts, 'pj_bs2', 0, (85, 40)),
+ 1605: (ABoysShorts, 'pj_bs3', 0, (85, 40)),
+ 1606: (AGirlsShorts, 'pj_gs1', 0, (85, 40)),
+ 1607: (AGirlsShorts, 'pj_gs2', 0, (85, 40)),
+ 1608: (AGirlsShorts, 'pj_gs3', 0, (85, 40)),
  1700: (AShirt, 'sa_ss1', 200),
  1701: (AShirt, 'sa_ss2', 200),
  1702: (AShirt, 'sa_ss3', 200),
@@ -355,7 +355,7 @@ class CatalogClothingItem(CatalogItem.CatalogItem):
             if dna.topTex == defn[0] and dna.topTexColor == defn[2][self.colorIndex][0] and dna.sleeveTex == defn[1] and dna.sleeveTexColor == defn[2][self.colorIndex][1]:
                 return 1
             l = avatar.clothesTopsList
-            for i in xrange(0, len(l), 4):
+            for i in range(0, len(l), 4):
                 if l[i] == defn[0] and l[i + 1] == defn[2][self.colorIndex][0] and l[i + 2] == defn[1] and l[i + 3] == defn[2][self.colorIndex][1]:
                     return 1
 
@@ -364,7 +364,7 @@ class CatalogClothingItem(CatalogItem.CatalogItem):
             if dna.botTex == defn[0] and dna.botTexColor == defn[1][self.colorIndex]:
                 return 1
             l = avatar.clothesBottomsList
-            for i in xrange(0, len(l), 2):
+            for i in range(0, len(l), 2):
                 if l[i] == defn[0] and l[i + 1] == defn[1][self.colorIndex]:
                     return 1
 
@@ -425,6 +425,9 @@ class CatalogClothingItem(CatalogItem.CatalogItem):
         avatar.b_setDNAString(dna.makeNetString())
         avatar.d_catalogGenClothes()
         return ToontownGlobals.P_ItemAvailable
+
+    def getDeliveryTime(self):
+        return 60
 
     def getPicture(self, avatar):
         from toontown.toon import Toon
@@ -548,13 +551,13 @@ class CatalogClothingItem(CatalogItem.CatalogItem):
         return (self.clothingType, self.colorIndex)
 
     def getBasePrice(self):
+        info = ClothingTypes[self.clothingType]
+        if CTEmblemPrices <= len(info) - 1:
+            return config.GetInt('catalog-emblems-price-as-jb-clothing', 800)
         return ClothingTypes[self.clothingType][CTBasePrice]
 
     def getEmblemPrices(self):
         result = ()
-        info = ClothingTypes[self.clothingType]
-        if CTEmblemPrices <= len(info) - 1:
-            result = info[CTEmblemPrices]
         return result
 
     def decodeDatagram(self, di, versionNumber, store):
@@ -593,7 +596,7 @@ def getAllClothes(*clothingTypes):
     for clothingType in clothingTypes:
         base = CatalogClothingItem(clothingType, 0)
         list.append(base)
-        for n in xrange(1, len(base.getColorChoices())):
+        for n in range(1, len(base.getColorChoices())):
             list.append(CatalogClothingItem(clothingType, n))
 
     return list

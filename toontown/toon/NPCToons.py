@@ -1,20 +1,13 @@
 from pandac.PandaModules import *
+from otp.nametag.NametagGroup import *
+from toontown.toonbase import ToontownGlobals
 import random
-import string
-import sys, os
-
-import ToonDNA
 from toontown.hood import ZoneUtil
-from toontown.nametag import NametagGlobals
+import ToonDNA
 from toontown.toonbase import TTLocalizer
 from toontown.toonbase import ToontownBattleGlobals
-from toontown.toonbase import ToontownGlobals
-
-
-try:
-    config = simbase.config
-except:
-    config = base.config
+import sys, os
+import string
 QUEST_MOVIE_CLEAR = 0
 QUEST_MOVIE_REJECT = 1
 QUEST_MOVIE_COMPLETE = 2
@@ -68,10 +61,7 @@ NPC_PARTYPERSON = 8
 NPC_SPECIALQUESTGIVER = 9
 NPC_FLIPPYTOONHALL = 10
 NPC_SCIENTIST = 11
-NPC_SMART = 13
-NPC_BANKER = 14
-NPC_YIN = 15
-NPC_YANG = 16
+
 CLERK_COUNTDOWN_TIME = 120
 TAILOR_COUNTDOWN_TIME = 300
 RTDNAFile = '/RTDNAFile.txt'
@@ -95,53 +85,61 @@ def createNPC(air, npcId, desc, zoneId, posIndex = 0, questCallback = None):
     import DistributedNPCSpecialQuestGiverAI
     import DistributedNPCFlippyInToonHallAI
     import DistributedNPCScientistAI
-    import DistributedSmartNPCAI
-    import DistributedNPCBankerAI
-    import DistributedNPCYinAI
-    import DistributedNPCYangAI
+    
     canonicalZoneId, name, dnaType, gender, protected, type = desc
+    
     if type == NPC_REGULAR:
         npc = DistributedNPCToonAI.DistributedNPCToonAI(air, npcId, questCallback=questCallback)
+        
     elif type == NPC_HQ:
         npc = DistributedNPCToonAI.DistributedNPCToonAI(air, npcId, questCallback=questCallback, hq=1)
+        
     elif type == NPC_CLERK:
         npc = DistributedNPCClerkAI.DistributedNPCClerkAI(air, npcId)
+        
     elif type == NPC_TAILOR:
         npc = DistributedNPCTailorAI.DistributedNPCTailorAI(air, npcId)
+        
     elif type == NPC_BLOCKER:
         npc = DistributedNPCBlockerAI.DistributedNPCBlockerAI(air, npcId)
+        
     elif type == NPC_FISHERMAN:
         npc = DistributedNPCFishermanAI.DistributedNPCFishermanAI(air, npcId)
+        
     elif type == NPC_PETCLERK:
         npc = DistributedNPCPetclerkAI.DistributedNPCPetclerkAI(air, npcId)
+        
     elif type == NPC_KARTCLERK:
         npc = DistributedNPCKartClerkAI.DistributedNPCKartClerkAI(air, npcId)
+        
     elif type == NPC_PARTYPERSON:
+        if not simbase.air.wantParties:
+            return
+            
         npc = DistributedNPCPartyPersonAI.DistributedNPCPartyPersonAI(air, npcId)
+        
     elif type == NPC_SPECIALQUESTGIVER:
         npc = DistributedNPCSpecialQuestGiverAI.DistributedNPCSpecialQuestGiverAI(air, npcId)
+        
     elif type == NPC_FLIPPYTOONHALL:
         npc = DistributedNPCFlippyInToonHallAI.DistributedNPCFlippyInToonHallAI(air, npcId)
+        
     elif type == NPC_SCIENTIST:
         npc = DistributedNPCScientistAI.DistributedNPCScientistAI(air, npcId)
-    elif type == NPC_SMART:
-        npc = DistributedSmartNPCAI.DistributedSmartNPCAI(air, npcId)
-    elif type == NPC_BANKER:
-        npc = DistributedNPCBankerAI.DistributedNPCBankerAI(air, npcId)
-    elif type == NPC_YIN:
-        if simbase.air.wantYinYang:
-            npc = DistributedNPCYinAI.DistributedNPCYinAI(air, npcId)
-    elif type == NPC_YANG:
-        if simbase.air.wantYinYang:
-            npc = DistributedNPCYangAI.DistributedNPCYangAI(air, npcId)
+        
     else:
         print 'createNPC() error!!!'
+        
     npc.setName(name)
+    
     dna = ToonDNA.ToonDNA()
+    
     if dnaType == 'r':
         dnaList = getRandomDNA(npcId, gender)
+        
     else:
         dnaList = dnaType
+        
     if saveDNA:
         strList = []
         strList.append('\n\nNPC Id: ')
@@ -163,20 +161,25 @@ def createNPC(air, npcId, desc, zoneId, posIndex = 0, questCallback = None):
             rtDnaFile = open(RTDNAFile, 'r+')
             rtDnaFile.seek(0, 2)
             rtDnaFile.writelines(rtDNA)
+            
         else:
             rtDnaFile = open(RTDNAFile, 'w')
             rtDnaFile.writelines(rtDNA)
         rtDnaFile.close()
+        
     dna.newToonFromProperties(*dnaList)
     npc.setDNAString(dna.makeNetString())
     npc.setHp(15)
     npc.setMaxHp(15)
     npc.setPositionIndex(posIndex)
     npc.generateWithRequired(zoneId)
+    
     if hasattr(npc, 'startAnimState'):
         npc.d_setAnimState(npc.startAnimState, 1.0)
+        
     else:
         npc.d_setAnimState('neutral', 1.0)
+        
     return npc
 
 
@@ -184,35 +187,24 @@ def createNpcsInZone(air, zoneId):
     npcs = []
     canonicalZoneId = ZoneUtil.getCanonicalZoneId(zoneId)
     npcIdList = zone2NpcDict.get(canonicalZoneId, [])
-    for npcId in npcIdList:
-        while npcIdList.count(npcId) > 1:
-            npcIdList.remove(npcId)
-    for i in xrange(len(npcIdList)):
+    for i in range(len(npcIdList)):
         npcId = npcIdList[i]
         npcDesc = NPCToonDict.get(npcId)
-        if npcDesc[5] == NPC_FISHERMAN:
-            if not air.wantFishing:
-                continue
-        if npcDesc[5] == NPC_PARTYPERSON:
-            if not air.wantParties:
-                continue
-        if npcDesc[5] == NPC_SMART:
-            if not config.GetBool('want-talkative-tyler', False):
-                continue
         npcs.append(createNPC(air, npcId, npcDesc, zoneId, posIndex=i))
+
     return npcs
 
 
 def createLocalNPC(npcId):
     import Toon
-    if npcId not in NPCToonDict:
+    if not NPCToonDict.has_key(npcId):
         return None
     desc = NPCToonDict[npcId]
     canonicalZoneId, name, dnaType, gender, protected, type = desc
     npc = Toon.Toon()
     npc.setName(name)
     npc.setPickable(0)
-    npc.setPlayerType(NametagGlobals.CCNonPlayer)
+    npc.setPlayerType(NametagGroup.CCNonPlayer)
     dna = ToonDNA.ToonDNA()
     if dnaType == 'r':
         dnaList = getRandomDNA(npcId, gender)
@@ -223,22 +215,30 @@ def createLocalNPC(npcId):
     npc.animFSM.request('neutral')
     return npc
 
-# Some buildings don't have NPCs, so we need to store their zone IDs here:
-badBlocks = [
-    2606, 2602, 2708, 2705, 2704, 2701, 2803, 2804, 2809, 2805, 5607, 1707,
-    5609, 3605, 3703
-]
 
 def isZoneProtected(zoneId):
-    if zoneId in badBlocks:
-        return 1
+    npcs = []
     npcIdList = zone2NpcDict.get(zoneId, [])
     for npcId in npcIdList:
         npcDesc = NPCToonDict.get(npcId)
         if npcDesc[4]:
             return 1
+
     return 0
 
+class SpecialDamage:
+    def __init__(self, *choices):
+        self.choices = choices
+        
+    def __trunc__(self):
+        return random.choice(self.choices)
+        
+    def __repr__(self):
+        return 'SpecialDamage(' + repr(self.choices) + ')'
+        
+class SpecialDamageRange(SpecialDamage):
+    def __init__(self, a, b):
+        SpecialDamage.__init__(self, *range(a, b))
 
 lnames = TTLocalizer.NPCToonNames
 NPCToonDict = {20000: (-1,
@@ -259,13 +259,7 @@ NPCToonDict = {20000: (-1,
           16),
          'm',
          1,
-         NPC_SPECIALQUESTGIVER),
- 998: (2000,
-       lnames[998],
-       'r',
-       'm',
-       1,
-       NPC_SMART),
+         NPC_REGULAR),
  999: (-1,
        lnames[999],
        'r',
@@ -334,7 +328,7 @@ NPCToonDict = {20000: (-1,
          18),
         'm',
         1,
-        NPC_BANKER),
+        NPC_REGULAR),
  2003: (2516,
         lnames[2003],
         ('cll',
@@ -676,7 +670,7 @@ NPCToonDict = {20000: (-1,
          27),
         'm',
         1,
-        NPC_SCIENTIST),
+        NPC_SCIENTIST),  
  2101: (2601,
         lnames[2101],
         ('rll',
@@ -694,7 +688,7 @@ NPCToonDict = {20000: (-1,
          0,
          6),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  2102: (2619,
         lnames[2102],
@@ -814,13 +808,13 @@ NPCToonDict = {20000: (-1,
          3,
          2),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  2109: (2604,
         lnames[2109],
         'r',
         'm',
-        1,
+        0,
         NPC_REGULAR),
  2110: (2605,
         lnames[2110],
@@ -845,7 +839,7 @@ NPCToonDict = {20000: (-1,
         lnames[2111],
         'r',
         'm',
-        1,
+        0,
         NPC_REGULAR),
  2112: (2610,
         lnames[2112],
@@ -1919,7 +1913,7 @@ NPCToonDict = {20000: (-1,
          14,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  2309: (2802,
         lnames[2309],
@@ -1938,7 +1932,7 @@ NPCToonDict = {20000: (-1,
          1,
          14),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  2311: (2809,
         lnames[2311],
@@ -2418,13 +2412,13 @@ NPCToonDict = {20000: (-1,
          1,
          14),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  1106: (1604,
         lnames[1106],
         'r',
         'f',
-        1,
+        0,
         NPC_REGULAR),
  1107: (1621,
         lnames[1107],
@@ -2525,7 +2519,7 @@ NPCToonDict = {20000: (-1,
          1,
          10),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  1113: (1608,
         lnames[1113],
@@ -2544,7 +2538,7 @@ NPCToonDict = {20000: (-1,
          0,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  1114: (1609,
         lnames[1114],
@@ -2563,7 +2557,7 @@ NPCToonDict = {20000: (-1,
          1,
          0),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  1115: (1613,
         lnames[1115],
@@ -2898,13 +2892,13 @@ NPCToonDict = {20000: (-1,
          17,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  1210: (1703,
         lnames[1210],
         'r',
         'm',
-        1,
+        0,
         NPC_REGULAR),
  1211: (1705,
         lnames[1211],
@@ -2923,7 +2917,7 @@ NPCToonDict = {20000: (-1,
          1,
          0),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  1212: (1706,
         lnames[1212],
@@ -2942,7 +2936,7 @@ NPCToonDict = {20000: (-1,
          1,
          18),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  1213: (1707,
         lnames[1213],
@@ -2961,7 +2955,7 @@ NPCToonDict = {20000: (-1,
          1,
          15),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  1214: (1709,
         lnames[1214],
@@ -2980,7 +2974,7 @@ NPCToonDict = {20000: (-1,
          1,
          12),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  1215: (1711,
         lnames[1215],
@@ -3283,7 +3277,7 @@ NPCToonDict = {20000: (-1,
          23,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  1305: (1835,
         lnames[1305],
@@ -3378,7 +3372,7 @@ NPCToonDict = {20000: (-1,
          1,
          12),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  1310: (1805,
         lnames[1310],
@@ -3397,13 +3391,13 @@ NPCToonDict = {20000: (-1,
          0,
          11),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  1311: (1806,
         lnames[1311],
         'r',
         'f',
-        1,
+        0,
         NPC_REGULAR),
  1312: (1807,
         lnames[1312],
@@ -3422,7 +3416,7 @@ NPCToonDict = {20000: (-1,
          0,
          1),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  1313: (1808,
         lnames[1313],
@@ -3441,7 +3435,7 @@ NPCToonDict = {20000: (-1,
          0,
          19),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  1314: (1809,
         lnames[1314],
@@ -3460,7 +3454,7 @@ NPCToonDict = {20000: (-1,
          0,
          16),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  1315: (1810,
         lnames[1315],
@@ -4053,7 +4047,7 @@ NPCToonDict = {20000: (-1,
          3,
          2),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  3105: (3651,
         lnames[3105],
@@ -4179,7 +4173,7 @@ NPCToonDict = {20000: (-1,
          1,
          9),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  3113: (3618,
         lnames[3113],
@@ -4350,7 +4344,7 @@ NPCToonDict = {20000: (-1,
          0,
          16),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  3122: (3608,
         lnames[3122],
@@ -4369,7 +4363,7 @@ NPCToonDict = {20000: (-1,
          10,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  3123: (3612,
         lnames[3123],
@@ -4887,7 +4881,7 @@ NPCToonDict = {20000: (-1,
          1,
          17),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  3213: (3739,
         lnames[3213],
@@ -5001,7 +4995,7 @@ NPCToonDict = {20000: (-1,
          1,
          16),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  3219: (3705,
         lnames[3219],
@@ -5020,7 +5014,7 @@ NPCToonDict = {20000: (-1,
          1,
          13),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  3220: (3706,
         lnames[3220],
@@ -5039,7 +5033,7 @@ NPCToonDict = {20000: (-1,
          1,
          10),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  3221: (3708,
         lnames[3221],
@@ -5058,7 +5052,7 @@ NPCToonDict = {20000: (-1,
          7,
          12),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  3222: (3716,
         lnames[3222],
@@ -5279,7 +5273,7 @@ NPCToonDict = {20000: (-1,
          1,
          1),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  3303: (3830,
         lnames[3303],
@@ -5355,7 +5349,7 @@ NPCToonDict = {20000: (-1,
          8,
          11),
         'f',
-        0,
+        1,
         NPC_REGULAR),
  3307: (3329,
         lnames[3307],
@@ -5570,7 +5564,7 @@ NPCToonDict = {20000: (-1,
          12,
          1),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  3319: (3825,
         lnames[3319],
@@ -5658,7 +5652,7 @@ NPCToonDict = {20000: (-1,
         lnames[3324],
         'r',
         'm',
-        1,
+        0,
         NPC_REGULAR),
  3325: (3827,
         lnames[3325],
@@ -5734,7 +5728,7 @@ NPCToonDict = {20000: (-1,
          14,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  3329: (3817,
         lnames[3329],
@@ -6025,7 +6019,7 @@ NPCToonDict = {20000: (-1,
          0,
          6),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  4102: (4605,
         lnames[4102],
@@ -6044,7 +6038,7 @@ NPCToonDict = {20000: (-1,
          10,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  4103: (4612,
         lnames[4103],
@@ -6177,7 +6171,7 @@ NPCToonDict = {20000: (-1,
          0,
          18),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  4110: (4604,
         lnames[4110],
@@ -6196,13 +6190,13 @@ NPCToonDict = {20000: (-1,
          3,
          2),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  4111: (4607,
         lnames[4111],
         'r',
         'm',
-        1,
+        0,
         NPC_REGULAR),
  4112: (4609,
         lnames[4112],
@@ -6221,7 +6215,7 @@ NPCToonDict = {20000: (-1,
          11,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  4113: (4610,
         lnames[4113],
@@ -6739,7 +6733,7 @@ NPCToonDict = {20000: (-1,
          11,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  4202: (4725,
         lnames[4202],
@@ -6777,7 +6771,7 @@ NPCToonDict = {20000: (-1,
          0,
          10),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  4204: (4739,
         lnames[4204],
@@ -6891,7 +6885,7 @@ NPCToonDict = {20000: (-1,
          1,
          9),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  4211: (4703,
         lnames[4211],
@@ -6910,7 +6904,7 @@ NPCToonDict = {20000: (-1,
          0,
          20),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  4212: (4705,
         lnames[4212],
@@ -6929,7 +6923,7 @@ NPCToonDict = {20000: (-1,
          0,
          17),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  4213: (4707,
         lnames[4213],
@@ -6948,13 +6942,13 @@ NPCToonDict = {20000: (-1,
          24,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  4214: (4709,
         lnames[4214],
         'r',
         'f',
-        1,
+        0,
         NPC_REGULAR),
  4215: (4710,
         lnames[4215],
@@ -7472,19 +7466,19 @@ NPCToonDict = {20000: (-1,
          0,
          17),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  4310: (4803,
         lnames[4310],
         'r',
         'f',
-        1,
+        0,
         NPC_REGULAR),
  4311: (4804,
         lnames[4311],
         'r',
         'f',
-        1,
+        0,
         NPC_REGULAR),
  4312: (4807,
         lnames[4312],
@@ -7503,7 +7497,7 @@ NPCToonDict = {20000: (-1,
          0,
          9),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  4313: (4809,
         lnames[4313],
@@ -7522,7 +7516,7 @@ NPCToonDict = {20000: (-1,
          0,
          2),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  4314: (4817,
         lnames[4314],
@@ -8180,7 +8174,7 @@ NPCToonDict = {20000: (-1,
          0,
          11),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  5102: (5610,
         lnames[5102],
@@ -8255,7 +8249,7 @@ NPCToonDict = {20000: (-1,
         lnames[5107],
         'r',
         'm',
-        1,
+        0,
         NPC_REGULAR),
  5108: (5616,
         lnames[5108],
@@ -8369,7 +8363,7 @@ NPCToonDict = {20000: (-1,
          3,
          2),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  5114: (5603,
         lnames[5114],
@@ -8388,7 +8382,7 @@ NPCToonDict = {20000: (-1,
          0,
          2),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  5115: (5604,
         lnames[5115],
@@ -8407,7 +8401,7 @@ NPCToonDict = {20000: (-1,
          10,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  5116: (5605,
         lnames[5116],
@@ -8426,7 +8420,7 @@ NPCToonDict = {20000: (-1,
          0,
          17),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  5117: (5606,
         lnames[5117],
@@ -8445,7 +8439,7 @@ NPCToonDict = {20000: (-1,
          17,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  5118: (5608,
         lnames[5118],
@@ -8464,7 +8458,7 @@ NPCToonDict = {20000: (-1,
          0,
          11),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  5119: (5609,
         lnames[5119],
@@ -8483,7 +8477,7 @@ NPCToonDict = {20000: (-1,
          0,
          6),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  5120: (5611,
         lnames[5120],
@@ -8666,7 +8660,7 @@ NPCToonDict = {20000: (-1,
          1,
          16),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  5202: (5703,
         lnames[5202],
@@ -8685,7 +8679,7 @@ NPCToonDict = {20000: (-1,
          11,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  5203: (5704,
         lnames[5203],
@@ -8704,7 +8698,7 @@ NPCToonDict = {20000: (-1,
          19,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  5204: (5726,
         lnames[5204],
@@ -8881,7 +8875,7 @@ NPCToonDict = {20000: (-1,
          1,
          14),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  5214: (5705,
         lnames[5214],
@@ -8900,13 +8894,13 @@ NPCToonDict = {20000: (-1,
          17,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  5215: (5706,
         lnames[5215],
         'r',
         'f',
-        1,
+        0,
         NPC_REGULAR),
  5216: (5707,
         lnames[5216],
@@ -8925,7 +8919,7 @@ NPCToonDict = {20000: (-1,
          1,
          1),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  5217: (5708,
         lnames[5217],
@@ -8944,13 +8938,13 @@ NPCToonDict = {20000: (-1,
          1,
          19),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  5218: (5709,
         lnames[5218],
         'r',
         'm',
-        1,
+        0,
         NPC_REGULAR),
  5219: (5710,
         lnames[5219],
@@ -9228,13 +9222,13 @@ NPCToonDict = {20000: (-1,
          16,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  5306: (5805,
         lnames[5306],
         'r',
         'm',
-        1,
+        0,
         NPC_REGULAR),
  5307: (5809,
         lnames[5307],
@@ -9253,7 +9247,7 @@ NPCToonDict = {20000: (-1,
          1,
          2),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  5308: (5810,
         lnames[5308],
@@ -9335,7 +9329,7 @@ NPCToonDict = {20000: (-1,
          1,
          6),
         'm',
-        0,
+        1,
         NPC_REGULAR),
  5313: (5821,
         lnames[5313],
@@ -9872,13 +9866,13 @@ NPCToonDict = {20000: (-1,
          0,
          11),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  9102: (9607,
         lnames[9102],
         'r',
         'f',
-        1,
+        0,
         NPC_REGULAR),
  9103: (9620,
         lnames[9103],
@@ -9922,7 +9916,7 @@ NPCToonDict = {20000: (-1,
         lnames[9105],
         'r',
         'm',
-        1,
+        0,
         NPC_REGULAR),
  9106: (9619,
         lnames[9106],
@@ -9960,7 +9954,7 @@ NPCToonDict = {20000: (-1,
          3,
          2),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  9108: (9602,
         lnames[9108],
@@ -9979,7 +9973,7 @@ NPCToonDict = {20000: (-1,
          0,
          4),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  9109: (9605,
         lnames[9109],
@@ -9998,7 +9992,7 @@ NPCToonDict = {20000: (-1,
          10,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  9110: (9608,
         lnames[9110],
@@ -10017,7 +10011,7 @@ NPCToonDict = {20000: (-1,
          25,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  9111: (9616,
         lnames[9111],
@@ -10484,7 +10478,7 @@ NPCToonDict = {20000: (-1,
          1,
          17),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  9203: (9741,
         lnames[9203],
@@ -10522,7 +10516,7 @@ NPCToonDict = {20000: (-1,
          8,
          23),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  9205: (9736,
         lnames[9205],
@@ -10579,7 +10573,7 @@ NPCToonDict = {20000: (-1,
          9,
          27),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  9208: (9705,
         lnames[9208],
@@ -10598,7 +10592,7 @@ NPCToonDict = {20000: (-1,
          6,
          27),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  9209: (9706,
         lnames[9209],
@@ -10617,7 +10611,7 @@ NPCToonDict = {20000: (-1,
          1,
          12),
         'm',
-        1,
+        0,
         NPC_REGULAR),
  9210: (9740,
         lnames[9210],
@@ -10655,7 +10649,7 @@ NPCToonDict = {20000: (-1,
          6,
          22),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  9212: (9753,
         lnames[9212],
@@ -10978,7 +10972,7 @@ NPCToonDict = {20000: (-1,
          8,
          5),
         'f',
-        0,
+        1,
         NPC_REGULAR),
  9229: (9708,
         lnames[9229],
@@ -10997,7 +10991,7 @@ NPCToonDict = {20000: (-1,
          4,
          21),
         'f',
-        1,
+        0,
         NPC_REGULAR),
  9230: (9719,
         lnames[9230],
@@ -11455,7 +11449,7 @@ NPCToonDict = {20000: (-1,
         'm',
         0,
         NPC_REGULAR),
- 7005: (-1,
+ 7005: (7606,
         lnames[7005],
         ('pls',
          'ld',
@@ -11493,7 +11487,7 @@ NPCToonDict = {20000: (-1,
         'm',
         0,
         NPC_REGULAR),
- 7007: (-1,
+ 7007: (7609,
         lnames[7007],
         ('pls',
          'ls',
@@ -11550,48 +11544,159 @@ NPCToonDict = {20000: (-1,
         'm',
         0,
         NPC_REGULAR),
-# Magic Cat SOS
-# 5 Stars, Sound SOS, Bikehorn 255 damage. "The Bikehorn of Death".
-91917: (-1,
-        lnames[91917],
-        ('css',
-         'ms',
-         'm',
-         'm',
-         26,
-         0,
-         26,
-         26,
-         0,
-         10,
-         0,
-         10,
-         0,
-         10),
+        
+357: (-1,
+      "Barb Q",
+      'r',
+      'm',
+      0,
+      NPC_REGULAR),
+      
+# Loblao
+10001: (7617,
+        lnames[10001],
+        ('fls', 'ls', 'l', 'm', 17, 0, 17, 17, 2, 2, 2, 2, 6, 6),
         'm',
         0,
         NPC_REGULAR),
-# Trap Cat SOS
-# 1 Star, Sound SOS, Opera 1 damage. "We are team trap!".
-91918: (-1,
-        lnames[91918],
-        ('dss',
+        
+# Unior
+10002: (7616,
+        lnames[10002],
+        ('fss',
+         'ls',
          'l',
-         's',
-         'm',
-         20,
+         'l',
+         18,
          0,
-         20,
-         2,
-         66,
-         3,
-         12,
-         3,
-         12,
-         11),
+         18,
+         18,
+         99,
+         27,
+         86,
+         27,
+         39,
+         27),
         'm',
         0,
-        NPC_REGULAR)}
+        NPC_REGULAR),
+        
+# Flappy
+10003: (7612,
+        lnames[10003],
+        ('dss','ms','m','m',17,0,17,17,3,3,3,3,7,2),
+        'm',
+        0,
+        NPC_REGULAR),
+        
+# Kalus
+10004: (7614,
+        lnames[10004],
+        ('css', 'ls', 's', 'm', 26, 0, 26, 18, 0, 27, 0, 27, 5, 27),
+        'm',
+        0,
+        NPC_REGULAR),
+        
+# POTCO House
+10005: (-1,
+        lnames[10005],
+        ('psl', 'ss', 'm', 'm', 21, 0, 2, 15, 0, 3, 0, 3, 5, 1),
+        'm',
+        0,
+        NPC_REGULAR),
+   
+# LC
+10006: (7605,
+        lnames[10006],
+        ('css', 'ls', 'm', 'm', 15, 0, 15, 15, 1, 5, 1, 5, 0, 4),
+        'm',
+        0,
+        NPC_REGULAR),
+        
+# Simon
+10007: (7602,
+        lnames[10007],
+        ('css', 'ms', 'm', 'm', 4, 0, 7, 8, 4, 5, 4, 5, 7, 5),
+        'm',
+        0,
+        NPC_REGULAR),
+
+#Super Googlefish
+10008: (-1,
+        lnames[10008],
+        ('dls', 'ls', 'l', 'm', 17, 0, 17, 17, 105, 27, 92, 27, 40, 27),
+        'm',
+        0,
+        NPC_REGULAR),
+
+# Jean
+10009: (-1,
+        lnames[10009],
+        ('dss', 'ms', 'm', 'm', 13, 0, 13, 13, 16, 27, 0, 9, 5, 20),
+        'm',
+        0,
+        NPC_REGULAR),
+        
+# Ned
+10010: (7607,
+        lnames[10010],
+        ('dss', 'ms', 'm', 'm', 8, 0, 8, 8, 34, 27, 23, 27, 13, 27, (28, 0, 0), (8, 0, 0), (0, 0, 0), (2, 8, 0)),
+        'm',
+        0,
+        NPC_REGULAR),
+        
+# Spyro
+10011: (7604,
+        lnames[10011],
+        ('dss', 'ms', 'm', 'm', 9, 0, 9, 9, 8, 27, 8, 27, 6, 15),
+        'm',
+        0,
+        NPC_REGULAR),
+		
+# Potatofactory
+10012: (7604,
+        lnames[10012],
+        ('dss', 'ms', 'm', 'm', 9, 0, 9, 9, 8, 27, 8, 27, 6, 15),
+        'm',
+        0,
+        NPC_REGULAR),
+        
+################################
+#    Funny Farm Shopkeepers    #
+################################
+7110: (7501, lnames[7110], 'r', 'm', 1, NPC_TAILOR),
+7111: (7502, lnames[7111], 'r', 'm', 1, NPC_CLERK),
+7112: (7502, lnames[7112], 'r', 'm', 1, NPC_CLERK),
+7113: (7503, lnames[7113], 'r', 'm', 1, NPC_HQ),
+7114: (7503, lnames[7114], 'r', 'm', 1, NPC_HQ),
+7115: (7503, lnames[7115], 'r', 'f', 1, NPC_HQ),
+7116: (7503, lnames[7116], 'r', 'f', 1, NPC_HQ),
+7117: (7504,
+       lnames[7117],
+       ('css', 'ms', 'm', 'm', 18, 0, 18, 18, 19, 3, 13, 3, 0, 15),
+       'm',
+       1,
+       NPC_PETCLERK),
+
+7118: (7504,
+       lnames[7118],
+       ('pss', 'ls', 'm', 'm', 8, 0, 8, 8, 5, 7, 5, 7, 2, 14),
+       'm',
+       1,
+       NPC_PETCLERK),
+
+7119: (7504,
+       lnames[7119],
+       ('rls', 'md', 'm', 'f', 7, 0, 7, 7, 20, 8, 0, 8, 1, 0),
+       'f',
+       1,
+       NPC_PETCLERK),
+}
+
+try:
+    config = simbase.config
+except:
+    config = base.config
 
 if config.GetBool('want-new-toonhall', 1):
     NPCToonDict[2001] = (2513,
@@ -11640,7 +11745,7 @@ zone2NpcDict = {}
 def generateZone2NpcDict():
     for id, npcDesc in NPCToonDict.items():
         zoneId = npcDesc[0]
-        if zoneId in zone2NpcDict:
+        if zone2NpcDict.has_key(zoneId):
             zone2NpcDict[zoneId].append(id)
         else:
             zone2NpcDict[zoneId] = [id]
@@ -11712,14 +11817,6 @@ HQnpcFriends = {2001: (ToontownBattleGlobals.HEAL_TRACK,
         5,
         80,
         5),
- 91917: (ToontownBattleGlobals.SOUND_TRACK,
-         0,
-         255,
-         5),
- 91918: (ToontownBattleGlobals.SOUND_TRACK,
-         6,
-         1,
-         0),
  4219: (ToontownBattleGlobals.SOUND_TRACK,
         5,
         50,
@@ -11795,7 +11892,12 @@ HQnpcFriends = {2001: (ToontownBattleGlobals.HEAL_TRACK,
  1329: (ToontownBattleGlobals.NPC_RESTOCK_GAGS,
         ToontownBattleGlobals.DROP_TRACK,
         0,
-        3)}
+        3), 
+}
+
+devSOS = []
+secretSOS = []
+
 FOnpcFriends = {9310: (ToontownBattleGlobals.LURE_TRACK,
         1,
         0,
@@ -11843,21 +11945,14 @@ FOnpcFriends = {9310: (ToontownBattleGlobals.LURE_TRACK,
  9303: (ToontownBattleGlobals.HEAL_TRACK,
         3,
         30,
-        2)}
-
-disabledSosCards = ConfigVariableList('disable-sos-card')
-for npcId in disabledSosCards:
-    npcId = int(npcId)
-    if npcId in HQnpcFriends:
-        del HQnpcFriends[npcId]
-    if npcId in FOnpcFriends:
-        del FOnpcFriends[npcId]
+        2),
+}
 
 npcFriends = dict(HQnpcFriends)
 npcFriends.update(FOnpcFriends)
 
 def getNPCName(npcId):
-    if npcId in NPCToonDict:
+    if NPCToonDict.has_key(npcId):
         return NPCToonDict[npcId][1]
     return None
 
@@ -11867,26 +11962,32 @@ def npcFriendsMinMaxStars(minStars, maxStars):
 
 
 def getNPCTrack(npcId):
-    if npcId in npcFriends:
+    if npcFriends.has_key(npcId):
         return npcFriends[npcId][0]
     return None
 
 
 def getNPCTrackHp(npcId):
-    if npcId in npcFriends:
+    if npcFriends.has_key(npcId):
         track, level, hp, rarity = npcFriends[npcId]
         return (track, hp)
     return (None, None)
 
 
 def getNPCTrackLevelHp(npcId):
-    if npcId in npcFriends:
+    if npcFriends.has_key(npcId):
         track, level, hp, rarity = npcFriends[npcId]
         return (track, level, hp)
     return (None, None, None)
 
 
 def getNPCTrackLevelHpRarity(npcId):
-    if npcId in npcFriends:
+    if npcFriends.has_key(npcId):
         return npcFriends[npcId]
     return (None, None, None, None)
+
+def isUnior(npcId):
+    return npcId == 10002 or npcFriends[npcId][1] == ToontownBattleGlobals.UNIOR_FUCK_TOONS
+    
+def isSecret(npcId):
+    return npcId in secretSOS

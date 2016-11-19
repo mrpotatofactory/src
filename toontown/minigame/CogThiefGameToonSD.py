@@ -9,6 +9,7 @@ from direct.fsm import State
 from direct.task.Task import Task
 
 class CogThiefGameToonSD(StateData.StateData):
+
     notify = DirectNotifyGlobal.directNotify.newCategory('CogThiefGameToonSD')
     FallBackAnim = 'slip-backward'
     FallFwdAnim = 'slip-forward'
@@ -64,7 +65,7 @@ class CogThiefGameToonSD(StateData.StateData):
         self.toon.startBlink()
         self.toon.stopLookAround()
         if self.isLocal:
-            self.game.initGameWalk()
+            self.game.startGameWalk()
         self.toon.useLOD(1000)
         self.dropShadow = self.toon.dropShadow
         self.origDropShadowColor = self.dropShadow.getColor()

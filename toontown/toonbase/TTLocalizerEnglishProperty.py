@@ -236,6 +236,7 @@ DSDintroText = 0.06
 DSDintroTextWordwrap = 25
 DSDwindowedButtonPos = (0.0961, 0, -0.221)
 DSDfullscreenButtonPos = (0.097, 0, -0.311)
+DSDembeddedButtonPos = (0.097, 0, -0.411)
 DSDcancel = 0.06
 DSDcancelPos = (0, -0.02)
 DPtab = 0.1
@@ -292,7 +293,7 @@ NPCFimgLabel = 1.0
 PIPsecretsButton = 0.045
 PIPwisperButton = 0.06
 PIPdetailButton = 0.05
-TLStip = 0.18
+TLStip = (0.09, 0.075, 0.09)
 TPdialogWordwrap = 22
 TPdialog = 0.05
 TPpanel = 0.08
@@ -308,3 +309,21 @@ SellbotFactoryPosPart1 = (0, -0.25)
 SellbotFactoryScalePart1 = 0.075
 SellbotFactoryPosPart2 = (0, -0.34)
 SellbotFactoryScalePart2 = 0.12
+
+MakeAToonNameBlacklist = [
+    '~fuck', 'fucking', '~fucking', 'fucking.', 'fuck', 'fuckk', 'fuck.', 'ass', 'nigga', 'xoxota', 'chochota', 'choxota', 'xochota', 'xana', 'chana',
+    'bitch', 'damn', 'vagina', 'kct', 'ejacular','vajina',
+    'pussy', 'dick', 'cock', 'penis','peniz',
+    'shit', 'suck', 'nigger',
+    'whore', 'maconha', 'weed', 'faggot',
+    'gay', 'buttplug', 'cocaine', 'heroin',
+    'lsd', 'puta', 'buceta', 'pepeca',
+    'bilau', 'pora', 'porra', 'caralho', 'crack', 'cocaina',
+    'heroina', 'blowjob', 'handjob', 'footjob',
+    'wank', 'punheta', 'masturb', 'boquete',
+    'fisting', 'anus', 'caraio', 'rape', 'sex', 'estupro',
+    'ejacula', 'dildo', 'zoofilia', 'fuda', 'dudido',
+    'xvideos', 'redtube', 'lesbic', 'lesbica', 'foda-se', 'fodase', 'foda-me', 'fuda-me',  'fuda-se',
+    'homosexual', 'bastard', 'marijuana', 'fodinha', 'fudido', 'fodendo', 'fudendo',
+    'cuzinho', 'transa', 'anal', 'cannabis', 'pedo', 'fude', 'fuder', 'foda', 'fode', 'pqp',
+]

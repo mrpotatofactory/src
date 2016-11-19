@@ -75,11 +75,13 @@ class NewsPageButtonManager(FSM.FSM):
             curState = fsm.getCurrentState().getName()
             if curState == 'walk':
                 if hasattr(localAvatar, 'newsPage'):
+                    base.cr.centralLogger.writeClientEvent('news gotoNewsButton clicked')
                     localAvatar.book.setPage(localAvatar.newsPage)
                     fsm.request('stickerBook')
                     self.goingToNewsPageFrom3dWorld = True
             elif curState == 'stickerBook':
                 if hasattr(localAvatar, 'newsPage'):
+                    base.cr.centralLogger.writeClientEvent('news gotoNewsButton clicked')
                     fsm.request('stickerBook')
                     if hasattr(localAvatar, 'newsPage') and localAvatar.newsPage:
                         localAvatar.book.goToNewsPage(localAvatar.newsPage)
@@ -111,10 +113,12 @@ class NewsPageButtonManager(FSM.FSM):
         self.__blinkIval.pause()
 
     def isNewIssueButtonShown(self):
-        return False
-
+        if not base.cr.inGameNewsMgr:
+            return False
+            
         if localAvatar.getLastTimeReadNews() < base.cr.inGameNewsMgr.getLatestIssue():
             return True
+            
         return False
 
     def enterHidden(self):
@@ -126,11 +130,17 @@ class NewsPageButtonManager(FSM.FSM):
     def enterNormalWalk(self):
         if not self.buttonsLoaded:
             return
+            
+        if not base.cr.inGameNewsMgr:
+            return
+            
         if localAvatar.getLastTimeReadNews() < base.cr.inGameNewsMgr.getLatestIssue():
             self.__showNewIssueButton()
             self.__blinkIval.resume()
+            
         else:
             self.hideNewIssueButton()
+            
         self.gotoPrevPageButton.hide()
         self.goto3dWorldButton.hide()
 

@@ -17,41 +17,27 @@ from toontown.parties.DistributedPartyCannonActivityAI import DistributedPartyCa
 from toontown.parties.DistributedPartyCannonAI import DistributedPartyCannonAI
 from toontown.parties.DistributedPartyFireworksActivityAI import DistributedPartyFireworksActivityAI
 
-"""
-dclass DistributedParty : DistributedObject {
-  setPartyClockInfo(uint8, uint8, uint8) required broadcast;
-  setInviteeIds(uint32array) required broadcast;
-  setPartyState(bool) required broadcast;
-  setPartyInfoTuple(party) required broadcast;
-  setAvIdsAtParty(uint32 []) required broadcast;
-  setPartyStartedTime(string) required broadcast;
-  setHostName(string) required broadcast;
-  avIdEnteredParty(uint32) clsend airecv;
-};
-"""
+
 class DistributedPartyAI(DistributedObjectAI):
     notify = DirectNotifyGlobal.directNotify.newCategory("DistributedPartyAI")
 
-    def __init__(self, air, hostId, zoneId, info):
+    def __init__(self, air, hostId, zoneId, info, hostName):
         DistributedObjectAI.__init__(self, air)
         self.hostId = hostId
         self.zoneId = zoneId
         self.info = info
-        # buncha required crap
+        
         PARTY_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
         self.startedAt = time.strftime(PARTY_TIME_FORMAT)
         self.partyState = 0
         self.avIdsAtParty = []
-        # apparently 'partyclockinfo' is the xyz on the party grid
+        
         for activity in self.info['activities']:
             if activity[0] == ActivityIds.PartyClock:
                 self.partyClockInfo = (activity[1], activity[2], activity[3])
 
-        # We'll need to inform the UD later of the host's name so other public parties know the host. Maybe we know who he is..
-        self.hostName = ''
-        host = self.air.doId2do.get(self.hostId, None)
-        if host:
-            self.hostName = host.getName()
+        self.hostName = hostName
+            
         self.activities = []
         self.cannonActivity = None
 
@@ -110,25 +96,11 @@ class DistributedPartyAI(DistributedObjectAI):
         self.sendUpdate('setPartyState', [partyState])
 
     def _formatParty(self, partyDict, status=PartyStatus.Started):
-        start = partyDict['start']
-        end = partyDict['end']
         return [partyDict['partyId'],
-                partyDict['hostId'],
-                start.year,
-                start.month,
-                start.day,
-                start.hour,
-                start.minute,
-                end.year,
-                end.month,
-                end.day,
-                end.hour,
-                end.minute,
                 partyDict['isPrivate'],
-                partyDict['inviteTheme'],
                 partyDict['activities'],
-                partyDict['decorations'],
-                status]
+                partyDict['decorations']]
+                
     def getPartyInfoTuple(self):
         return self._formatParty(self.info)
 
@@ -144,12 +116,10 @@ class DistributedPartyAI(DistributedObjectAI):
     def enteredParty(self):
         avId = self.air.getAvatarIdFromSender()
         if not avId in self.avIdsAtParty:
-            self.air.globalPartyMgr.d_toonJoinedParty(self.info.get('partyId', 0), avId)
+            self.air.sendNetEvent('PARTY_toon_joined', [self.info.get('partyId', 0), avId])
             self.avIdsAtParty.append(avId)
         
     def _removeAvatar(self, avId):
         if avId in self.avIdsAtParty:
-            print 'REMOVE FROM PARTTY!'
-            self.air.globalPartyMgr.d_toonLeftParty(self.info.get('partyId', 0), avId)
+            self.air.sendNetEvent('PARTY_toon_left', [self.info.get('partyId', 0), avId])
             self.avIdsAtParty.remove(avId)
-

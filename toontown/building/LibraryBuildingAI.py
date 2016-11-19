@@ -1,10 +1,8 @@
 from pandac.PandaModules import *
-
 from toontown.building import DistributedLibraryInteriorAI
 from toontown.building import DistributedDoorAI
 from toontown.building import DoorTypes
 from toontown.toon import NPCToons
-
 
 class LibraryBuildingAI:
     def __init__(self, air, exteriorZone, interiorZone, blockNumber):
@@ -25,16 +23,11 @@ class LibraryBuildingAI:
         del self.interior
 
     def setup(self, blockNumber):
-        self.interior = DistributedLibraryInteriorAI.DistributedLibraryInteriorAI(
-            blockNumber, self.air, self.interiorZone)
+        self.interior = DistributedLibraryInteriorAI.DistributedLibraryInteriorAI(blockNumber, self.air, self.interiorZone)
         self.interior.generateWithRequired(self.interiorZone)
-
         self.npcs = NPCToons.createNpcsInZone(self.air, self.interiorZone)
-
-        door = DistributedDoorAI.DistributedDoorAI(
-            self.air, blockNumber, DoorTypes.EXT_STANDARD)
-        insideDoor = DistributedDoorAI.DistributedDoorAI(
-            self.air, blockNumber, DoorTypes.INT_STANDARD)
+        door = DistributedDoorAI.DistributedDoorAI(self.air, blockNumber, DoorTypes.EXT_STANDARD)
+        insideDoor = DistributedDoorAI.DistributedDoorAI(self.air, blockNumber + 500, DoorTypes.INT_STANDARD)
         door.setOtherDoor(insideDoor)
         insideDoor.setOtherDoor(door)
         door.zoneId = self.exteriorZone

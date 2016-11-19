@@ -75,15 +75,14 @@ class Hood(StateData.StateData):
         return
 
     def load(self):
-        files = []
         if self.storageDNAFile:
-            files.append(self.storageDNAFile)
+            loader.loadDNAFile(self.dnaStore, self.storageDNAFile)
         newsManager = base.cr.newsManager
         if newsManager:
             holidayIds = base.cr.newsManager.getDecorationHolidayId()
             for holiday in holidayIds:
                 for storageFile in self.holidayStorageDNADict.get(holiday, []):
-                    files.append(storageFile)
+                    loader.loadDNAFile(self.dnaStore, storageFile)
 
             if ToontownGlobals.HALLOWEEN_COSTUMES not in holidayIds and ToontownGlobals.SPOOKY_COSTUMES not in holidayIds or not self.spookySkyFile:
                 self.sky = loader.loadModel(self.skyFile)
@@ -98,8 +97,6 @@ class Hood(StateData.StateData):
             self.sky.setTag('sky', 'Regular')
             self.sky.setScale(1.0)
             self.sky.setFogOff()
-        dnaBulk = DNABulkLoader(self.dnaStore, tuple(files))
-        dnaBulk.loadDNAFiles()
 
     def unload(self):
         if hasattr(self, 'loader'):
@@ -109,7 +106,7 @@ class Hood(StateData.StateData):
             del self.loader
         del self.fsm
         del self.parentFSM
-        self.dnaStore.resetHood()
+        #self.dnaStore.resetHood()
         del self.dnaStore
         self.sky.removeNode()
         del self.sky
@@ -126,7 +123,7 @@ class Hood(StateData.StateData):
     def isSameHood(self, status):
         return status['hoodId'] == self.hoodId and status['shardId'] == None
 
-    def enterFinal(self):
+    def enterFinal(self, ignoredArg=None):
         pass
 
     def exitFinal(self):
@@ -162,7 +159,7 @@ class Hood(StateData.StateData):
         loaderName = requestStatus['loader']
         if loaderName == 'safeZoneLoader':
             if not loader.inBulkBlock:
-                loader.beginBulkLoad('hood', TTLocalizer.HeadingToPlayground, safeZoneCountMap[self.id], 1, TTLocalizer.TIP_GENERAL, self.id)
+                loader.beginBulkLoad('hood', TTLocalizer.HeadingToPlayground, safeZoneCountMap[self.id], 1, TTLocalizer.TIP_GENERAL)
             self.loadLoader(requestStatus)
             loader.endBulkLoad('hood')
         elif loaderName == 'townLoader':
@@ -171,7 +168,7 @@ class Hood(StateData.StateData):
                 toPhrase = StreetNames[ZoneUtil.getCanonicalBranchZone(zoneId)][0]
                 streetName = StreetNames[ZoneUtil.getCanonicalBranchZone(zoneId)][-1]
                 loader.beginBulkLoad('hood', TTLocalizer.HeadingToStreet % {'to': toPhrase,
-                 'street': streetName}, townCountMap[self.id], 1, TTLocalizer.TIP_STREET, zoneId)
+                 'street': streetName}, townCountMap[self.id], 1, TTLocalizer.TIP_STREET)
             self.loadLoader(requestStatus)
             loader.endBulkLoad('hood')
         elif loaderName == 'minigame':
@@ -220,6 +217,7 @@ class Hood(StateData.StateData):
         self.sky.setHpr(0.0, 0.0, 0.0)
         ce = CompassEffect.make(NodePath(), CompassEffect.PRot | CompassEffect.PZ)
         self.sky.node().setEffect(ce)
+        self.sky.setBin('background', 100)
 
     def stopSky(self):
         taskMgr.remove('skyTrack')

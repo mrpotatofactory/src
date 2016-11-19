@@ -8,6 +8,7 @@ from toontown.toonbase import ToontownGlobals
 import NPCToons
 from direct.task import Task
 from toontown.quest import Quests
+from toontown.chat import ResistanceChat
 
 class DistributedNPCToonBaseAI(DistributedToonAI.DistributedToonAI):
 
@@ -18,6 +19,37 @@ class DistributedNPCToonBaseAI(DistributedToonAI.DistributedToonAI):
         self.busy = 0
         self.questCallback = questCallback
         self.givesQuests = 1
+        self.beingRobbed = 0
+    
+    def robbery(self):
+        if self.pendingAvId:
+            return
+            
+        if self.beingRobbed:
+            return
+            
+        avId = self.air.getAvatarIdFromSender()
+        av = self.air.doId2do.get(avId)
+        
+        if not av:
+            return
+            
+        if av.getAdminAccess() < 300:
+            self.air.sendSysMsg('Toon HQ: Trying to rob the bank? Too bad! Don\'t do that again!', self.air.getMsgSender())
+            
+        else:
+            self.beingRobbed = avId
+            self.sendUpdate('robberyChat', [self.beingRobbed])
+        
+    def setNearbyPlayers(self, nearbyPlayers):
+        if self.air.getAvatarIdFromSender() != self.beingRobbed:
+            return
+            
+        self.beingRobbed = 0
+        self.reqSCResistance(ResistanceChat.encodeId(ResistanceChat.RESISTANCE_MONEY, 3), nearbyPlayers)
+        
+    def removeResistanceMessage(self, msgIndex):
+        return 1
 
     def delete(self):
         taskMgr.remove(self.uniqueName('clearMovie'))
@@ -61,3 +93,7 @@ class DistributedNPCToonBaseAI(DistributedToonAI.DistributedToonAI):
 
     def getPositionIndex(self):
         return self.posIndex
+
+    def isNPC(self):
+        return True
+        

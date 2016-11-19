@@ -314,6 +314,7 @@ class QuietZoneState(StateData.StateData):
 
     def enterWaitForLocalAvatarOnShard(self):
         self.notify.debug('enterWaitForLocalAvatarOnShard()')
+            
         if not self.Disable:
             base.cr.handlerArgs = self._requestStatus
             self._onShardEvent = localAvatar.getArrivedOnDistrictEvent()

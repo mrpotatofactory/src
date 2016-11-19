@@ -24,14 +24,14 @@ def doTraps(traps):
         targets = trap['target']
         if len(targets) == 1:
             suitId = targets[0]['suit'].doId
-            if suitId in suitTrapsDict:
+            if suitTrapsDict.has_key(suitId):
                 suitTrapsDict[suitId].append(trap)
             else:
                 suitTrapsDict[suitId] = [trap]
         else:
             for target in targets:
                 suitId = target['suit'].doId
-                if suitId not in suitTrapsDict:
+                if not suitTrapsDict.has_key(suitId):
                     suitTrapsDict[suitId] = [trap]
                     break
 
@@ -47,7 +47,7 @@ def doTraps(traps):
     mtrack = Parallel()
     for trapList in suitTrapLists:
         trapPropList = []
-        for i in xrange(len(trapList)):
+        for i in range(len(trapList)):
             trap = trapList[i]
             level = trap['level']
             if level == 0:
@@ -85,7 +85,7 @@ def doTraps(traps):
                 mtrack.append(ival)
         else:
             subMtrack = Parallel()
-            for i in xrange(len(trapList)):
+            for i in range(len(trapList)):
                 trap = trapList[i]
                 trapProps = trapPropList[i]
                 ival = __doTrapLevel(trap, trapProps, explode=1)
@@ -280,7 +280,7 @@ def __createThrownTrapMultiTrack(trap, propList, propName, propPos = None, propH
 
 def __createPlacedTrapMultiTrack(trap, prop, propName, propPos = None, propHpr = None, explode = 0, visibleOnlyForThisSuitId = None):
     toon = trap['toon']
-    if 'npc' in trap:
+    if trap.has_key('npc'):
         toon = trap['npc']
     level = trap['level']
     battle = trap['battle']
@@ -387,7 +387,7 @@ def __trapQuicksand(trap, trapProps, explode):
 
 def __trapTrapdoor(trap, trapProps, explode):
     toon = trap['toon']
-    if 'npc' in trap:
+    if trap.has_key('npc'):
         toon = trap['npc']
     targets = trap['target']
     for target in targets:
@@ -408,7 +408,7 @@ def __trapTNT(trap, trapProps, explode):
 
 def __trapTrain(trap, trapProps, explode):
     toon = trap['toon']
-    if 'npc' in trap:
+    if trap.has_key('npc'):
         toon = trap['npc']
     targets = trap['target']
     battle = trap['battle']
@@ -477,7 +477,7 @@ def createCartoonExplosionTrack(parent, animName, explosionPoint = None):
 
 def __createPlacedGroupTrapTrack(trap, prop, propName, centerSuit, propPos = None, propHpr = None, explode = 0):
     toon = trap['toon']
-    if 'npc' in trap:
+    if trap.has_key('npc'):
         toon = trap['npc']
     level = trap['level']
     battle = trap['battle']

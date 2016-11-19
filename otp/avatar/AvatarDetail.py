@@ -30,7 +30,7 @@ class AvatarDetail:
         return
 
     def exitQuery(self):
-        return true
+        return True
 
     def createHolder(self):
         pass

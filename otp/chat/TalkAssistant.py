@@ -1,25 +1,23 @@
-from direct.directnotify import DirectNotifyGlobal
-from direct.showbase import DirectObject
-from pandac.PandaModules import *
+import string
 import sys
-import time
-
-from otp.chat.ChatGlobals import *
-from otp.chat.TalkGlobals import *
-from otp.chat.TalkHandle import TalkHandle
-from otp.chat.TalkMessage import TalkMessage
-from otp.otpbase import OTPGlobals
+from direct.showbase import DirectObject
 from otp.otpbase import OTPLocalizer
+from direct.directnotify import DirectNotifyGlobal
+from otp.otpbase import OTPGlobals
 from otp.speedchat import SCDecoders
-from toontown.chat.ChatGlobals import *
-from toontown.chat.TTWhiteList import TTWhiteList
-
-
+from pandac.PandaModules import *
+from otp.chat.TalkMessage import TalkMessage
+from otp.chat.TalkHandle import TalkHandle
+import time
+from otp.chat.TalkGlobals import *
+from otp.chat.ChatGlobals import *
+from otp.nametag.NametagConstants import CFSpeech, CFTimeout, CFThought
 ThoughtPrefix = '.'
 
-
 class TalkAssistant(DirectObject.DirectObject):
+    ExecNamespace = None
     notify = DirectNotifyGlobal.directNotify.newCategory('TalkAssistant')
+    execChat = 0
 
     def __init__(self):
         self.logWhispers = 1
@@ -33,7 +31,6 @@ class TalkAssistant(DirectObject.DirectObject):
         self.lastWhisperPlayerId = None
         self.lastWhisper = None
         self.SCDecoder = SCDecoders
-        self.whiteList = TTWhiteList()
         return
 
     def clearHistory(self):
@@ -101,13 +98,13 @@ class TalkAssistant(DirectObject.DirectObject):
         if message.getTalkType() == TALK_WHISPER and doId != localAvatar.doId:
             self.lastWhisperDoId = doId
             self.lastWhisper = self.lastWhisperDoId
-        if doId not in self.historyByDoId:
+        if not self.historyByDoId.has_key(doId):
             self.historyByDoId[doId] = []
         self.historyByDoId[doId].append(message)
         if not self.shownWhiteListWarning and scrubbed and doId == localAvatar.doId:
             self.doWhiteListWarning()
             self.shownWhiteListWarning = 1
-        if doId not in self.floodDataByDoId:
+        if not self.floodDataByDoId.has_key(doId):
             self.floodDataByDoId[doId] = [0.0, self.stampTime(), message]
         else:
             oldTime = self.floodDataByDoId[doId][1]
@@ -134,7 +131,7 @@ class TalkAssistant(DirectObject.DirectObject):
         if message.getTalkType() == TALK_ACCOUNT:
             self.lastWhisperPlayerId = dISLId
             self.lastWhisper = self.lastWhisperPlayerId
-        if dISLId not in self.historyByDISLId:
+        if not self.historyByDISLId.has_key(dISLId):
             self.historyByDISLId[dISLId] = []
         self.historyByDISLId[dISLId].append(message)
 
@@ -201,6 +198,12 @@ class TalkAssistant(DirectObject.DirectObject):
         newText = ' '.join(newwords)
         return newText
 
+    def executeSlashCommand(self, text):
+        pass
+
+    def executeGMCommand(self, text):
+        pass
+
     def isThought(self, message):
         if not message:
             return 0
@@ -239,6 +242,37 @@ class TalkAssistant(DirectObject.DirectObject):
              message.getSenderAvatarName(),
              message.getSenderAccountName(),
              message.getBody())
+
+    def importExecNamespace(self):
+        pass
+
+    def execMessage(self, message):
+        print 'execMessage %s' % message
+        if not TalkAssistant.ExecNamespace:
+            TalkAssistant.ExecNamespace = {}
+            exec 'from pandac.PandaModules import *' in globals(), self.ExecNamespace
+            self.importExecNamespace()
+        try:
+            return str(eval(message, globals(), TalkAssistant.ExecNamespace))
+        except SyntaxError:
+            try:
+                exec message in globals(), TalkAssistant.ExecNamespace
+                return 'ok'
+            except:
+                exception = sys.exc_info()[0]
+                extraInfo = sys.exc_info()[1]
+                if extraInfo:
+                    return str(extraInfo)
+                else:
+                    return str(exception)
+
+        except:
+            exception = sys.exc_info()[0]
+            extraInfo = sys.exc_info()[1]
+            if extraInfo:
+                return str(extraInfo)
+            else:
+                return str(exception)
 
     def checkOpenTypedChat(self):
         if base.localAvatar.commonChatFlags & OTPGlobals.CommonChat:
@@ -345,6 +379,11 @@ class TalkAssistant(DirectObject.DirectObject):
 
     def receiveWhisperTalk(self, avatarId, avatarName, accountId, accountName, toId, toName, message, scrubbed = 0):
         error = None
+        print 'receiveWhisperTalk %s %s %s %s %s' % (avatarId,
+         avatarName,
+         accountId,
+         accountName,
+         message)
         if not avatarName and avatarId:
             avatarName = self.findAvatarName(avatarId)
         if not accountName and accountId:
@@ -573,12 +612,6 @@ class TalkAssistant(DirectObject.DirectObject):
 
     def sendOpenTalk(self, message):
         error = None
-        doId = base.localAvatar.doId
-        if base.config.GetBool('want-talkative-tyler', False):
-            if base.localAvatar.zoneId == 2000:
-                tyler = base.cr.doFind('Talkative Tyler')
-                if tyler:
-                    tyler.sendUpdate('talkMessage', [doId, message])
         if base.cr.wantMagicWords and len(message) > 0 and message[0] == '~':
             messenger.send('magicWord', [message])
             self.receiveDeveloperMessage(message)
@@ -591,22 +624,10 @@ class TalkAssistant(DirectObject.DirectObject):
         return error
 
     def sendWhisperTalk(self, message, receiverAvId):
-        modifications = []
-        words = message.split(' ')
-        offset = 0
-        WantWhitelist = config.GetBool('want-whitelist', 1)
-        for word in words:
-            if word and not self.whiteList.isWord(word) and WantWhitelist:
-                modifications.append((offset, offset+len(word)-1))
-            offset += len(word) + 1
-
-        cleanMessage = message
-        for modStart, modStop in modifications:
-            cleanMessage = cleanMessage[:modStart] + '*'*(modStop-modStart+1) + cleanMessage[modStop+1:]
-
-        message, scrubbed = base.localAvatar.scrubTalk(cleanMessage, modifications)
-
-        base.cr.ttiFriendsManager.sendUpdate('sendTalkWhisper', [receiverAvId, message])
+        # This is TT specific... which goes against all things OTP. But oh well.
+        # Route through the TTRFMUD.
+        base.cr.ttFriendsManager.sendUpdate('sendTalkWhisper', [receiverAvId, message])
+        return None
 
     def sendAccountTalk(self, message, receiverAccount):
         error = None

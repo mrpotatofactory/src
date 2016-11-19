@@ -53,7 +53,7 @@ class GuiScreen:
         for i in xrange(len(self.focusList)):
             item = self.focusList[i]
             behavior = enterPressBehavior
-            if item in overrides:
+            if overrides.has_key(item):
                 behavior = overrides[item]
             if callable(behavior):
                 self.enterPressHandlers[item] = behavior

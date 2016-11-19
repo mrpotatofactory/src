@@ -56,7 +56,7 @@ atticWood = (0.49, 0.314, 0.224)
 stairWood = (0.651, 0.376, 0.31)
 doorWood = (0.647, 0.392, 0.353)
 windowWood = (0.557, 0.388, 0.2)
-interiors = [['phase_5.5/dna/house_interior3.pdna',
+interiors = [['phase_5.5/dna/house_interior3.dna',
   [-19.45,
    24.7018,
    0,
@@ -69,7 +69,7 @@ interiors = [['phase_5.5/dna/house_interior3.pdna',
    120,
    0,
    0],
-  []], ['phase_5.5/dna/house_interior7.pdna',
+  []], ['phase_5.5/dna/house_interior7.dna',
   [-19.45,
    24.7018,
    0,
@@ -82,7 +82,7 @@ interiors = [['phase_5.5/dna/house_interior3.pdna',
    120,
    0,
    0],
-  []], ['phase_5.5/dna/house_interior10.pdna',
+  []], ['phase_5.5/dna/house_interior10.dna',
   [-22.5835,
    21.8784,
    0,
@@ -110,3 +110,14 @@ HALF_DAY_PERIOD = 1050
 HALF_NIGHT_PERIOD = 300
 FIREWORKS_MOVIE_CLEAR = 0
 FIREWORKS_MOVIE_GUI = 1
+
+HouseJBPrices = (2000, 5000, 5000, 10000, 10000, 2000)
+
+HouseEmblemPrices = (
+                     (50, 20), # bungalo
+                     (200, 75), # tiki
+                     (200, 75), # tepee
+                     (500, 250), # castle
+                     (350, 150), # cupcake
+                     (400, 200) # cabin
+                    )

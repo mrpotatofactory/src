@@ -13,7 +13,7 @@ class DistributedAnimDoor(DistributedDoor.DistributedDoor):
         base.animDoor = self
 
     def getBuilding(self):
-        if 'building' not in self.__dict__:
+        if not self.__dict__.has_key('building'):
             if self.doorType == DoorTypes.EXT_ANIM_STANDARD:
                 searchStr = '**/??' + str(self.block) + ':animated_building_*_DNARoot;+s'
                 self.notify.debug('searchStr=%s' % searchStr)
@@ -29,12 +29,15 @@ class DistributedAnimDoor(DistributedDoor.DistributedDoor):
             else:
                 building = self.getBuilding()
                 doorNP = building.find('**/door_origin')
-                self.notify.debug('creating doorOrigin at %s %s' % (str(doorNP.getPos()), str(doorNP.getHpr())))
-                otherNP = NodePath('doorOrigin')
-                otherNP.setPos(doorNP.getPos())
-                otherNP.setHpr(doorNP.getHpr())
-                otherNP.reparentTo(doorNP.getParent())
-                self.tempDoorNodePath = otherNP
+                if not doorNP.isEmpty:
+                    self.notify.debug('creating doorOrigin at %s %s' % (str(doorNP.getPos()), str(doorNP.getHpr())))
+                    otherNP = NodePath('doorOrigin')
+                    otherNP.setPos(doorNP.getPos())
+                    otherNP.setHpr(doorNP.getHpr())
+                    otherNP.reparentTo(doorNP.getParent())
+                    self.tempDoorNodePath = otherNP
+                else:
+                    otherNP = None
         else:
             self.notify.error('DistributedAnimDoor.getDoorNodePath with doorType=%s' % self.doorType)
         return otherNP
@@ -52,7 +55,7 @@ class DistributedAnimDoor(DistributedDoor.DistributedDoor):
             self.notify.error('setTriggerName doorTYpe=%s' % self.doorType)
 
     def getAnimBuilding(self):
-        if 'animBuilding' not in self.__dict__:
+        if not self.__dict__.has_key('animBuilding'):
             if self.doorType == DoorTypes.EXT_ANIM_STANDARD:
                 bldg = self.getBuilding()
                 key = bldg.getParent().getParent()

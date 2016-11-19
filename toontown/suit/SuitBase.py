@@ -1,17 +1,18 @@
-import SuitDNA
-from SuitLegList import *
-import SuitTimings
-from direct.directnotify import DirectNotifyGlobal
-from direct.distributed.ClockDelta import *
 from pandac.PandaModules import *
+from direct.distributed.ClockDelta import *
+import math
+import random
 from pandac.PandaModules import Point3
+from direct.directnotify import DirectNotifyGlobal
 from toontown.battle import SuitBattleGlobals
+import SuitTimings
+import SuitDNA
 from toontown.toonbase import TTLocalizer
-
-
 TIME_BUFFER_PER_WPT = 0.25
 TIME_DIVISOR = 100
 DISTRIBUTE_TASK_CREATION = 0
+
+from SuitLegList import *
 
 class SuitBase:
     notify = DirectNotifyGlobal.directNotify.newCategory('SuitBase')
@@ -22,12 +23,10 @@ class SuitBase:
         self.maxHP = 10
         self.currHP = 10
         self.isSkelecog = 0
-        self.isWaiter = 0
         return
 
     def delete(self):
-        if hasattr(self, 'legList'):
-            del self.legList
+        pass
 
     def getStyleName(self):
         if hasattr(self, 'dna') and self.dna:
@@ -62,9 +61,6 @@ class SuitBase:
     def setSkelecog(self, flag):
         self.isSkelecog = flag
 
-    def setWaiter(self, flag):
-        self.isWaiter = flag
-
     def getActualLevel(self):
         if hasattr(self, 'dna'):
             return SuitBattleGlobals.getActualFromRelativeLevel(self.getStyleName(), self.level) + 1
@@ -81,9 +77,10 @@ class SuitBase:
 
     def printPath(self):
         print '%d points in path' % self.pathLength
-        for currPathPt in xrange(self.pathLength):
+        for currPathPt in range(self.pathLength):
             indexVal = self.path.getPointIndex(currPathPt)
             print '\t', self.sp.dnaStore.getSuitPointWithIndex(indexVal)
 
     def makeLegList(self):
-        self.legList = SuitLegList(self.path, self.sp.dnaStore)
+        self.legList = SuitLegList(self.path, self.sp.dnaStore, self.sp.suitWalkSpeed)
+        

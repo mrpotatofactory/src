@@ -29,7 +29,7 @@ class Goon(Avatar.Avatar):
             if dnaName is not None:
                 self.initGoon(dnaName)
 
-        return
+            self.nametag3d.hide()
 
     def initGoon(self, dnaName):
         dna = SuitDNA.SuitDNA()
@@ -38,7 +38,6 @@ class Goon(Avatar.Avatar):
         self.type = dnaName
         self.createHead()
         self.find('**/actorGeom').setH(180)
-        self.nametag3d.hide()
 
     def initializeBodyCollisions(self, collIdStr):
         Avatar.Avatar.initializeBodyCollisions(self, collIdStr)

@@ -1,25 +1,22 @@
+from pandac.PandaModules import *
+from toontown.toonbase.ToonBaseGlobal import *
+from direct.interval.IntervalGlobal import *
+from DistributedMinigame import *
+from direct.gui.DirectGui import *
+from pandac.PandaModules import *
 from direct.fsm import ClassicFSM, State
 from direct.fsm import State
-from direct.gui.DirectGui import *
-from direct.interval.IntervalGlobal import *
-from pandac.PandaModules import *
-from pandac.PandaModules import *
-import random
-import string
-
-import ArrowKeys
-from DistributedMinigame import *
-import PatternGameGlobals
-from toontown.char import Char
-from toontown.char import CharDNA
-from toontown.chat.ChatGlobals import *
-from toontown.nametag.NametagGlobals import *
-from toontown.toon import ToonHead
-from toontown.toonbase import TTLocalizer
-from toontown.toonbase import ToontownGlobals
 from toontown.toonbase import ToontownTimer
-from toontown.toonbase.ToonBaseGlobal import *
-
+import PatternGameGlobals
+from toontown.toon import ToonHead
+from toontown.char import CharDNA
+from toontown.char import Char
+import ArrowKeys
+import random
+from toontown.toonbase import ToontownGlobals
+import string
+from toontown.toonbase import TTLocalizer
+from otp.nametag.NametagConstants import *
 
 class DistributedPatternGame(DistributedMinigame):
     phase4snd = 'phase_4/audio/sfx/'
@@ -106,22 +103,22 @@ class DistributedPatternGame(DistributedMinigame):
         minnieX = matchingGameGui.find('**/minnieX')
         minnieCircle = matchingGameGui.find('**/minnieCircle')
         self.arrows = [None] * 5
-        for x in xrange(0, 5):
+        for x in range(0, 5):
             self.arrows[x] = minnieArrow.copyTo(hidden)
             self.arrows[x].hide()
 
         self.xs = [None] * 5
-        for x in xrange(0, 5):
+        for x in range(0, 5):
             self.xs[x] = minnieX.copyTo(hidden)
             self.xs[x].hide()
 
         self.statusBalls = []
         self.totalMoves = PatternGameGlobals.INITIAL_ROUND_LENGTH + PatternGameGlobals.ROUND_LENGTH_INCREMENT * (PatternGameGlobals.NUM_ROUNDS - 1)
-        for x in xrange(0, 4):
+        for x in range(0, 4):
             self.statusBalls.append([None] * self.totalMoves)
 
-        for x in xrange(0, 4):
-            for y in xrange(0, self.totalMoves):
+        for x in range(0, 4):
+            for y in range(0, self.totalMoves):
                 self.statusBalls[x][y] = minnieCircle.copyTo(hidden)
                 self.statusBalls[x][y].hide()
 
@@ -146,7 +143,7 @@ class DistributedPatternGame(DistributedMinigame):
         self.animPlayRates = []
         animPlayRate = 1.4
         animPlayRateMult = 1.06
-        for i in xrange(PatternGameGlobals.NUM_ROUNDS):
+        for i in range(PatternGameGlobals.NUM_ROUNDS):
             self.animPlayRates.append(animPlayRate)
             animPlayRate *= animPlayRateMult
 
@@ -211,6 +208,7 @@ class DistributedPatternGame(DistributedMinigame):
         camera.setPosHpr(0.0, -14.59, 10.56, 0.0, -16.39, 0.0)
         base.camLens.setMinFov(24.66/(4./3.))
         base.setBackgroundColor(Vec4(0.984, 0.984, 0.584, 1))
+        NametagGlobals.setGlobalNametagScale(0.6)
         self.arrowKeys = ArrowKeys.ArrowKeys()
         self.room.reparentTo(render)
         self.room.setPosHpr(0.0, 18.39, -ToontownGlobals.FloorOffset, 0.0, 0.0, 0.0)
@@ -242,7 +240,7 @@ class DistributedPatternGame(DistributedMinigame):
         lt.startLookAround()
         self.arrowDict['lt'] = [self.arrows.pop(), self.xs.pop(), self.statusBalls.pop()]
         jj = self.lt.nametag3d
-        for k in xrange(0, 2):
+        for k in range(0, 2):
             self.arrowDict['lt'][k].setBillboardAxis()
             self.arrowDict['lt'][k].setBin('fixed', 100)
             self.arrowDict['lt'][k].reparentTo(jj)
@@ -265,10 +263,10 @@ class DistributedPatternGame(DistributedMinigame):
         self.minnie.nametag.manage(base.marginManager)
         self.minnie.startEarTask()
         self.minnie.setPickable(0)
-        self.minnie.nametag.getNametag3d().setChatWordWrap(8)
+        self.minnie.nametag.getNametag3d().setChatWordwrap(8)
         self.arrowDict['m'] = [self.arrows.pop(), self.xs.pop()]
         jj = self.minnie.nametag3d
-        for k in xrange(0, 2):
+        for k in range(0, 2):
             self.arrowDict['m'][k].setBillboardAxis()
             self.arrowDict['m'][k].setBin('fixed', 100)
             self.arrowDict['m'][k].setColor(self.arrowColor)
@@ -284,6 +282,7 @@ class DistributedPatternGame(DistributedMinigame):
         self.music.stop()
         base.camLens.setMinFov(ToontownGlobals.DefaultCameraFov/(4./3.))
         base.setBackgroundColor(ToontownGlobals.DefaultBackgroundColor)
+        NametagGlobals.setGlobalNametagScale(1.0)
         self.arrowKeys.destroy()
         del self.arrowKeys
         self.room.reparentTo(hidden)
@@ -317,7 +316,7 @@ class DistributedPatternGame(DistributedMinigame):
             if toon:
                 self.arrowDict[avId] = [self.arrows.pop(), self.xs.pop(), self.statusBalls.pop()]
                 jj = toon.nametag3d
-                for k in xrange(0, 2):
+                for k in range(0, 2):
                     self.arrowDict[avId][k].setBillboardAxis()
                     self.arrowDict[avId][k].setBin('fixed', 100)
                     self.arrowDict[avId][k].reparentTo(jj)
@@ -476,7 +475,7 @@ class DistributedPatternGame(DistributedMinigame):
             return Parallel(ri)
 
     def formatStatusBalls(self, sb, jj):
-        for x in xrange(0, self.totalMoves):
+        for x in range(0, self.totalMoves):
             sb[x].setBillboardAxis()
             sb[x].setBin('fixed', 100)
             sb[x].reparentTo(jj)
@@ -486,13 +485,13 @@ class DistributedPatternGame(DistributedMinigame):
 
     def showStatusBalls(self, toonID):
         sb = self.arrowDict[toonID][2]
-        for x in xrange(0, len(self.__serverPattern)):
+        for x in range(0, len(self.__serverPattern)):
             sb[x].setColor(1, 1, 1, 1)
             sb[x].show()
 
     def hideStatusBalls(self, toonID):
         sb = self.arrowDict[toonID][2]
-        for x in xrange(0, len(sb)):
+        for x in range(0, len(sb)):
             sb[x].hide()
 
     def colorStatusBall(self, toonID, which, good):
@@ -731,7 +730,7 @@ class DistributedPatternGame(DistributedMinigame):
          pattern2,
          pattern3,
          pattern4]
-        for i in xrange(len(self.avIdList)):
+        for i in range(len(self.avIdList)):
             self.playerPatterns[self.avIdList[i]] = patterns[i]
 
         self.gameFSM.request('playBackPatterns')

@@ -26,7 +26,7 @@ WaterSprayColor = Point4(0.75, 0.75, 1.0, 0.8)
 def doSquirts(squirts):
     if len(squirts) == 0:
         return (None, None)
-
+    
     suitSquirtsDict = {}
     doneUber = 0
     skip = 0
@@ -38,19 +38,19 @@ def doSquirts(squirts):
             if 1:
                 target = squirt['target'][0]
                 suitId = target['suit'].doId
-                if suitId in suitSquirtsDict:
+                if suitSquirtsDict.has_key(suitId):
                     suitSquirtsDict[suitId].append(squirt)
                 else:
                     suitSquirtsDict[suitId] = [squirt]
         else:
             suitId = squirt['target']['suit'].doId
-            if suitId in suitSquirtsDict:
+            if suitSquirtsDict.has_key(suitId):
                 suitSquirtsDict[suitId].append(squirt)
             else:
                 suitSquirtsDict[suitId] = [squirt]
 
     suitSquirts = suitSquirtsDict.values()
-
+    
     def compFunc(a, b):
         if len(a) > len(b):
             return 1
@@ -237,7 +237,7 @@ def __getSoundTrack(level, hitSuit, delay, node = None):
 
 
 def __doFlower(squirt, delay, fShowStun):
-    toon = squirt['toon']
+    toon = squirt['toon']        
     level = squirt['level']
     hpbonus = squirt['hpbonus']
     target = squirt['target']
@@ -639,7 +639,7 @@ def __doStormCloud(squirt, delay, fShowStun):
             delay = trickleDuration = cloudHold * 0.25
             trickleTrack = Sequence(Func(battle.movie.needRestoreParticleEffect, trickleEffect), ParticleInterval(trickleEffect, cloud, worldRelative=0, duration=trickleDuration, cleanup=True), Func(battle.movie.clearRestoreParticleEffect, trickleEffect))
             track.append(trickleTrack)
-            for i in xrange(0, 3):
+            for i in range(0, 3):
                 dur = cloudHold - 2 * trickleDuration
                 ptrack.append(Sequence(Func(battle.movie.needRestoreParticleEffect, rainEffects[i]), Wait(delay), ParticleInterval(rainEffects[i], cloud, worldRelative=0, duration=dur, cleanup=True), Func(battle.movie.clearRestoreParticleEffect, rainEffects[i])))
                 delay += effectDelay
@@ -713,13 +713,13 @@ def __doGeyser(squirt, delay, fShowStun, uberClone = 0):
             geyserMound = MovieUtil.copyProp(geyser)
             geyserRemoveM = geyserMound.findAllMatches('**/Splash*')
             geyserRemoveM.addPathsFrom(geyserMound.findAllMatches('**/spout'))
-            for i in xrange(geyserRemoveM.getNumPaths()):
+            for i in range(geyserRemoveM.getNumPaths()):
                 geyserRemoveM[i].removeNode()
 
             geyserWater = MovieUtil.copyProp(geyser)
             geyserRemoveW = geyserWater.findAllMatches('**/hole')
             geyserRemoveW.addPathsFrom(geyserWater.findAllMatches('**/shadow'))
-            for i in xrange(geyserRemoveW.getNumPaths()):
+            for i in range(geyserRemoveW.getNumPaths()):
                 geyserRemoveW[i].removeNode()
 
             track = Sequence(Wait(rainDelay), Func(MovieUtil.showProp, geyserMound, battle, suit.getPos(battle)), Func(MovieUtil.showProp, geyserWater, battle, suit.getPos(battle)), LerpScaleInterval(geyserWater, 1.0, scaleUpPoint, startScale=MovieUtil.PNT3_NEARZERO), Wait(geyserHold * 0.5), LerpScaleInterval(geyserWater, 0.5, MovieUtil.PNT3_NEARZERO, startScale=scaleUpPoint))

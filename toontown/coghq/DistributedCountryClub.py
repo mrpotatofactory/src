@@ -97,9 +97,8 @@ class DistributedCountryClub(DistributedObject.DistributedObject):
 
     def gotAllRooms(self):
         self.notify.debug('countryClub %s: got all rooms' % self.doId)
-        if self.roomWatcher:
-            self.roomWatcher.destroy()
-            self.roomWatcher = None
+        if self.roomWatcher: self.roomWatcher.destroy()
+        self.roomWatcher = None
         self.geom = render.attachNewNode('countryClub%s' % self.doId)
         for doId in self.roomDoIds:
             self.rooms.append(base.cr.doId2do[doId])

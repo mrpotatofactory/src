@@ -1,4 +1,3 @@
-import random
 from direct.directnotify import DirectNotifyGlobal
 from otp.avatar import DistributedAvatarAI
 from toontown.battle import BattleExperienceAI
@@ -15,6 +14,7 @@ AllBossCogs = []
 
 class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedBossCogAI')
+    BossName = 'unknown'
 
     def __init__(self, air, dept):
         DistributedAvatarAI.DistributedAvatarAI.__init__(self, air)
@@ -25,7 +25,6 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
         self.resetBattleCounters()
         self.looseToons = []
         self.involvedToons = []
-        self.punishedToons = []
         self.toonsA = []
         self.toonsB = []
         self.nearToons = []
@@ -80,7 +79,12 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
 
     def __handleUnexpectedExit(self, avId):
         self.removeToon(avId)
-
+        self.air.killToon(avId)
+        self.handleLoserDC(avId)
+        
+    def handleLoserDC(self, avId):
+        pass
+        
     def addToon(self, avId):
         if avId not in self.looseToons and avId not in self.involvedToons:
             self.looseToons.append(avId)
@@ -88,27 +92,32 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
             self.acceptOnce(event, self.__handleUnexpectedExit, extraArgs=[avId])
 
     def removeToon(self, avId):
-        av = self.air.doId2do.get(avId)
-        if not av is None:
-            if av.getHp() <= 0:
-                if avId not in self.punishedToons:
-                    self.air.cogSuitMgr.removeParts(av, self.deptIndex)
-                    self.punishedToons.append(avId)
-
-        if avId in self.looseToons:
+        resendIds = 0
+        try:
             self.looseToons.remove(avId)
+        except:
+            pass
 
-        if avId in self.involvedToons:
+        try:
             self.involvedToons.remove(avId)
+            resendIds = 1
+        except:
+            pass
 
-        if avId in self.toonsA:
+        try:
             self.toonsA.remove(avId)
+        except:
+            pass
 
-        if avId in self.toonsB:
+        try:
             self.toonsB.remove(avId)
+        except:
+            pass
 
-        if avId in self.nearToons:
+        try:
             self.nearToons.remove(avId)
+        except:
+            pass
 
         event = self.air.getAvatarExitEvent(avId)
         self.ignore(event)
@@ -152,6 +161,11 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
         toon.toonUp(increment)
 
     def d_setBattleExperience(self):
+        for toonId in self.involvedToons:
+            toon = simbase.air.doId2do.get(toonId)
+            if toon:
+                self.air.questManager.toonKilledBoss(toon, self.BossName)
+                
         self.sendUpdate('setBattleExperience', self.getBattleExperience())
 
     def getBattleExperience(self):
@@ -462,23 +476,17 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
             self.b_setState(self.postBattleState)
         return
 
-    def invokeSuitPlanner(self, buildingCode, skelecog, skelecogRandom=0):
+    def invokeSuitPlanner(self, buildingCode, skelecog):
         planner = SuitPlannerInteriorAI.SuitPlannerInteriorAI(1, buildingCode, self.dna.dept, self.zoneId)
         planner.respectInvasions = 0
         suits = planner.genFloorSuits(0)
         if skelecog:
             for suit in suits['activeSuits']:
-                wantSkelecog = 1
-                if skelecogRandom:
-                    wantSkelecog = random.randint(0, 1)
-                suit.b_setSkelecog(wantSkelecog)
+                suit.b_setSkelecog(1)
 
             for reserve in suits['reserveSuits']:
-                wantSkelecog = 1
-                if skelecogRandom:
-                    wantSkelecog = random.randint(0, 1)
                 suit = reserve[0]
-                suit.b_setSkelecog(wantSkelecog)
+                suit.b_setSkelecog(1)
 
         return suits
 
@@ -611,3 +619,83 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
 
     def doNextAttack(self, task):
         self.b_setAttackCode(ToontownGlobals.BossCogNoAttack)
+
+from otp.ai.MagicWordGlobal import *
+@magicWord(chains=[CHAIN_ADM], types=[str, int, int])
+def suitlvl(track, index, lvl):
+    if track == 'bossbot' or track[0] == 'b': trackIndex = 0
+    elif track == 'lawbot' or track[0] == 'l': trackIndex = 1
+    elif track == 'cashbot' or track[0] == 'c': trackIndex = 2
+    elif track == 'sellbot' or track[0] == 's': trackIndex = 3
+    else:
+        return 'Invalid track!'
+        
+    if not 0 <= index <= 7:
+        return 'Invalid index!'
+        
+    if not 0 < lvl <= 50:
+        return 'Invalid level!'
+   
+    if lvl > (index + 5):
+        if index != 7:
+            return 'Invalid level for index (must be %d - %d)!' % (index + 1, index + 5)
+            
+        if lvl > 50:
+            return 'Invalid level for index (must be 8 - 50)!'
+
+    av = spellbook.getTarget()
+    
+    lvls = list(av.getCogLevels())
+    types = list(av.getCogTypes())
+    
+    lvls[trackIndex] = lvl - 1
+    types[trackIndex] = index
+    
+    av.b_setCogLevels(lvls)
+    av.b_setCogTypes(types)
+    
+@magicWord(chains=[CHAIN_ADM], types=[str, int])
+def merits(track, merits):
+    if track == 'bossbot' or track[0] == 'b': trackIndex = 0
+    elif track == 'lawbot' or track[0] == 'l': trackIndex = 1
+    elif track == 'cashbot' or track[0] == 'c': trackIndex = 2
+    elif track == 'sellbot' or track[0] == 's': trackIndex = 3
+    else:
+        return 'Invalid track!'
+        
+    av = spellbook.getTarget()
+    meritsList = list(av.getCogMerits())
+    meritsList[trackIndex] = merits
+    av.b_setCogMerits(meritsList)
+
+@magicWord(chains=[CHAIN_ADM], types=[int, int]) 
+def emblems(silver=10, gold=10):
+    spellbook.getTarget().addEmblems((gold, silver))
+
+@magicWord(chains=[CHAIN_ADM], types=[int, str]) 
+def epp(dept, command='add'):
+    av = spellbook.getTarget()
+    if command == 'add':
+        av.addEPP(dept)
+        
+    elif command == 'remove':
+        av.removeEPP(dept)
+        
+    elif command == 'get':
+        if dept == -1:
+            return av.epp
+            
+        return av.hasEPP(dept)
+        
+    else:
+        return 'Unknown command!'
+
+@magicWord(chains=[CHAIN_ADM], types=[int]) 
+def promote(dept):
+    spellbook.getTarget().b_promote(dept)
+    
+@magicWord(chains=[CHAIN_HEAD], types=[int]) 
+def paid(access):
+    av = spellbook.getTarget()
+    av.air.sendNetEvent('CSMUD_updatePaid', [av.DISLid, access])
+    

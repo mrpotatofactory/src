@@ -1,11 +1,9 @@
-from direct.directnotify import DirectNotifyGlobal
 from direct.distributed import DistributedObject
-
+from direct.directnotify import DirectNotifyGlobal
 from otp.ai.MagicWordGlobal import *
-
+from otp.nametag.NametagConstants import *
 
 lastClickedNametag = None
-
 
 class MagicWordManager(DistributedObject.DistributedObject):
     notify = DirectNotifyGlobal.directNotify.newCategory('MagicWordManager')
@@ -26,9 +24,12 @@ class MagicWordManager(DistributedObject.DistributedObject):
         if magicWord.startswith('~~'):
             if lastClickedNametag == None:
                 target = base.localAvatar
+                
             else:
                 target = lastClickedNametag
+                
             magicWord = magicWord[2:]
+            
         if magicWord.startswith('~'):
             target = base.localAvatar
             magicWord = magicWord[1:]
@@ -42,4 +43,5 @@ class MagicWordManager(DistributedObject.DistributedObject):
 
     def sendMagicWordResponse(self, response):
         self.notify.info(response)
-        base.localAvatar.setSystemMessage(0, 'Spellbook: ' + str(response))
+        if not response.startswith("\n\nCMD\n"):
+            base.localAvatar.setSystemMessage(0, 'MagicWord result: ' + str(response))

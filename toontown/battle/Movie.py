@@ -1,39 +1,37 @@
-import copy
-from direct.directnotify import DirectNotifyGlobal
+from toontown.toonbase.ToontownBattleGlobals import *
+from BattleBase import *
 from direct.interval.IntervalGlobal import *
 from direct.showbase import DirectObject
-import random
-
-from BattleBase import *
-import BattleExperience
-import BattleParticles
-import MovieDrop
 import MovieFire
-import MovieHeal
-import MovieLure
+import MovieSOS
 import MovieNPCSOS
 import MoviePetSOS
-import MovieSOS
-import MovieSound
-import MovieSquirt
-import MovieSuitAttacks
-import MovieThrow
-import MovieToonVictory
+import MovieHeal
 import MovieTrap
-import MovieUtil
+import MovieLure
+import MovieSound
+import MovieThrow
+import MovieSquirt
+import MovieDrop
+import MovieSuitAttacks
+import MovieToonVictory
 import PlayByPlayText
-import RewardPanel
-from SuitBattleGlobals import *
-from toontown.chat.ChatGlobals import *
+import BattleParticles
 from toontown.distributed import DelayDelete
-from toontown.toon import NPCToons
+import BattleExperience
+from SuitBattleGlobals import *
+from direct.directnotify import DirectNotifyGlobal
+import RewardPanel
+import random
+import MovieUtil
 from toontown.toon import Toon
-from toontown.toonbase import TTLocalizer
 from toontown.toonbase import ToontownGlobals
-from toontown.toonbase.ToontownBattleGlobals import *
 from toontown.toontowngui import TTDialog
-from toontown.nametag import NametagGlobals
+import copy
+from toontown.toonbase import TTLocalizer
+from toontown.toon import NPCToons
 
+from otp.nametag.NametagConstants import *
 
 camPos = Point3(14, 0, 10)
 camHpr = Vec3(89, -30, 0)
@@ -127,14 +125,14 @@ class Movie(DirectObject.DirectObject):
                 legsParts = toon.getLegsParts()
                 partsList = [headParts, torsoParts, legsParts]
                 for parts in partsList:
-                    for partNum in xrange(0, parts.getNumPaths()):
+                    for partNum in range(0, parts.getNumPaths()):
                         nextPart = parts.getPath(partNum)
                         nextPart.clearColorScale()
                         nextPart.clearTransparency()
 
             if self.restoreHips == 1:
                 parts = toon.getHipsParts()
-                for partNum in xrange(0, parts.getNumPaths()):
+                for partNum in range(0, parts.getNumPaths()):
                     nextPart = parts.getPath(partNum)
                     props = nextPart.getChildren()
                     for prop in props:
@@ -149,7 +147,7 @@ class Movie(DirectObject.DirectObject):
             if self.restoreToonScale == 1:
                 toon.setScale(1)
             headParts = toon.getHeadParts()
-            for partNum in xrange(0, headParts.getNumPaths()):
+            for partNum in range(0, headParts.getNumPaths()):
                 part = headParts.getPath(partNum)
                 part.setHpr(0, 0, 0)
                 part.setPos(0, 0, 0)
@@ -157,7 +155,7 @@ class Movie(DirectObject.DirectObject):
             arms = toon.findAllMatches('**/arms')
             sleeves = toon.findAllMatches('**/sleeves')
             hands = toon.findAllMatches('**/hands')
-            for partNum in xrange(0, arms.getNumPaths()):
+            for partNum in range(0, arms.getNumPaths()):
                 armPart = arms.getPath(partNum)
                 sleevePart = sleeves.getPath(partNum)
                 handsPart = hands.getPath(partNum)
@@ -359,8 +357,6 @@ class Movie(DirectObject.DirectObject):
         dna.newToonFromProperties(*dnaList)
         self.tutorialTom.setDNA(dna)
         self.tutorialTom.setName(TTLocalizer.NPCToonNames[20000])
-        self.tutorialTom.setPickable(0)
-        self.tutorialTom.setPlayerType(NametagGlobals.CCNonPlayer)
         self.tutorialTom.uniqueName = uniqueName
         if base.config.GetString('language', 'english') == 'japanese':
             self.tomDialogue03 = base.loadSfx('phase_3.5/audio/dial/CC_tom_movie_tutorial_reward01.ogg')
@@ -738,7 +734,7 @@ class Movie(DirectObject.DirectObject):
                         else:
                             suitIndex = self.battle.activeSuits.index(target)
                         leftSuits = []
-                        for si in xrange(0, suitIndex):
+                        for si in range(0, suitIndex):
                             asuit = self.battle.activeSuits[si]
                             if self.battle.isSuitLured(asuit) == 0:
                                 leftSuits.append(asuit)
@@ -746,7 +742,7 @@ class Movie(DirectObject.DirectObject):
                         lenSuits = len(self.battle.activeSuits)
                         rightSuits = []
                         if lenSuits > suitIndex + 1:
-                            for si in xrange(suitIndex + 1, lenSuits):
+                            for si in range(suitIndex + 1, lenSuits):
                                 asuit = self.battle.activeSuits[si]
                                 if self.battle.isSuitLured(asuit) == 0:
                                     rightSuits.append(asuit)
@@ -767,7 +763,7 @@ class Movie(DirectObject.DirectObject):
                             adict['target'] = sdict
                 adict['hpbonus'] = ta[TOON_HPBONUS_COL]
                 adict['sidestep'] = ta[TOON_ACCBONUS_COL]
-                if 'npcId' in adict:
+                if adict.has_key('npcId'):
                     adict['sidestep'] = 0
                 adict['battle'] = self.battle
                 adict['playByPlayText'] = self.playByPlayText
@@ -792,7 +788,7 @@ class Movie(DirectObject.DirectObject):
         setCapture = 0
         tp = []
         for ta in self.toonAttackDicts:
-            if ta['track'] == track or track == NPCSOS and 'sepcial' in ta:
+            if ta['track'] == track or track == NPCSOS and ta.has_key('special'):
                 tp.append(ta)
                 if track == SQUIRT:
                     setCapture = 1
@@ -800,11 +796,11 @@ class Movie(DirectObject.DirectObject):
         if track == TRAP:
             sortedTraps = []
             for attack in tp:
-                if 'npcId' not in attack:
+                if not attack.has_key('npcId'):
                     sortedTraps.append(attack)
 
             for attack in tp:
-                if 'npcId' in attack:
+                if attack.has_key('npcId'):
                     sortedTraps.append(attack)
 
             tp = sortedTraps
@@ -821,7 +817,7 @@ class Movie(DirectObject.DirectObject):
                 suitId = suits[suitIndex]
                 suit = self.battle.findSuit(suitId)
                 if suit == None:
-                    self.notify.warning('suit: %d not in battle!' % suitId)
+                    self.notify.error('suit: %d not in battle!' % suitId)
                     return
                 adict = getSuitAttack(suit.getStyleName(), suit.getLevel(), attack)
                 adict['suit'] = suit
@@ -864,13 +860,13 @@ class Movie(DirectObject.DirectObject):
                     tdict['died'] = toonDied
                     toonIndex = self.battle.activeToons.index(target)
                     rightToons = []
-                    for ti in xrange(0, toonIndex):
+                    for ti in range(0, toonIndex):
                         rightToons.append(self.battle.activeToons[ti])
 
                     lenToons = len(self.battle.activeToons)
                     leftToons = []
                     if lenToons > toonIndex + 1:
-                        for ti in xrange(toonIndex + 1, lenToons):
+                        for ti in range(toonIndex + 1, lenToons):
                             leftToons.append(self.battle.activeToons[ti])
 
                     tdict['leftToons'] = leftToons

@@ -7,7 +7,9 @@ TreasureBR = 3
 TreasureMM = 4
 TreasureDL = 5
 TreasureOZ = 6
-TreasureE  = 7
+TreasureET = 7
+TreasureFF = 8
+TreasureEF = 9 # Estate Flying
 
 TreasureModels = {
     TreasureTT: (
@@ -38,7 +40,15 @@ TreasureModels = {
         'phase_6/models/props/acorn_treasure',
         'phase_4/audio/sfx/SZ_DD_treasure.ogg',
     ),
-    TreasureE: (
+    TreasureET: (
+        'phase_8/models/props/flower_treasure',
+        'phase_4/audio/sfx/SZ_DD_treasure.ogg',
+    ),
+    TreasureFF: (
+        'phase_14/models/props/corn_treasure',
+        'phase_4/audio/sfx/SZ_DD_treasure.ogg',
+    ),
+    TreasureEF: (
         'phase_5.5/models/props/popsicle_treasure',
         'phase_4/audio/sfx/SZ_DD_treasure.ogg',
     ),
@@ -46,29 +56,29 @@ TreasureModels = {
 
 SafeZoneTreasureSpawns = {
     ToontownGlobals.ToontownCentral: (
-        TreasureTT, 3, # TTTreasure heals 3 each...
+        TreasureTT, 5, # TTTreasure heals 3 each...
         [
-            (-60.976, -8.866, 1.3),
-            (-90.632, -5.828, -0.63),
+            (-59.9, -6.9, 0.84),
+            (-90.6, -3.0, -0.75),
             (27.1, -93.5, 2.5),
             (94.2, 33.5, 4),
-            (31.554, 56.915, 4),
+            (35.4, 43.1, 4),
             (67.1, 105.5, 2.5),
             (-99.15, -87.3407, 0.52499),
-            (8.183, -127.016, 3.025),
-            (39.684, -80.356, 2.525),
+            (1.60586, -119.492, 3.025),
+            (43.2026, -76.287, 3.025),
             (129.137, -61.9039, 2.525),
             (92.99, -158.399, 3.025),
             (111.749, -8.59927, 4.57466),
-            (37.983, -26.281, 4.025),
+            (41.999, -30.2923, 4.025),
             (31.0649, -43.9149, 4.025),
             (10.0156, 105.218, 2.525),
             (46.9667, 169.143, 3.025),
             (100.68, 93.9896, 2.525),
             (129.285, 58.6107, 2.525),
             (-28.6272, 85.9833, 0.525),
-            (-111.589, 79.414, 0.525),
-            (-136.296, 32.794, 0.525),
+            (-114.613, 86.1727, 0.525),
+            (-132.528, 31.255, 0.025),
         ],
         10, # Rate
         5 # Maximum
@@ -134,7 +144,7 @@ SafeZoneTreasureSpawns = {
         2 # Maximum
     ),
     ToontownGlobals.TheBrrrgh: (
-        TreasureBR, 12, # +12 laff
+        TreasureBR, 15, # +15 laff
         [
             (-108, 46, 6.2),
             (-111, 74, 6.2),
@@ -159,7 +169,7 @@ SafeZoneTreasureSpawns = {
         2 # Maximum
     ),
     ToontownGlobals.MinniesMelodyland: (
-        TreasureMM, 10, # +10 laff
+        TreasureMM, 12, # +12 laff
         [
             (118, -39, 3.3),
             (118, 1, 3.3),
@@ -185,7 +195,7 @@ SafeZoneTreasureSpawns = {
         2 # Maximum
     ),
     ToontownGlobals.DonaldsDreamland: (
-        TreasureDL, 12, # +12 laff
+        TreasureDL, 18, # +18 laff
         [
             (86, 69, -17.4),
             (34, -48, -16.4),
@@ -209,7 +219,7 @@ SafeZoneTreasureSpawns = {
         2 #Maximum
     ),
     ToontownGlobals.OutdoorZone: (
-        TreasureOZ, 3, # +3 laff
+        TreasureOZ, 4, # +4 laff
         [
             (-156.9, -118.9, 0.025),
             (-35.6, 86.0, 1.25),
@@ -231,25 +241,49 @@ SafeZoneTreasureSpawns = {
         5 # Maximum
     ),
     ToontownGlobals.MyEstate: (
-        TreasureE, 2, # +2 laff
+        TreasureET, 6, # +6 laff
         [
-            (102.9, 14.17, 0.57),
-            (131.3, 45.31, 0.42),
-            (24.58, -1.28, 11.75),
-            (-1.5, -99.63, 4.3),
-            (14.04, -133.65, -10.0),
-            (-89.45, -134.26, 0.42),
-            (-99.15, -87.3407, 0.52),
-            (-132.528, 31.255, 0.42),
-            (-44.8, 42.61, 11.8),
-            (1.31, 65.17, 5.2),
-            (56.9, 13.06, 29.1),
-            (-57.5, 14.0, 2.88),
-            (17.88, 93.89, 0.4),
-            (-14.39, -164.3, 0.5),
-            (-125.6, -64.82, 0.5),
+            (19, -171, 0.0),
+            (-3, -100, 3.66),
+            (-4, -25, 7.0),
+            (1.15, 64.89, 4.858),
+            (-89, 43.4, 0.0),
+            (-114, -5, 1.8),
+            (-106, -98, 0.0),
+            (-1, -61, 1.0),
+            (130, 30, 0.0),
+            (-21, -7, 7.0),
+            (-27, 91, 0.0),
+            (-57, 0, 2.7),
+            (12, -128, -9.97),
+            (-1.8, 103.4, -8.0),
+            (-27.5, 6, -9.2),
+            (-29.6, -34.4, -5.4),
+            (-163.7, 13.8, 0.9),
+            (1.3, -107, 7.9),
+            (-87, -49, 0.05),
+            (45, 2.6, 8.0),
         ],
-        10, # Rate
-        4 # Maximum
+        15, # Rate
+        3 # Maximum
     ),
+    ToontownGlobals.FunnyFarm: (
+        TreasureFF, 8, # +8 laff
+        [
+            (50.6203, -48.7655, 0.0255548),
+            (-7.28212, 2.23632, 0.0255548),
+            (-58.2855, -7.87096, 0.0255548),
+            (-96.4059, -2.39136, 0.0255548),
+            (-116.132, 45.8718, 0.0255548),
+            (-103.906, 76.6642, 0.0255548),
+            (-69.4691, 76.3804, 0.0255548),
+            (-15.5558, 97.2077, 0.0255548),
+            (40.4045, 89.4397, 0.0255548),
+            (83.9763, 68.3644, 0.0255548),
+            (79.0471, 31.296, 0.0255548),
+            (-5.29712, 23.0919, 0.0255548)
+        ],
+        15,
+        4
+    )
 }

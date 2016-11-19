@@ -83,6 +83,7 @@ def __getSuitTrack(sound, lastSoundThatHit, delay, hitCount, targets, totalDamag
                 breakEffect.setDepthWrite(0)
                 breakEffect.setDepthTest(0)
                 breakEffect.setTwoSided(1)
+                breakEffect.setBin('fixed', 10)
                 soundEffect = globalBattleSoundCache.getSound(hitSoundFiles[0])
             suitTrack.append(Wait(delay + tSuitReact))
             if isUber:
@@ -129,7 +130,7 @@ def __doSoundsLevel(sounds, delay, hitCount, npcs):
     deathTracks = Parallel()
     for sound in sounds:
         toon = sound['toon']
-        if 'npc' in sound:
+        if sound.has_key('npc'):
             toon = sound['npc']
         level = sound['level']
         targets = sound['target']

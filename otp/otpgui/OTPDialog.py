@@ -95,6 +95,8 @@ class GlobalDialog(OTPDialog):
             buttonText = [cancelButtonText]
         else:
             buttonText = [okButtonText, cancelButtonText]
+        if not isinstance(message, type(u'')):
+            message = message.decode('latin-1')
         optiondefs = (('dialogName', 'globalDialog', DGG.INITOPT),
          ('buttonTextList', buttonText, DGG.INITOPT),
          ('text', message, None),

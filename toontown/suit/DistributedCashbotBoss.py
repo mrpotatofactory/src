@@ -1,36 +1,31 @@
-from direct.directnotify import DirectNotifyGlobal
-from direct.fsm import FSM
 from direct.interval.IntervalGlobal import *
-from direct.task.Task import Task
 from direct.task.TaskManagerGlobal import *
-import math
-from pandac.PandaModules import *
-import random
-
+from direct.directnotify import DirectNotifyGlobal
+from toontown.toonbase import TTLocalizer
 import DistributedBossCog
+from direct.task.Task import Task
 import DistributedCashbotBossGoon
 import SuitDNA
-from otp.otpbase import OTPGlobals
-from toontown.battle import MovieToonVictory
-from toontown.battle import RewardPanel
-from toontown.battle import SuitBattleGlobals
-from toontown.building import ElevatorConstants
-from toontown.building import ElevatorUtils
-from toontown.chat import ResistanceChat
-from toontown.chat.ChatGlobals import *
-from toontown.coghq import CogDisguiseGlobals
-from toontown.distributed import DelayDelete
-from toontown.nametag import NametagGlobals
-from toontown.nametag.NametagGlobals import *
 from toontown.toon import Toon
 from toontown.toon import ToonDNA
-from toontown.toonbase import TTLocalizer
+from direct.fsm import FSM
 from toontown.toonbase import ToontownGlobals
-
-
+from otp.otpbase import OTPGlobals
+from toontown.building import ElevatorUtils
+from toontown.building import ElevatorConstants
+from toontown.battle import MovieToonVictory
+from toontown.battle import RewardPanel
+from toontown.distributed import DelayDelete
+from toontown.chat import ResistanceChat
+from toontown.coghq import CogDisguiseGlobals
+from pandac.PandaModules import *
+import random
+import math
+from otp.nametag import NametagGroup
+from otp.nametag.NametagConstants import *
+from otp.nametag import NametagGlobals
 OneBossCog = None
 TTL = TTLocalizer
-
 
 class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedCashbotBoss')
@@ -105,7 +100,7 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
         npc = Toon.Toon()
         npc.setName(TTLocalizer.ResistanceToonName)
         npc.setPickable(0)
-        npc.setPlayerType(NametagGlobals.CCNonPlayer)
+        npc.setPlayerType(NametagGroup.CCNonPlayer)
         dna = ToonDNA.ToonDNA()
         dna.newToonRandom(11237, 'f', 1)
         dna.head = 'pls'
@@ -118,7 +113,7 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
         self.resistanceToon.suitType = SuitDNA.getRandomSuitByDept('m')
         random.setstate(state)
         self.fakeGoons = []
-        for i in xrange(self.numFakeGoons):
+        for i in range(self.numFakeGoons):
             goon = DistributedCashbotBossGoon.DistributedCashbotBossGoon(base.cr)
             goon.doId = -1 - i
             goon.setBossCogId(self.doId)
@@ -134,7 +129,7 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
             self.resistanceToon.removeActive()
             self.resistanceToon.delete()
             self.resistanceToon = None
-            for i in xrange(self.numFakeGoons):
+            for i in range(self.numFakeGoons):
                 self.fakeGoons[i].disable()
                 self.fakeGoons[i].delete()
                 self.fakeGoons[i] = None
@@ -164,6 +159,7 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
                 goon.request('Off')
 
     def __showFakeGoons(self, state):
+        print self.fakeGoons
         if self.fakeGoons:
             for goon in self.fakeGoons:
                 goon.request(state)
@@ -240,7 +236,7 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
                 self.notify.warning('Not a collision node: %s' % repr(cnp))
                 break
             newCollideMask = newCollideMask | cn.getIntoCollideMask()
-            for i in xrange(cn.getNumSolids()):
+            for i in range(cn.getNumSolids()):
                 solid = cn.getSolid(i)
                 if isinstance(solid, CollisionPolygon):
                     plane = Plane(solid.getPlane())
@@ -389,7 +385,8 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
           VBase3(231, 0, 0)]]
         mainGoon = self.fakeGoons[0]
         goonLoop = Parallel()
-        for i in xrange(1, self.numFakeGoons):
+        print self.fakeGoons
+        for i in range(1, self.numFakeGoons):
             goon = self.fakeGoons[i]
             goonLoop.append(Sequence(goon.posHprInterval(8, goonPosHprs[i][0], goonPosHprs[i][1]), goon.posHprInterval(8, goonPosHprs[i][2], goonPosHprs[i][3])))
 
@@ -476,7 +473,7 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
 
     def moveToonsToBattleThreePos(self, toons):
         track = Parallel()
-        for i in xrange(len(toons)):
+        for i in range(len(toons)):
             toon = base.cr.doId2do.get(toons[i])
             if toon:
                 posHpr = ToontownGlobals.CashbotToonsBattleThreeStartPosHpr[i]
@@ -634,7 +631,7 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
         radius = 7
         numToons = len(self.involvedToons)
         center = (numToons - 1) / 2.0
-        for i in xrange(numToons):
+        for i in range(numToons):
             toon = self.cr.doId2do.get(self.involvedToons[i])
             if toon:
                 angle = 90 - 15 * (i - center)
@@ -648,19 +645,11 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
 
     def __talkAboutPromotion(self, speech):
         if self.prevCogSuitLevel < ToontownGlobals.MaxCogSuitLevel:
-            deptIndex = CogDisguiseGlobals.dept2deptIndex(self.style.dept)
-            cogLevels = base.localAvatar.getCogLevels()
-            newCogSuitLevel = cogLevels[deptIndex]
-            cogTypes = base.localAvatar.getCogTypes()
-            maxCogSuitLevel = (SuitDNA.levelsPerSuit-1) + cogTypes[deptIndex]
-            if self.prevCogSuitLevel != maxCogSuitLevel:
-                speech += TTLocalizer.ResistanceToonLevelPromotion
-            if newCogSuitLevel == maxCogSuitLevel:
-                if newCogSuitLevel != ToontownGlobals.MaxCogSuitLevel:
-                    suitIndex = (SuitDNA.suitsPerDept*deptIndex) + cogTypes[deptIndex]
-                    cogTypeStr = SuitDNA.suitHeadTypes[suitIndex]
-                    cogName = SuitBattleGlobals.SuitAttributes[cogTypeStr]['name']
-                    speech += TTLocalizer.ResistanceToonSuitPromotion % cogName
+            newCogSuitLevel = localAvatar.getCogLevels()[CogDisguiseGlobals.dept2deptIndex(self.style.dept)]
+            if newCogSuitLevel == ToontownGlobals.MaxCogSuitLevel:
+                speech += TTLocalizer.ResistanceToonLastPromotion % (ToontownGlobals.MaxCogSuitLevel + 1)
+            if newCogSuitLevel in ToontownGlobals.CogSuitHPLevels:
+                speech += TTLocalizer.ResistanceToonHPBoost
         else:
             speech += TTLocalizer.ResistanceToonMaxed % (ToontownGlobals.MaxCogSuitLevel + 1)
         return speech
@@ -688,7 +677,6 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
         self.endVault.stash()
         self.midVault.unstash()
         self.__showResistanceToon(True)
-        base.camLens.setMinFov(ToontownGlobals.CFOElevatorFov/(4./3.))
 
     def exitElevator(self):
         DistributedBossCog.DistributedBossCog.exitElevator(self)
@@ -724,7 +712,7 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
 
     def enterPrepareBattleThree(self):
         self.controlToons()
-        NametagGlobals.setWant2dNametags(False)
+        NametagGlobals.setMasterArrowsOn(0)
         intervalName = 'PrepareBattleThreeMovie'
         delayDeletes = []
         self.movieCrane = self.cranes[0]
@@ -753,7 +741,7 @@ class DistributedCashbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
         if self.newState == 'BattleThree':
             self.movieCrane.request('Free')
             self.movieSafe.request('Initial')
-        NametagGlobals.setWant2dNametags(True)
+        NametagGlobals.setMasterArrowsOn(1)
         ElevatorUtils.closeDoors(self.leftDoor, self.rightDoor, ElevatorConstants.ELEVATOR_CFO)
         taskMgr.remove(self.uniqueName('physics'))
 

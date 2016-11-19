@@ -9,18 +9,14 @@ SafetyNetBitmask = BitMask32(512)
 SafetyGateBitmask = BitMask32(1024)
 GhostBitmask = BitMask32(2048)
 PathFindingBitmask = BitMask32.bit(29)
-PickerBitmask = BitMask32(4096)
 OriginalCameraFov = 52.0
 DefaultCameraFov = 52.0
-DefaultCameraFar = 800.0
+DefaultCameraFar = 400.0
 DefaultCameraNear = 1.0
 AICollisionPriority = 10
 AICollMovePriority = 8
 
-# As of right now, 200 friends is pretty insane, especially with the current CONSTANT db querying.
-# But since we told people that we are allowing "unlimited" friends, we instead can give them a
-# high amount.
-MaxFriends = 200
+MaxFriends = 75 #50
 
 MaxPlayerFriends = 300
 MaxBackCatalog = 48
@@ -48,25 +44,10 @@ CEPumpkin = 12
 CEBigWhite = 13
 CESnowMan = 14
 CEGreenToon = 15
+CERogerDog = 16
+CEFlippy = 17
+CESurlee = 18
 CEGhost = 'g'
-CEName2Id = {
-    'normal': CENormal,
-    'bighead': CEBigHead,
-    'smallhead': CESmallHead,
-    'biglegs': CEBigLegs,
-    'smalllegs': CESmallLegs,
-    'bigtoon': CEBigToon,
-    'smalltoon': CESmallToon,
-    'flatportrait': CEFlatPortrait,
-    'flatprofile': CEFlatProfile,
-    'transparent': CETransparent,
-    'nocolor': CENoColor,
-    'invisible': CEInvisible,
-    'pumpkin': CEPumpkin,
-    'bigwhite': CEBigWhite,
-    'snowman': CESnowMan,
-    'greentoon': CEGreenToon
-}
 BigToonScale = 1.5
 SmallToonScale = 0.5
 DisconnectUnknown = 0
@@ -156,8 +137,8 @@ def setFancyFont(path):
 def getNametagFont(index):
     global NametagFontPaths
     global NametagFonts
-    if (index not in NametagFonts) or (NametagFonts[index] is None):
-        if (index not in NametagFontPaths) or (NametagFontPaths[index] is None):
+    if not NametagFonts.has_key(index) or NametagFonts[index] == None:
+        if not NametagFontPaths.has_key(index) or NametagFontPaths[index] == None:
             InterfaceFont = TextNode.getDefaultFont()
             NametagFonts[index] = TextNode.getDefaultFont()
         else:
@@ -240,17 +221,14 @@ MapHotkeyOn = 'delete'
 MapHotkeyOff = 'delete-up'
 DetectGarbageHotkey = 'shift-f11'
 PrintCamPosHotkey = 'f12'
-QuitGameHotKeyOSX = 'meta-q'
-QuitGameHotKeyRepeatOSX = 'meta-q-repeat'
-HideGameHotKeyOSX = 'meta-h'
-HideGameHotKeyRepeatOSX = 'meta-h-repeat'
-MinimizeGameHotKeyOSX = 'meta-m'
-MinimizeGameHotKeyRepeatOSX = 'meta-m-repeat'
 GlobalDialogColor = (1,
  1,
  0.75,
  1)
-DefaultBackgroundColor = (0.3, 0.3, 0.3, 1)
+DefaultBackgroundColor = (0.3,
+ 0.3,
+ 0.3,
+ 1)
 toonBodyScales = {'mouse': 0.6,
  'cat': 0.73,
  'duck': 0.66,

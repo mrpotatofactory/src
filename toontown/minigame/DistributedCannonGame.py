@@ -1,7 +1,7 @@
 from direct.directnotify import DirectNotifyGlobal
 from pandac.PandaModules import *
-from toontown.nametag.NametagFloat3d import NametagFloat3d
-from toontown.nametag.Nametag import Nametag
+from otp.nametag.NametagFloat3d import NametagFloat3d
+from otp.nametag.Nametag import Nametag
 from toontown.toonbase.ToonBaseGlobal import *
 from DistributedMinigame import *
 from direct.distributed.ClockDelta import *
@@ -199,7 +199,7 @@ class DistributedCannonGame(DistributedMinigame):
             if av:
                 av.loop('neutral')
                 av.setPlayRate(1.0, 'run')
-                av.nametag.remove(head.tag)
+                av.nametag.removeNametag(head.tag)
             head.delete()
 
         del self.toonHeadDict
@@ -255,7 +255,7 @@ class DistributedCannonGame(DistributedMinigame):
         self.tower.reparentTo(hidden)
         for avId in self.avIdList:
             self.cannonDict[avId][0].reparentTo(hidden)
-            if avId in self.dropShadowDict:
+            if self.dropShadowDict.has_key(avId):
                 self.dropShadowDict[avId].reparentTo(hidden)
             av = self.getAvatar(avId)
             if av:
@@ -310,7 +310,7 @@ class DistributedCannonGame(DistributedMinigame):
             self.cannonDict[avId] = [cannon, barrel]
 
         numAvs = self.numPlayers
-        for i in xrange(numAvs):
+        for i in range(numAvs):
             avId = self.avIdList[i]
             self.cannonLocationDict[avId] = Point3(i * CANNON_X_SPACING - (numAvs - 1) * CANNON_X_SPACING / 2, CANNON_Y, CANNON_Z)
             if self.DEBUG_TOWER_RANGE:
@@ -346,11 +346,10 @@ class DistributedCannonGame(DistributedMinigame):
         self.toonHeadDict[avId] = head
         toon = self.getAvatar(avId)
         tag = NametagFloat3d()
-        tag.hideNametag()
-        tag.update()
+        tag.setContents(Nametag.CSpeech | Nametag.CThought)
         tag.setBillboardOffset(0)
         tag.setAvatar(head)
-        toon.nametag.add(tag)
+        toon.nametag.addNametag(tag)
         tagPath = head.attachNewNode(tag)
         tagPath.setPos(0, 0, 1)
         head.tag = tag

@@ -26,10 +26,14 @@ class SellbotHQBossBattle(CogHQBossBattle.CogHQBossBattle):
         self.__cleanupHighSky()
 
     def __setupHighSky(self):
+        nodeList = ['InnerGroup', 'MiddleGroup', 'hills']
         self.loader.hood.startSky()
         sky = self.loader.hood.sky
         sky.setH(150)
-        sky.setZ(-100)
+        sky.setZ(-150)
+        sky.setSz(0.85)
+        for node in nodeList:
+            sky.find('**/%s' % node).removeNode()
 
     def __cleanupHighSky(self):
         self.loader.hood.stopSky()

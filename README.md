@@ -1,6 +1,11 @@
-Toontown Infinite
-=================
-Toontown Infinite is a free, non-profit game inspired by _Disney's Toontown Online_.
+# Source
+Source code for the project "Toontown Next".
 
-### Contributing ###
-Don't just start contributing. We talk about what we are about to do before we do it! All changes, except for emergency bug fixes, should be done in either a separate branch, or a fork -- **not** to the master or release branches. When you are ready to merge your changes, submit a _pull request_ for review.  
+Toontown Next is a non-profit private server for Disney's closed MMO, Toontown Online.
+
+// -----------   Instructions for "installing"   -------------------------
+To ensure source runs without possible errors,
+Use the following directory structure:
+
+Main Folder/source/<source files>
+Main Folder/resources/<phase folders>

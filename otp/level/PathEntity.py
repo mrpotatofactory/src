@@ -20,8 +20,8 @@ class PathEntity(BasicEntities.NodePathEntity):
         pathTableId = GoonPathData.taskZoneId2pathId[self.level.getTaskZoneId()]
         if self.pathIndex in GoonPathData.Paths[pathTableId]:
             self.path = GoonPathData.Paths[pathTableId][self.pathIndex]
-            if __dev__:
-                messenger.send(self.getChangeEvent())
+            #if __dev__:
+            #    messenger.send(self.getChangeEvent())
         else:
             PathEntity.notify.warning('invalid pathIndex: %s' % pathIndex)
             self.path = None

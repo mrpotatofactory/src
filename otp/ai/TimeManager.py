@@ -1,20 +1,18 @@
-import base64
-from direct.directnotify import DirectNotifyGlobal
-from direct.distributed import DistributedObject
-from direct.distributed.ClockDelta import *
-from direct.showbase import GarbageReport
-from direct.showbase import PythonUtil
-from direct.showbase.DirectObject import *
-from direct.task import Task
-import os
 from pandac.PandaModules import *
-import re
-import sys
-import time
-
+from direct.showbase.DirectObject import *
+from direct.distributed.ClockDelta import *
+from direct.task import Task
+from direct.distributed import DistributedObject
+from direct.directnotify import DirectNotifyGlobal
 from otp.otpbase import OTPGlobals
-from toontown.chat.ChatGlobals import *
-
+from otp.nametag.NametagConstants import *
+from direct.showbase import PythonUtil
+from direct.showbase import GarbageReport
+import base64
+import time
+import os
+import sys
+import re
 
 class TimeManager(DistributedObject.DistributedObject):
     notify = DirectNotifyGlobal.directNotify.newCategory('TimeManager')
@@ -24,7 +22,7 @@ class TimeManager(DistributedObject.DistributedObject):
         DistributedObject.DistributedObject.__init__(self, cr)
         self.updateFreq = base.config.GetFloat('time-manager-freq', 1800)
         self.minWait = base.config.GetFloat('time-manager-min-wait', 10)
-        self.maxUncertainty = base.config.GetFloat('time-manager-max-uncertainty', 1)
+        self.maxUncertainty = base.config.GetFloat('time-manager-max-uncertainty', 0.25)
         self.maxAttempts = base.config.GetInt('time-manager-max-attempts', 5)
         self.extraSkew = base.config.GetInt('time-manager-extra-skew', 0)
         if self.extraSkew != 0:
@@ -350,3 +348,8 @@ class TimeManager(DistributedObject.DistributedObject):
 
     def checkAvOnDistrict(self, av, context):
         self.sendUpdate('checkAvOnDistrict', [context, av.doId])
+
+    def checkAvOnDistrictResult(self, context, avId, present):
+        av = self.cr.getDo(avId)
+        if av:
+            av._zombieCheckResult(context, present)

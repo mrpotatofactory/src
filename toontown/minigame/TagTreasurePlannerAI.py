@@ -1,7 +1,7 @@
 from direct.directnotify import DirectNotifyGlobal
 from toontown.toonbase.ToontownGlobals import *
 from toontown.safezone import RegenTreasurePlannerAI
-from toontown.safezone import TreasureGlobals
+from toontown.safezone import DistributedTTTreasureAI
 
 class TagTreasurePlannerAI(RegenTreasurePlannerAI.RegenTreasurePlannerAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('TagTreasurePlannerAI')
@@ -9,7 +9,7 @@ class TagTreasurePlannerAI(RegenTreasurePlannerAI.RegenTreasurePlannerAI):
     def __init__(self, zoneId, game, callback):
         self.numPlayers = 0
         self.game = game
-        RegenTreasurePlannerAI.RegenTreasurePlannerAI.__init__(self, zoneId, TreasureGlobals.TreasureTT, 'TagTreasurePlanner-' + str(zoneId), 3, 4, callback)
+        RegenTreasurePlannerAI.RegenTreasurePlannerAI.__init__(self, zoneId, DistributedTTTreasureAI.DistributedTTTreasureAI, 'TagTreasurePlanner-' + str(zoneId), 3, 4, callback)
         return None
 
     def initSpawnPoints(self):

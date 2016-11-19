@@ -17,8 +17,12 @@ class CatalogPetTrickItem(CatalogItem.CatalogItem):
         return 1
 
     def reachedPurchaseLimit(self, avatar):
-        if self in avatar.onOrder or self in avatar.mailboxContents or self in avatar.onGiftOrder or self in avatar.awardMailboxContents or self in avatar.onAwardOrder or not hasattr(avatar, 'petTrickPhrases'):
+        if not config.GetBool('want-pets', False):
             return 1
+            
+        if self in avatar.onOrder or self in avatar.mailboxContents or self in avatar.onGiftOrder or self in avatar.awardMailboxContents or self in avatar.onAwardOrder:
+            return 1
+            
         return self.trickId in avatar.petTrickPhrases
 
     def getAcceptItemErrorText(self, retcode):
@@ -52,6 +56,7 @@ class CatalogPetTrickItem(CatalogItem.CatalogItem):
         model, ival = self.makeFrameModel(pet, 0)
         pet.setScale(2.0)
         pet.setP(-40)
+        pet.setBin('gui-popup', 60)
         track = PetTricks.getTrickIval(pet, self.trickId)
         name = 'petTrick-item-%s' % self.sequenceNumber
         CatalogPetTrickItem.sequenceNumber += 1

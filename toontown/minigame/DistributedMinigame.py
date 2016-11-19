@@ -103,8 +103,7 @@ class DistributedMinigame(DistributedObject.DistributedObject):
         self.sendUpdate('setAvatarJoined', [])
         self.normalExit = 1
         count = self.modelCount
-        zoneId = 0 #TODO: Make a system for picking minigame backgrounds
-        loader.beginBulkLoad('minigame', TTLocalizer.HeadingToMinigameTitle % self.getTitle(), count, 1, TTLocalizer.TIP_MINIGAME, zoneId)
+        loader.beginBulkLoad('minigame', TTLocalizer.HeadingToMinigameTitle % self.getTitle(), count, 1, TTLocalizer.TIP_MINIGAME)
         self.load()
         loader.endBulkLoad('minigame')
         globalClock.syncFrameTime()
@@ -154,7 +153,7 @@ class DistributedMinigame(DistributedObject.DistributedObject):
         Toon.loadMinigameAnims()
 
     def onstage(self):
-        base.localAvatar.laffMeter.hide()
+        self.notify.debug('BASE: onstage')
 
         def calcMaxDuration(self = self):
             return (self.getMaxDuration() + MinigameGlobals.rulesDuration) * 1.1
@@ -238,7 +237,7 @@ class DistributedMinigame(DistributedObject.DistributedObject):
         self.notify.debug('difficulty: %s' % self.getDifficulty())
         self.__serverFinished = 0
         for avId in self.remoteAvIdList:
-            if avId not in self.cr.doId2do:
+            if not self.cr.doId2do.has_key(avId):
                 self.notify.warning('BASE: toon %s already left or has not yet arrived; waiting for server to abort the game' % avId)
                 return 1
 
@@ -291,7 +290,7 @@ class DistributedMinigame(DistributedObject.DistributedObject):
         self.frameworkFSM.request('frameworkWaitServerFinish')
 
     def getAvatar(self, avId):
-        if avId in self.cr.doId2do:
+        if self.cr.doId2do.has_key(avId):
             return self.cr.doId2do[avId]
         else:
             self.notify.warning('BASE: getAvatar: No avatar in doId2do with id: ' + str(avId))
@@ -434,7 +433,7 @@ class DistributedMinigame(DistributedObject.DistributedObject):
         if not len(startingVotesArray) == len(self.avIdList):
             self.notify.error('length does not match, startingVotes=%s, avIdList=%s' % (startingVotesArray, self.avIdList))
             return
-        for index in xrange(len(self.avIdList)):
+        for index in range(len(self.avIdList)):
             avId = self.avIdList[index]
             self.startingVotes[avId] = startingVotesArray[index]
 
@@ -442,3 +441,13 @@ class DistributedMinigame(DistributedObject.DistributedObject):
 
     def setMetagameRound(self, metagameRound):
         self.metagameRound = metagameRound
+        
+@magicWord()
+def abortMinigame():
+    """Abort any minigame you are currently in"""
+    messenger.send('minigameAbort')
+
+@magicWord()
+def winMinigame():
+    """Win the current minigame you are in."""
+    messenger.send('minigameVictory')

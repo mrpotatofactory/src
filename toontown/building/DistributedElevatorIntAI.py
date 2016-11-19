@@ -1,3 +1,5 @@
+# File: D (Python 2.4)
+
 from otp.ai.AIBase import *
 from toontown.toonbase import ToontownGlobals
 from direct.distributed.ClockDelta import *
@@ -17,8 +19,11 @@ class DistributedElevatorIntAI(DistributedElevatorAI.DistributedElevatorAI):
         self.countdownTime = simbase.config.GetFloat('int-elevator-timeout', INTERIOR_ELEVATOR_COUNTDOWN_TIME)
         self.avIds = copy.copy(avIds)
         for avId in avIds:
-            self.acceptOnce(self.air.getAvatarExitEvent(avId), self.__handleAllAvsUnexpectedExit, extraArgs = [ avId])
+            self.acceptOnce(self.air.getAvatarExitEvent(avId), self._DistributedElevatorIntAI__handleAllAvsUnexpectedExit, extraArgs = [
+                avId])
+        
 
+    
     def checkBoard(self, av):
         result = 0
         if av.doId not in self.avIds:
@@ -27,19 +32,23 @@ class DistributedElevatorIntAI(DistributedElevatorAI.DistributedElevatorAI):
             result = DistributedElevatorAI.DistributedElevatorAI.checkBoard(self, av)
         return result
 
+    
     def acceptBoarder(self, avId, seatIndex, wantBoardingShow = 0):
         DistributedElevatorAI.DistributedElevatorAI.acceptBoarder(self, avId, seatIndex, wantBoardingShow)
-        self.__closeIfNecessary()
+        self._DistributedElevatorIntAI__closeIfNecessary()
 
-    def __closeIfNecessary(self):
+    
+    def _DistributedElevatorIntAI__closeIfNecessary(self):
         numFullSeats = self.countFullSeats()
         if not numFullSeats <= len(self.avIds):
             self.notify.warning('we are about to crash. self.seats=%s self.avIds=%s' % (self.seats, self.avIds))
         
         if numFullSeats == len(self.avIds):
             self.fsm.request('allAboard')
+        
 
-    def __handleAllAvsUnexpectedExit(self, avId):
+    
+    def _DistributedElevatorIntAI__handleAllAvsUnexpectedExit(self, avId):
         self.notify.warning('Avatar: ' + str(avId) + ' has exited unexpectedly')
         seatIndex = self.findAvatar(avId)
         avIdCount = self.avIds.count(avId)
@@ -54,57 +63,77 @@ class DistributedElevatorIntAI(DistributedElevatorAI.DistributedElevatorAI):
         else:
             self.clearFullNow(seatIndex)
             self.clearEmptyNow(seatIndex)
-        self.__closeIfNecessary()
+        self._DistributedElevatorIntAI__closeIfNecessary()
 
+    
     def acceptExiter(self, avId):
         seatIndex = self.findAvatar(avId)
         if seatIndex == None:
             pass
+        1
         self.clearFullNow(seatIndex)
-        self.sendUpdate('emptySlot' + str(seatIndex), [avId, 0,
-            globalClockDelta.getRealNetworkTime(), self.countdownTime])
+        self.sendUpdate('emptySlot' + str(seatIndex), [
+            avId,
+            0,
+            globalClockDelta.getRealNetworkTime(),
+            self.countdownTime])
         taskMgr.doMethodLater(TOON_EXIT_ELEVATOR_TIME, self.clearEmptyNow, self.uniqueName('clearEmpty-%s' % seatIndex), extraArgs = (seatIndex,))
 
+    
     def d_forcedExit(self, avId):
-        self.sendUpdateToAvatarId(avId, 'forcedExit', [avId])
+        self.sendUpdateToAvatarId(avId, 'forcedExit', [
+            avId])
 
+    
     def requestBuildingExit(self):
         avId = self.air.getAvatarIdFromSender()
         self.notify.debug('requestBuildingExit from %d' % avId)
         if self.accepting:
             if avId in self.avIds:
                 self.avIds.remove(avId)
-                self.__closeIfNecessary()
+                self._DistributedElevatorIntAI__closeIfNecessary()
             else:
                 self.notify.warning('avId: %s not known, but tried to exit the building' % avId)
+        
 
+    
     def enterOpening(self):
         DistributedElevatorAI.DistributedElevatorAI.enterOpening(self)
         taskMgr.doMethodLater(ElevatorData[ELEVATOR_NORMAL]['openTime'], self.waitCountdownTask, self.uniqueName('opening-timer'))
 
+    
     def waitCountdownTask(self, task):
         self.fsm.request('waitCountdown')
         return Task.done
 
+    
     def enterWaitCountdown(self):
         DistributedElevatorAI.DistributedElevatorAI.enterWaitCountdown(self)
         taskMgr.doMethodLater(self.countdownTime + BattleBase.SERVER_BUFFER_TIME, self.timeToGoTask, self.uniqueName('countdown-timer'))
 
+    
     def timeToGoTask(self, task):
         self.allAboard()
         return Task.done
 
+    
     def allAboard(self):
         if len(self.avIds) == 0:
-            self.bldg.handleAllAboard([None, None, None, None])
+            self.bldg.handleAllAboard([
+                None,
+                None,
+                None,
+                None])
         else:
             self.fsm.request('allAboard')
 
+    
     def enterAllAboard(self):
         for avId in self.avIds:
             if self.findAvatar(avId) == None:
                 self.d_forcedExit(avId)
                 continue
+        
         DistributedElevatorAI.DistributedElevatorAI.enterAllAboard(self)
         if self.timeOfBoarding != None:
             currentTime = globalClock.getRealTime()
@@ -115,22 +144,29 @@ class DistributedElevatorIntAI(DistributedElevatorAI.DistributedElevatorAI):
         else:
             self.fsm.request('closing')
 
+    
     def closeTask(self, task):
         self.fsm.request('closing')
         return Task.done
 
+    
     def enterClosing(self):
         DistributedElevatorAI.DistributedElevatorAI.enterClosing(self)
         taskMgr.doMethodLater(ElevatorData[ELEVATOR_NORMAL]['closeTime'] + BattleBase.SERVER_BUFFER_TIME, self.elevatorClosedTask, self.uniqueName('closing-timer'))
 
+    
     def elevatorClosedTask(self, task):
         self.fsm.request('closed')
         return Task.done
 
-    def __doorsClosed(self):
+    
+    def _DistributedElevatorIntAI__doorsClosed(self):
         self.bldg.handleAllAboard(self.seats)
         self.fsm.request('closed')
 
+    
     def enterClosed(self):
         DistributedElevatorAI.DistributedElevatorAI.enterClosed(self)
-        self.__doorsClosed()
+        self._DistributedElevatorIntAI__doorsClosed()
+
+

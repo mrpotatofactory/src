@@ -127,7 +127,9 @@ class SpecialsPhoto(NodePath):
         rotate = pitch.attachNewNode('rotate')
         scale = rotate.attachNewNode('scale')
         actor.reparentTo(scale)
-        bMin, bMax = actor.getTightBounds()
+        bMin = Point3()
+        bMax = Point3()
+        actor.calcTightBounds(bMin, bMax)
         center = (bMin + bMax) / 2.0
         actor.setPos(-center[0], -center[1], -center[2])
         pitch.setY(2.5)
@@ -170,7 +172,6 @@ class SpecialsPhoto(NodePath):
                 nodePath.setColorScale(colorTuple[0], colorTuple[1], colorTuple[2], 1.0)
             nodePath.setScale(GardenGlobals.Specials[specialsIndex]['photoScale'] * 0.5)
             return nodePath
-        return
 
     def show(self, showBackground = 0):
         self.notify.debug('show')

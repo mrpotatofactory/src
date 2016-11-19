@@ -1,21 +1,16 @@
-from direct.directnotify import DirectNotifyGlobal
 from direct.interval.IntervalGlobal import *
-import random
-
-import BattleParticles
 from BattleProps import *
 from BattleSounds import *
-import HealJokes
+from direct.directnotify import DirectNotifyGlobal
 import MovieCamera
+import random
 import MovieUtil
-from toontown.chat.ChatGlobals import *
-from toontown.nametag.NametagGlobals import *
-from toontown.toon import LaughingManGlobals
-from toontown.toon import NPCToons
+import BattleParticles
+import HealJokes
 from toontown.toonbase import TTLocalizer
 from toontown.toonbase import ToontownBattleGlobals
-
-
+from otp.nametag.NametagConstants import *
+from toontown.toon import NPCToons
 notify = DirectNotifyGlobal.directNotify.newCategory('MovieNPCSOS')
 soundFiles = ('AA_heal_tickle.ogg', 'AA_heal_telljoke.ogg', 'AA_heal_smooch.ogg', 'AA_heal_happydance.ogg', 'AA_heal_pixiedust.ogg', 'AA_heal_juggle.ogg')
 offset = Point3(0, 4.0, 0)
@@ -92,61 +87,31 @@ def __getSoundTrack(level, delay, duration = None, node = None):
 
 
 def teleportIn(attack, npc, pos = Point3(0, 0, 0), hpr = Vec3(180.0, 0.0, 0.0)):
-    if npc.getName() == 'Magic Cat':
-        LaughingManGlobals.addToonEffect(npc)
-        npc.nametag3d.hide()
     a = Func(npc.reparentTo, attack['battle'])
     b = Func(npc.setPos, pos)
     c = Func(npc.setHpr, hpr)
     d = Func(npc.pose, 'teleport', npc.getNumFrames('teleport') - 1)
     e = npc.getTeleportInTrack()
     ee = Func(npc.addActive)
-    if npc.getName() == 'Trap Cat':
-        f = Func(npc.setChatAbsolute, 'We are team trap! Fear me %s' % attack['toon'].getName() + ' for I am the Notorious T-Cat', CFSpeech | CFTimeout)
-    else:
-        f = Func(npc.setChatAbsolute, TTLocalizer.MovieNPCSOSGreeting % attack['toon'].getName(), CFSpeech | CFTimeout)
-    if npc.getName() == 'Trap Cat':
-        g = ActorInterval(npc, 'angry')
-    else:
-        g = ActorInterval(npc, 'wave')
+    greeting = TTLocalizer.MovieNPCSOSGreetings.get(attack['npcId'], TTLocalizer.MovieNPCSOSGreeting) % attack['toon'].getName()
+    f = Func(npc.setChatAbsolute, greeting, CFSpeech | CFTimeout)
+    g = ActorInterval(npc, 'wave')
     h = Func(npc.loop, 'neutral')
-    seq = Sequence(a, b, c, d, e, ee, f, g, h)
-    if npc.getName() == 'Trap Cat':
-        seq.append(Wait(3))
-    seq.append(Func(npc.clearChat))
-    if npc.getName() == 'Magic Cat':
-        magicCatTrack = Sequence()
-        magicCatTrack.append(Func(npc.setChatAbsolute, "I've got this, so start dancing!", CFSpeech | CFTimeout))
-        magicCatTrack.append(Func(attack['toon'].loop, 'victory'))
-        seq.append(magicCatTrack)
-    return seq
+    i = Func(npc.clearChat)
+    return Sequence(a, b, c, d, e, ee, f, g, h, i)
 
 
 def teleportOut(attack, npc):
-    if npc.getName() == 'Trap Cat':
-        a = ActorInterval(npc, 'neutral')
+    if npc.style.getGender() == 'm':
+        a = ActorInterval(npc, 'bow')
     else:
-        if npc.style.getGender() == 'm':
-            a = ActorInterval(npc, 'bow')
-        else:
-            a = ActorInterval(npc, 'curtsy')
-    if npc.getName() == 'Trap Cat':
-        b = Func(npc.setChatAbsolute, 'Drat, my hacks failed... Oh well, I will just disconnect you all!', CFSpeech | CFTimeout)
-    else:
-        b = Func(npc.setChatAbsolute, TTLocalizer.MovieNPCSOSGoodbye, CFSpeech | CFTimeout)
-    if npc.getName() == 'Trap Cat':
-        c = Func(npc.loop, 'neutral')
-    else:
-        c = npc.getTeleportOutTrack()
-    seq = Sequence(a, b, c)
-    if npc.getName() == 'Trap Cat':
-        seq.append(Wait(3))
-    seq.append(Func(npc.removeActive))
-    seq.append(Func(npc.detachNode))
-    seq.append(Func(npc.delete))
-    if npc.getName() == 'Trap Cat':
-        seq.append(Wait(3))
-    return seq
+        a = ActorInterval(npc, 'curtsy')
+    b = Func(npc.setChatAbsolute, TTLocalizer.MovieNPCSOSGoodbye, CFSpeech | CFTimeout)
+    c = npc.getTeleportOutTrack()
+    d = Func(npc.removeActive)
+    e = Func(npc.detachNode)
+    f = Func(npc.delete)
+    return Sequence(a, b, c, d, e, f)
 
 
 def __getPartTrack(particleEffect, startDelay, durationDelay, partExtraArgs):
@@ -238,7 +203,13 @@ def __doSmooch(attack, hp = 0):
 def __doToonsHit(attack, level, hp):
     track = __doSprinkle(attack, 'toons', hp)
     pbpText = attack['playByPlayText']
-    pbpTrack = pbpText.getShowInterval(TTLocalizer.MovieNPCSOSToonsHit, track.getDuration())
+    
+    if level == ToontownBattleGlobals.UNIOR_FUCK_TOONS:
+        pbpTrack = pbpText.getShowInterval(TTLocalizer.MovieNPCSOSUnior, track.getDuration())
+        
+    else:
+        pbpTrack = pbpText.getShowInterval(TTLocalizer.MovieNPCSOSToonsHit, track.getDuration())
+        
     return (track, pbpTrack)
 
 
@@ -268,6 +239,8 @@ def __doRestockGags(attack, level, hp):
         text = TTLocalizer.MovieNPCSOSDrop
     elif level == -1:
         text = TTLocalizer.MovieNPCSOSAll
+    elif level == -2:
+        text = TTLocalizer.MovieNPCSOSNone
     pbpTrack = pbpText.getShowInterval(TTLocalizer.MovieNPCSOSRestockGags % text, track.getDuration())
     return (track, pbpTrack)
 
@@ -278,7 +251,7 @@ def doNPCTeleports(attacks):
     arrivals = Sequence()
     departures = Parallel()
     for attack in attacks:
-        if 'npcId' in attack:
+        if attack.has_key('npcId'):
             npcId = attack['npcId']
             npc = NPCToons.createLocalNPC(npcId)
             if npc != None:

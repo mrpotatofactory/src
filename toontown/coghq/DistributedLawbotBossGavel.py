@@ -1,3 +1,5 @@
+# File: D (Python 2.4)
+
 from direct.gui.DirectGui import *
 from pandac.PandaModules import *
 from direct.interval.IntervalGlobal import *
@@ -13,7 +15,7 @@ from direct.actor import Actor
 
 class DistributedLawbotBossGavel(DistributedObject.DistributedObject, FSM.FSM):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedLawbotBossGavel')
-
+    
     def __init__(self, cr):
         DistributedObject.DistributedObject.__init__(self, cr)
         FSM.FSM.__init__(self, 'DistributedLawbotBossGavel')
@@ -28,8 +30,8 @@ class DistributedLawbotBossGavel(DistributedObject.DistributedObject, FSM.FSM):
         self.downTime = 0.5
         self.upTime = 5
         self.gavelSfx = None
-        return
 
+    
     def announceGenerate(self):
         self.notify.debug('announceGenerate: %s' % self.doId)
         DistributedObject.DistributedObject.announceGenerate(self)
@@ -45,11 +47,13 @@ class DistributedLawbotBossGavel(DistributedObject.DistributedObject, FSM.FSM):
         self.stayDownTime = ToontownGlobals.LawbotBossGavelTimes[self.index][2]
         self.boss.gavels[self.index] = self
 
+    
     def delete(self):
         DistributedObject.DistributedObject.delete(self)
         loader.unloadModel(self.modelPath)
         self.nodePath.removeNode()
 
+    
     def loadModel(self, modelPath, modelFindString = None):
         if self.nodePath == None:
             self.makeNodePath()
@@ -58,6 +62,7 @@ class DistributedLawbotBossGavel(DistributedObject.DistributedObject, FSM.FSM):
         model = loader.loadModel(modelPath)
         if modelFindString != None:
             modTel = model.find('**/' + modelFindString)
+        
         parts = model.findAllMatches('**/gavel*')
         gavelTop = model.find('**/top*')
         gavelHandle = model.find('**/handle*')
@@ -65,8 +70,8 @@ class DistributedLawbotBossGavel(DistributedObject.DistributedObject, FSM.FSM):
         self.attachColTube()
         self.scale = 3.0
         self.nodePath.setScale(self.scale)
-        return
 
+    
     def attachColTube(self):
         gavelTop = self.nodePath.find('**/top*')
         self.gavelTop = gavelTop
@@ -92,32 +97,37 @@ class DistributedLawbotBossGavel(DistributedObject.DistributedObject, FSM.FSM):
         handleCollNode.setName('GavelHandleZap')
         self.handleCollNodePath = self.nodePath.attachNewNode(handleCollNode)
 
+    
     def makeNodePath(self):
         self.nodePath = Actor.Actor()
         self.gavel = self.nodePath.attachNewNode('myGavel')
 
+    
     def disable(self):
         DistributedObject.DistributedObject.disable(self)
         self.nodePath.detachNode()
         if self.ival:
             self.ival.finish()
             self.ival = None
+        
         self.ignoreAll()
         del self.boss.gavels[self.index]
         self.cleanup()
-        return
 
+    
     def cleanup(self):
         self.boss = None
-        return
 
+    
     def setBossCogId(self, bossCogId):
         self.bossCogId = bossCogId
         self.boss = base.cr.doId2do[bossCogId]
 
+    
     def setIndex(self, index):
         self.index = index
 
+    
     def setState(self, state):
         avId = 0
         if state == 'C':
@@ -129,38 +139,46 @@ class DistributedLawbotBossGavel(DistributedObject.DistributedObject, FSM.FSM):
         else:
             self.notify.error('Invalid state from AI: %s' % state)
 
+    
     def enterOn(self):
         self.notify.debug('enterOn for gavel %d' % self.index)
         myHeadings = ToontownGlobals.LawbotBossGavelHeadings[self.index]
         seqName = 'LawbotBossGavel-%s' % self.doId
-        self.ival = Sequence(name=seqName)
+        self.ival = Sequence(name = seqName)
         downAngle = -80
-        for index in xrange(len(myHeadings)):
+        for index in range(len(myHeadings)):
             nextIndex = index + 1
             if nextIndex == len(myHeadings):
                 nextIndex = 0
-            goingDown = self.nodePath.hprInterval(self.downTime, Point3(myHeadings[index] + self.origHpr[0], downAngle, self.origHpr[2]), startHpr=Point3(myHeadings[index] + self.origHpr[0], 0, self.origHpr[2]))
+            
+            goingDown = self.nodePath.hprInterval(self.downTime, Point3(myHeadings[index] + self.origHpr[0], downAngle, self.origHpr[2]), startHpr = Point3(myHeadings[index] + self.origHpr[0], 0, self.origHpr[2]))
             self.ival.append(goingDown)
-            self.ival.append(SoundInterval(self.gavelSfx, node=self.gavelTop))
+            self.ival.append(SoundInterval(self.gavelSfx, node = self.gavelTop))
             self.ival.append(Wait(self.stayDownTime))
-            goingUp = self.nodePath.hprInterval(self.upTime, Point3(myHeadings[nextIndex] + self.origHpr[0], 0, self.origHpr[2]), startHpr=Point3(myHeadings[index] + self.origHpr[0], downAngle, self.origHpr[2]))
+            goingUp = self.nodePath.hprInterval(self.upTime, Point3(myHeadings[nextIndex] + self.origHpr[0], 0, self.origHpr[2]), startHpr = Point3(myHeadings[index] + self.origHpr[0], downAngle, self.origHpr[2]))
             self.ival.append(goingUp)
-
+        
         self.ival.loop()
-        self.accept('enterGavelZap', self.__touchedGavel)
-        self.accept('enterGavelHandleZap', self.__touchedGavelHandle)
+        self.accept('enterGavelZap', self._DistributedLawbotBossGavel__touchedGavel)
+        self.accept('enterGavelHandleZap', self._DistributedLawbotBossGavel__touchedGavelHandle)
 
+    
     def enterOff(self):
         if self.ival:
             self.ival.finish()
+        
         tempTuple = ToontownGlobals.LawbotBossGavelPosHprs[self.index]
         self.nodePath.setPosHpr(*tempTuple)
 
-    def __touchedGavel(self, entry):
+    
+    def _DistributedLawbotBossGavel__touchedGavel(self, entry):
         self.notify.debug('__touchedGavel')
         self.notify.debug('self=%s entry=%s' % (self, entry))
         self.boss.touchedGavel(self, entry)
 
-    def __touchedGavelHandle(self, entry):
+    
+    def _DistributedLawbotBossGavel__touchedGavelHandle(self, entry):
         self.notify.debug('__touchedGavelHandle')
         self.boss.touchedGavelHandle(self, entry)
+
+

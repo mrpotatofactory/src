@@ -20,7 +20,7 @@ class DistributedNPCFishermanAI(DistributedNPCToonBaseAI):
 
     def avatarEnter(self):
         avId = self.air.getAvatarIdFromSender()
-        if avId not in self.air.doId2do:
+        if not self.air.doId2do.has_key(avId):
             self.notify.warning('Avatar: %s not found' % avId)
             return
         if self.isBusy():
@@ -72,8 +72,6 @@ class DistributedNPCFishermanAI(DistributedNPCToonBaseAI):
         if sell:
             av = simbase.air.doId2do.get(avId)
             if av:
-
-                #maybe: recreate Disney-style fishManager that does the above code?
                 trophyResult = self.air.fishManager.creditFishTank(av)
                 if trophyResult:
                     movieType = NPCToons.SELL_MOVIE_TROPHY

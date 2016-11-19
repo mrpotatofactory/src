@@ -1,14 +1,12 @@
+from direct.distributed import DistributedObjectAI
+from direct.directnotify import DirectNotifyGlobal
+from toontown.toonbase import ToontownGlobals
+from pandac.PandaModules import *
+import BuildGeometry
+import random, time
 from math import *
 import math
-import random, time
-
-import BuildGeometry
-from direct.directnotify import DirectNotifyGlobal
-from direct.distributed import DistributedObjectAI
-from pandac.PandaModules import *
 from toontown.golf import PhysicsWorldBase
-from toontown.toonbase import ToontownGlobals
-
 
 class DistributedPhysicsWorldAI(DistributedObjectAI.DistributedObjectAI, PhysicsWorldBase.PhysicsWorldBase):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedPhysicsWorldAI')
@@ -56,11 +54,10 @@ class DistributedPhysicsWorldAI(DistributedObjectAI.DistributedObjectAI, Physics
             self.doAction()
 
     def setupCommonObjects(self):
-        print self.commonHoldData
         if not self.commonHoldData:
             return
         elif self.commonHoldData[0][1] == 99:
-            print 'no common objects'
+            pass
         else:
             self.useCommonObjectData(self.commonHoldData, 0)
 

@@ -1,16 +1,14 @@
-from direct.gui.DirectGui import *
-from direct.interval.LerpInterval import LerpPosHprInterval
-from direct.task.Task import Task
 from pandac.PandaModules import *
-import time
-
+from direct.interval.LerpInterval import LerpPosHprInterval
+from otp.nametag.NametagConstants import *
 from DistributedNPCToonBase import *
+from direct.gui.DirectGui import *
+from pandac.PandaModules import *
 import NPCToons
-from toontown.chat.ChatGlobals import *
-from toontown.fishing import FishSellGUI
-from toontown.nametag.NametagGlobals import *
 from toontown.toonbase import TTLocalizer
-
+from toontown.fishing import FishSellGUI
+from direct.task.Task import Task
+import time
 
 class DistributedNPCFisherman(DistributedNPCToonBase):
 

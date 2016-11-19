@@ -1,24 +1,22 @@
-import cPickle
-import random
-
-import ToonInterior
-import ToonInteriorColors
-from direct.directnotify import DirectNotifyGlobal
-from direct.distributed import DistributedObject
-from direct.distributed.ClockDelta import *
-from direct.fsm import ClassicFSM, State
-from direct.fsm import State
-from direct.interval.IntervalGlobal import *
-from otp.speedchat import SpeedChatGlobals
+from toontown.toonbase.ToonBaseGlobal import *
 from pandac.PandaModules import *
-from toontown.dna.DNAParser import DNADoor
+from direct.interval.IntervalGlobal import *
+from direct.distributed.ClockDelta import *
+from toontown.toonbase import ToontownGlobals
+import cPickle
+import ToonInterior
+from direct.directnotify import DirectNotifyGlobal
+from direct.fsm import ClassicFSM, State
+from direct.distributed import DistributedObject
+from direct.fsm import State
+import random
+import ToonInteriorColors
+import ToonInteriorTextures
+from toontown.dna.DNAParser import *
 from toontown.hood import ZoneUtil
 from toontown.toon import ToonDNA
 from toontown.toon import ToonHead
-from toontown.toon.DistributedNPCToonBase import DistributedNPCToonBase
-from toontown.toonbase import ToontownGlobals
-from toontown.toonbase.ToonBaseGlobal import *
-
+from otp.speedchat import SpeedChatGlobals
 
 SIGN_LEFT = -4
 SIGN_RIGHT = 4
@@ -60,7 +58,7 @@ class DistributedToonInterior(DistributedObject.DistributedObject):
     def replaceRandomInModel(self, model):
         baseTag = 'random_'
         npc = model.findAllMatches('**/' + baseTag + '???_*')
-        for i in xrange(npc.getNumPaths()):
+        for i in range(npc.getNumPaths()):
             np = npc.getPath(i)
             name = np.getName()
             b = len(baseTag)
@@ -75,8 +73,8 @@ class DistributedToonInterior(DistributedObject.DistributedObject):
                 if key2 == 'r':
                     self.replaceRandomInModel(newNP)
             elif key1 == 't':
-                texture = self.randomDNAItem(category, self.dnaStore.findTexture)
-                np.setTexture(texture, 100)
+                texture = self.randomGenerator.choice(self.textures[category])
+                np.setTexture(loader.loadTexture(texture), 100)
                 newNP = np
             if key2 == 'c':
                 if category == 'TI_wallpaper' or category == 'TI_wallpaper_border':
@@ -92,6 +90,7 @@ class DistributedToonInterior(DistributedObject.DistributedObject):
         interior = self.randomDNAItem('TI_room', self.dnaStore.findNode)
         self.interior = interior.copyTo(render)
         hoodId = ZoneUtil.getCanonicalHoodId(self.zoneId)
+        self.textures = ToonInteriorTextures.textures[hoodId]
         self.colors = ToonInteriorColors.colors[hoodId]
         self.replaceRandomInModel(self.interior)
         doorModelName = 'door_double_round_ul'
@@ -105,11 +104,11 @@ class DistributedToonInterior(DistributedObject.DistributedObject):
         door_origin.setScale(0.8, 0.8, 0.8)
         door_origin.setPos(door_origin, 0, -0.025, 0)
         color = self.randomGenerator.choice(self.colors['TI_door'])
-        DNADoor.setupDoor(doorNP, self.interior, door_origin, self.dnaStore, str(self.block), color)
+        setupDoor(doorNP, self.interior, door_origin, self.dnaStore, str(self.block), color)
         doorFrame = doorNP.find('door_*_flat')
         doorFrame.wrtReparentTo(self.interior)
         doorFrame.setColor(color)
-        sign = hidden.find('**/tb%s:*_landmark_*_DNARoot/**/sign;+s' % (self.block,))
+        sign = hidden.find('**/tb%s:*_landmark_*_DNARoot/**/sign;+s' % (self.block - 500,))
         if not sign.isEmpty():
             signOrigin = self.interior.find('**/sign_origin;+s')
             newSignNP = sign.copyTo(signOrigin)
@@ -140,8 +139,30 @@ class DistributedToonInterior(DistributedObject.DistributedObject):
         del self.dnaStore
         del self.randomGenerator
         self.interior.flattenMedium()
-        for npcToon in self.cr.doFindAllInstances(DistributedNPCToonBase):
-            npcToon.initToonState()
+        
+        '''snowmanHeadInteriors = [
+            2740, # TTC, Loopy Lane, Used Firecrackers
+            4652, # MML, Alto Avenue, Full Stop Shop
+            9608, # DDL, non-HQ street, Cat Nip For Cat Naps
+            5710, # DG, Maple Street, Tuft Guy Gym
+            1711, # DD, Seaweed Street, Deep-Sea Diner
+            3620, # TB, Walrus Way, Skiing Clinic
+        ]
+        snowmanInteriorPhrase = {
+            snowmanHeadInteriors[0] : 30225,
+            snowmanHeadInteriors[1] : 30224,
+            snowmanHeadInteriors[2] : 30221,
+            snowmanHeadInteriors[3] : 30220,
+            snowmanHeadInteriors[4] : 30222,
+            snowmanHeadInteriors[5] : 30223,
+        }
+        if self.zoneId in snowmanHeadInteriors:
+            def phraseSaid(phraseId):
+                phraseNeeded = snowmanInteriorPhrase.get(self.zoneId)
+
+                if phraseId == phraseNeeded:
+                    self.sendUpdate('nextSnowmanHeadPart', [])
+            self.accept(SpeedChatGlobals.SCStaticTextMsgEvent, phraseSaid)'''
 
     def setZoneIdAndBlock(self, zoneId, block):
         self.zoneId = zoneId

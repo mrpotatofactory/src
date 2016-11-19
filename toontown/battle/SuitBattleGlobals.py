@@ -76,14 +76,14 @@ def pickSuitAttack(attacks, suitLevel):
     if configAttackName == 'random':
         return attackNum
     elif configAttackName == 'sequence':
-        for i in xrange(len(attacks)):
-            if  attacks[i] not in debugAttackSequence:
+        for i in range(len(attacks)):
+            if not debugAttackSequence.has_key(attacks[i]):
                 debugAttackSequence[attacks[i]] = 1
                 return i
 
         return attackNum
     else:
-        for i in xrange(len(attacks)):
+        for i in range(len(attacks)):
             if attacks[i][0] == configAttackName:
                 return i
 
@@ -3022,7 +3022,7 @@ WITHDRAWAL = SuitAttacks.keys().index('Withdrawal')
 WRITE_OFF = SuitAttacks.keys().index('WriteOff')
 
 def getFaceoffTaunt(suitName, doId):
-    if suitName in SuitFaceoffTaunts:
+    if SuitFaceoffTaunts.has_key(suitName):
         taunts = SuitFaceoffTaunts[suitName]
     else:
         taunts = TTLocalizer.SuitFaceoffDefaultTaunts
@@ -3037,7 +3037,7 @@ def getAttackTauntIndexFromIndex(suit, attackIndex):
 
 
 def getAttackTauntIndex(attackName):
-    if attackName in SuitAttackTaunts:
+    if SuitAttackTaunts.has_key(attackName):
         taunts = SuitAttackTaunts[attackName]
         return random.randint(0, len(taunts) - 1)
     else:
@@ -3045,7 +3045,7 @@ def getAttackTauntIndex(attackName):
 
 
 def getAttackTaunt(attackName, index = None):
-    if attackName in SuitAttackTaunts:
+    if SuitAttackTaunts.has_key(attackName):
         taunts = SuitAttackTaunts[attackName]
     else:
         taunts = TTLocalizer.SuitAttackDefaultTaunts

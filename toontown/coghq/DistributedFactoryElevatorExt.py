@@ -38,7 +38,11 @@ class DistributedFactoryElevatorExt(DistributedElevatorExt.DistributedElevatorEx
         self.elevatorModel.reparentTo(render)
         self.elevatorModel.setScale(1.05)
         self.leftDoor = self.elevatorModel.find('**/left-door')
+        if self.leftDoor.isEmpty():
+            self.leftDoor = self.elevatorModel.find('**/left_door')
         self.rightDoor = self.elevatorModel.find('**/right-door')
+        if self.rightDoor.isEmpty():
+            self.rightDoor = self.elevatorModel.find('**/right_door')
         self.elevatorModel.find('**/light_panel').removeNode()
         self.elevatorModel.find('**/light_panel_frame').removeNode()
         DistributedElevator.DistributedElevator.setupElevator(self)

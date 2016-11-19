@@ -1,22 +1,20 @@
-import copy
-from direct.controls.ControlManager import CollisionHandlerRayStart
+from pandac.PandaModules import *
+from direct.interval.IntervalGlobal import *
+from otp.avatar import Avatar
+from otp.nametag.NametagConstants import *
+from toontown.char import CharDNA
+from toontown.char import DistributedChar
 from direct.directnotify import DirectNotifyGlobal
 from direct.fsm import ClassicFSM
 from direct.fsm import State
-from direct.interval.IntervalGlobal import *
-from pandac.PandaModules import *
-import string
-
-import CCharChatter
-import CCharPaths
-from otp.avatar import Avatar
-from toontown.char import CharDNA
-from toontown.char import DistributedChar
-from toontown.chat.ChatGlobals import *
-from toontown.effects import DustCloud
+from direct.controls.ControlManager import CollisionHandlerRayStart
 from toontown.toonbase import ToontownGlobals
 from toontown.toonbase.TTLocalizer import Donald, DonaldDock, WesternPluto, Pluto
-
+from toontown.effects import DustCloud
+import CCharChatter
+import CCharPaths
+import string
+import copy
 
 class DistributedCCharBase(DistributedChar.DistributedChar):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedCCharBase')
@@ -39,7 +37,9 @@ class DistributedCCharBase(DistributedChar.DistributedChar):
         self.diffPath = None
         self.transitionToCostume = 0
         self.__initCollisions()
-        return
+    
+    def announceGenerate(self):
+        DistributedChar.DistributedChar.announceGenerate(self)
 
     def __initCollisions(self):
         self.cSphere = CollisionSphere(0.0, 0.0, 0.0, 8.0)
@@ -137,7 +137,8 @@ class DistributedCCharBase(DistributedChar.DistributedChar):
         self.acceptOnce('enter' + self.cSphereNode.getName(), self.__handleCollisionSphereEnter)
 
     def __handleChatUpdate(self, msg, chatFlags):
-        self.sendUpdate('setNearbyAvatarChat', [msg])
+        # GG Disney, msg is not even used by AI
+        self.sendUpdate('setNearbyAvatarChat', [''])
 
     def __handleChatUpdateSC(self, msgIndex):
         self.sendUpdate('setNearbyAvatarSC', [msgIndex])
@@ -168,7 +169,7 @@ class DistributedCCharBase(DistributedChar.DistributedChar):
         return turnTracks
 
     def setChat(self, category, msg, avId):
-        if avId in self.cr.doId2do:
+        if self.cr.doId2do.has_key(avId):
             avatar = self.cr.doId2do[avId]
             chatter = CCharChatter.getChatter(self.getName(), self.getCCChatter())
             if category >= len(chatter):

@@ -3,6 +3,7 @@ from toontown.toonbase import TTLocalizer
 from direct.showbase import PythonUtil
 from direct.gui.DirectGui import *
 from toontown.toonbase import ToontownGlobals
+from CatalogItemList import CatalogItemList
 
 class CatalogAtticItem(CatalogItem.CatalogItem):
 
@@ -17,16 +18,22 @@ class CatalogAtticItem(CatalogItem.CatalogItem):
         if not houseId:
             self.notify.warning('Avatar %s has no houseId associated.' % avatar.doId)
             return (None, ToontownGlobals.P_InvalidIndex)
+            
         house = simbase.air.doId2do.get(houseId)
         if not house:
             self.notify.warning('House %s (for avatar %s) not instantiated.' % (houseId, avatar.doId))
             return (None, ToontownGlobals.P_InvalidIndex)
-        numAtticItems = len(house.atticItems) + len(house.atticWallpaper) + len(house.atticWindows)
-        numHouseItems = numAtticItems + len(house.interiorItems)
-        if numHouseItems >= ToontownGlobals.MaxHouseItems and not self.replacesExisting():
+            
+        mgr = house.interior.furnitureManager
+        attic = (mgr.atticItems, mgr.atticWallpaper, mgr.atticWindows)
+        numHouseItems = len(CatalogItemList(house.getInteriorItems(), store=CatalogItem.Customization | CatalogItem.Location))
+        numAtticItems = sum(len(x) for x in attic)
+        
+        if (numAtticItems + numHouseItems) >= ToontownGlobals.MaxHouseItems and not self.replacesExisting():
             return (house, ToontownGlobals.P_NoRoomForItem)
+            
         return (house, ToontownGlobals.P_ItemAvailable)
-
+	
     def requestPurchase(self, phone, callback):
         from toontown.toontowngui import TTDialog
         avatar = base.localAvatar
@@ -35,7 +42,7 @@ class CatalogAtticItem(CatalogItem.CatalogItem):
             if item.storedInAttic() and not item.replacesExisting():
                 itemsOnOrder += 1
 
-        numHouseItems = phone.numHouseItems + itemsOnOrder
+        numHouseItems = phone.numHouseItems + 1
         if numHouseItems >= ToontownGlobals.MaxHouseItems and not self.replacesExisting():
             self.requestPurchaseCleanup()
             buttonCallback = PythonUtil.Functor(self.__handleFullPurchaseDialog, phone, callback)

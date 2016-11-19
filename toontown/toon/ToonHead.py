@@ -48,26 +48,6 @@ DogMuzzleDict = {'dls': '/models/char/dogMM_Shorts-headMuzzles-',
  'dsl': '/models/char/dogSS_Shorts-headMuzzles-',
  'dll': '/models/char/dogLL_Shorts-headMuzzles-'}
 
-PreloadHeads = {}
-
-def preloadToonHeads():
-    global PreloadHeads
-    if not PreloadHeads:
-        print 'Preloading Toon heads...'
-        for key in HeadDict.keys():
-            fileRoot = HeadDict[key]
-
-            PreloadHeads['phase_3' + fileRoot + '1000'] = loader.loadModel('phase_3' + fileRoot + '1000')
-            PreloadHeads['phase_3' + fileRoot + '1000'].flattenMedium()
-
-            PreloadHeads['phase_3' + fileRoot + '500'] = loader.loadModel('phase_3' + fileRoot + '500')
-            PreloadHeads['phase_3' + fileRoot + '500'].flattenMedium()
-
-            PreloadHeads['phase_3' + fileRoot + '250'] = loader.loadModel('phase_3' + fileRoot + '250')
-            PreloadHeads['phase_3' + fileRoot + '250'].flattenMedium()
-
-preloadToonHeads()
-
 class ToonHead(Actor.Actor):
     notify = DirectNotifyGlobal.directNotify.newCategory('ToonHead')
     EyesOpen = loader.loadTexture('phase_3/maps/eyes.jpg', 'phase_3/maps/eyes_a.rgb')
@@ -243,7 +223,6 @@ class ToonHead(Actor.Actor):
         return
 
     def generateToonHead(self, copy, style, lods, forGui = 0):
-        global PreloadHeads
         headStyle = style.head
         fix = None
         if headStyle == 'dls':
@@ -381,8 +360,7 @@ class ToonHead(Actor.Actor):
         else:
             ToonHead.notify.error('unknown head style: %s' % headStyle)
         if len(lods) == 1:
-            filepath = 'phase_3' + filePrefix + lods[0]
-            self.loadModel(PreloadHeads[filepath], 'head', 'lodRoot', copy = True)
+            self.loadModel('phase_3' + filePrefix + lods[0], 'head', 'lodRoot', copy)
             if not forGui:
                 pLoaded = self.loadPumpkin(headStyle[1], None, copy)
                 self.loadSnowMan(headStyle[1], None, copy)
@@ -400,8 +378,7 @@ class ToonHead(Actor.Actor):
                     self.__copy = copy
         else:
             for lod in lods:
-                filepath = 'phase_3' + filePrefix + lod
-                self.loadModel(PreloadHeads[filepath], 'head', lod, True)
+                self.loadModel('phase_3' + filePrefix + lod, 'head', lod, copy)
                 if not forGui:
                     pLoaded = self.loadPumpkin(headStyle[1], lod, copy)
                     self.loadSnowMan(headStyle[1], lod, copy)
@@ -796,7 +773,7 @@ class ToonHead(Actor.Actor):
         else:
             searchRoot = self.find('**/' + str(lodName))
         otherParts = searchRoot.findAllMatches('**/*short*')
-        for partNum in xrange(0, otherParts.getNumPaths()):
+        for partNum in range(0, otherParts.getNumPaths()):
             if copy:
                 otherParts.getPath(partNum).removeNode()
             else:
@@ -841,7 +818,7 @@ class ToonHead(Actor.Actor):
             self.find('**/head-front-short').hide()
         if animalType != 'rabbit':
             muzzleParts = searchRoot.findAllMatches('**/muzzle-long*')
-            for partNum in xrange(0, muzzleParts.getNumPaths()):
+            for partNum in range(0, muzzleParts.getNumPaths()):
                 if copy:
                     muzzleParts.getPath(partNum).removeNode()
                 else:
@@ -849,7 +826,7 @@ class ToonHead(Actor.Actor):
 
         else:
             muzzleParts = searchRoot.findAllMatches('**/muzzle-short*')
-            for partNum in xrange(0, muzzleParts.getNumPaths()):
+            for partNum in range(0, muzzleParts.getNumPaths()):
                 if copy:
                     muzzleParts.getPath(partNum).removeNode()
                 else:
@@ -894,7 +871,7 @@ class ToonHead(Actor.Actor):
             searchRoot.find('**/head-front-long').hide()
         if animalType != 'rabbit':
             muzzleParts = searchRoot.findAllMatches('**/muzzle-short*')
-            for partNum in xrange(0, muzzleParts.getNumPaths()):
+            for partNum in range(0, muzzleParts.getNumPaths()):
                 if copy:
                     muzzleParts.getPath(partNum).removeNode()
                 else:
@@ -902,7 +879,7 @@ class ToonHead(Actor.Actor):
 
         else:
             muzzleParts = searchRoot.findAllMatches('**/muzzle-long*')
-            for partNum in xrange(0, muzzleParts.getNumPaths()):
+            for partNum in range(0, muzzleParts.getNumPaths()):
                 if copy:
                     muzzleParts.getPath(partNum).removeNode()
                 else:
@@ -916,7 +893,7 @@ class ToonHead(Actor.Actor):
         else:
             searchRoot = self.find('**/' + str(lodName))
         otherParts = searchRoot.findAllMatches('**/*long*')
-        for partNum in xrange(0, otherParts.getNumPaths()):
+        for partNum in range(0, otherParts.getNumPaths()):
             if copy:
                 otherParts.getPath(partNum).removeNode()
             else:
@@ -1259,82 +1236,82 @@ class ToonHead(Actor.Actor):
     def showNormalMuzzle(self):
         if self.isIgnoreCheesyEffect():
             return
-        for muzzleNum in xrange(len(self.__muzzles)):
+        for muzzleNum in range(len(self.__muzzles)):
             self.__muzzles[muzzleNum].show()
 
     def hideNormalMuzzle(self):
         if self.isIgnoreCheesyEffect():
             return
-        for muzzleNum in xrange(len(self.__muzzles)):
+        for muzzleNum in range(len(self.__muzzles)):
             self.__muzzles[muzzleNum].hide()
 
     def showAngryMuzzle(self):
         if self.isIgnoreCheesyEffect():
             return
-        for muzzleNum in xrange(len(self.__angryMuzzles)):
+        for muzzleNum in range(len(self.__angryMuzzles)):
             self.__angryMuzzles[muzzleNum].show()
             self.__muzzles[muzzleNum].hide()
 
     def hideAngryMuzzle(self):
         if self.isIgnoreCheesyEffect():
             return
-        for muzzleNum in xrange(len(self.__angryMuzzles)):
+        for muzzleNum in range(len(self.__angryMuzzles)):
             self.__angryMuzzles[muzzleNum].hide()
             self.__muzzles[muzzleNum].show()
 
     def showSadMuzzle(self):
         if self.isIgnoreCheesyEffect():
             return
-        for muzzleNum in xrange(len(self.__sadMuzzles)):
+        for muzzleNum in range(len(self.__sadMuzzles)):
             self.__sadMuzzles[muzzleNum].show()
             self.__muzzles[muzzleNum].hide()
 
     def hideSadMuzzle(self):
         if self.isIgnoreCheesyEffect():
             return
-        for muzzleNum in xrange(len(self.__sadMuzzles)):
+        for muzzleNum in range(len(self.__sadMuzzles)):
             self.__sadMuzzles[muzzleNum].hide()
             self.__muzzles[muzzleNum].show()
 
     def showSmileMuzzle(self):
         if self.isIgnoreCheesyEffect():
             return
-        for muzzleNum in xrange(len(self.__smileMuzzles)):
+        for muzzleNum in range(len(self.__smileMuzzles)):
             self.__smileMuzzles[muzzleNum].show()
             self.__muzzles[muzzleNum].hide()
 
     def hideSmileMuzzle(self):
         if self.isIgnoreCheesyEffect():
             return
-        for muzzleNum in xrange(len(self.__smileMuzzles)):
+        for muzzleNum in range(len(self.__smileMuzzles)):
             self.__smileMuzzles[muzzleNum].hide()
             self.__muzzles[muzzleNum].show()
 
     def showLaughMuzzle(self):
         if self.isIgnoreCheesyEffect():
             return
-        for muzzleNum in xrange(len(self.__laughMuzzles)):
+        for muzzleNum in range(len(self.__laughMuzzles)):
             self.__laughMuzzles[muzzleNum].show()
             self.__muzzles[muzzleNum].hide()
 
     def hideLaughMuzzle(self):
         if self.isIgnoreCheesyEffect():
             return
-        for muzzleNum in xrange(len(self.__laughMuzzles)):
+        for muzzleNum in range(len(self.__laughMuzzles)):
             self.__laughMuzzles[muzzleNum].hide()
             self.__muzzles[muzzleNum].show()
 
     def showSurpriseMuzzle(self):
         if self.isIgnoreCheesyEffect():
             return
-        for muzzleNum in xrange(len(self.__surpriseMuzzles)):
+        for muzzleNum in range(len(self.__surpriseMuzzles)):
             self.__surpriseMuzzles[muzzleNum].show()
             self.__muzzles[muzzleNum].hide()
 
     def hideSurpriseMuzzle(self):
         if self.isIgnoreCheesyEffect():
             return
-        for muzzleNum in xrange(len(self.__surpriseMuzzles)):
+        for muzzleNum in range(len(self.__surpriseMuzzles)):
             self.__surpriseMuzzles[muzzleNum].hide()
             self.__muzzles[muzzleNum].show()
 

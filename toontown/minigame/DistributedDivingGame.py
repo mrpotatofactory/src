@@ -169,7 +169,7 @@ class DistributedDivingGame(DistributedMinigame):
         else:
             spawnerId = int(name[2])
             spawnId = int(name[3:len(name)])
-            if spawnId in self.spawners[spawnerId].fishArray:
+            if self.spawners[spawnerId].fishArray.has_key(spawnId):
                 self.sendUpdate('handleFishCollision', [avId,
                  spawnId,
                  spawnerId,
@@ -231,7 +231,7 @@ class DistributedDivingGame(DistributedMinigame):
         camera.setZ(36)
         camera.setHpr(0,0,0)
         camera.setX(0)
-        base.camLens.setMinFov(31/(4./3.))
+        base.camLens.setMinFov(45/(4./3.))
         camera.setY(-54)
         base.camLens.setFar(1500)
         self.introMovie = self.getIntroMovie()
@@ -324,7 +324,7 @@ class DistributedDivingGame(DistributedMinigame):
             del crab
 
         if hasattr(self, 'treasures') and self.treasures:
-            for i in xrange(self.NUMTREASURES):
+            for i in range(self.NUMTREASURES):
                 self.treasures[i].destroy()
 
             del self.treasures
@@ -399,10 +399,10 @@ class DistributedDivingGame(DistributedMinigame):
         self.SPEEDMULT = pattern[1]
         self.TIME = pattern[2]
         loadBase = 'phase_4/models/char/'
-        for i in xrange(self.NUMCRABS):
+        for i in range(self.NUMCRABS):
             self.crabs.append(Actor.Actor(loadBase + 'kingCrab-zero.bam', {'anim': loadBase + 'kingCrab-swimLOOP.bam'}))
 
-        for i in xrange(len(self.crabs)):
+        for i in range(len(self.crabs)):
             crab = self.crabs[i]
             crab.reparentTo(render)
             crab.name = 'king'
@@ -435,7 +435,7 @@ class DistributedDivingGame(DistributedMinigame):
         loadBase = 'phase_4/models/minigames/'
         self.treasures = []
         self.chestIcons = {}
-        for i in xrange(self.NUMTREASURES):
+        for i in range(self.NUMTREASURES):
             self.chestIcons[i] = loader.loadModel(loadBase + 'treasure_chest.bam')
             self.chestIcons[i].reparentTo(self.mapModel)
             self.chestIcons[i].setScale(1.5)
@@ -602,7 +602,7 @@ class DistributedDivingGame(DistributedMinigame):
         taskMgr.remove(self.TREASURE_BOUNDS_TASK)
 
     def __treasureBoundsTask(self, task):
-        for i in xrange(self.NUMTREASURES):
+        for i in range(self.NUMTREASURES):
             self.chestIcons[i].setPos(self.treasures[i].chest.getPos(render) / self.MAP_DIV)
             self.chestIcons[i].setZ(self.chestIcons[i].getZ() + self.MAP_OFF)
             if self.treasures[i].treasureNode.getZ() < -36:
@@ -623,7 +623,7 @@ class DistributedDivingGame(DistributedMinigame):
         if avId == self.localAvId:
             self.reachedFlag = 0
         if toonSD.status == 'treasure' and self.treasures and self.chestIcons:
-            for i in xrange(self.NUMTREASURES):
+            for i in range(self.NUMTREASURES):
                 if self.treasures[i].grabbedId == avId:
                     self.treasures[i].treasureNode.wrtReparentTo(render)
                     self.treasures[i].grabbedId = 0
@@ -663,7 +663,7 @@ class DistributedDivingGame(DistributedMinigame):
         if not hasattr(self, 'treasures'):
             return
         ts = globalClockDelta.localElapsedTime(timestamp)
-        for i in xrange(self.NUMTREASURES):
+        for i in range(self.NUMTREASURES):
             if self.treasures[i].grabbedId == avId:
                 self.treasures[i].grabbedId = 0
                 toonSD = self.toonSDs[avId]
@@ -710,7 +710,7 @@ class DistributedDivingGame(DistributedMinigame):
             self.localLerp.finish()
             self.localLerp = Sequence(Func(toonSD.fsm.request, 'freeze'), Wait(3.0), Func(toonSD.fsm.request, 'normal'))
             self.localLerp.start(ts)
-        if spawnId in self.spawners[spawnerId].fishArray:
+        if self.spawners[spawnerId].fishArray.has_key(spawnId):
             fish = self.spawners[spawnerId].fishArray[spawnId]
             endX = self.spawners[spawnerId].position.getX()
             if fish.name == 'clown':
@@ -763,7 +763,7 @@ class DistributedDivingGame(DistributedMinigame):
     def fishRemove(self, code):
         spawnId = int(code[1:len(code)])
         spawnerId = int(code[0])
-        if spawnId in self.spawners[spawnerId].fishArray:
+        if self.spawners[spawnerId].fishArray.has_key(spawnId):
             fish = self.spawners[spawnerId].fishArray[spawnId]
             fish.specialLerp.finish()
             fish.moveLerp.finish()
@@ -823,7 +823,7 @@ class DistributedDivingGame(DistributedMinigame):
         crab = self.crabs[crabId]
         ts = globalClockDelta.localElapsedTime(timestamp)
         x = 0
-        for i in xrange(self.NUMTREASURES):
+        for i in range(self.NUMTREASURES):
             x += self.treasures[i].treasureNode.getX(render)
 
         x /= self.NUMTREASURES
@@ -912,7 +912,7 @@ class DistributedDivingGame(DistributedMinigame):
         pos[1] = -2
         pos[2] += self.zVel * dt
         found = 0
-        for i in xrange(self.NUMTREASURES):
+        for i in range(self.NUMTREASURES):
             if self.treasures[i].grabbedId == self.localAvId:
                 found = 1
                 i = self.NUMTREASURES + 1
@@ -969,7 +969,7 @@ class DistributedDivingGame(DistributedMinigame):
         self.treasurePanel.cleanup()
         self.mapAvatars[self.localAvId].destroy()
         del self.mapAvatars
-        for i in xrange(self.NUMTREASURES):
+        for i in range(self.NUMTREASURES):
             del self.chestIcons[i]
 
         del self.timer

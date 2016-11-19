@@ -26,11 +26,19 @@ class DistributedAvatarAI(DistributedNodeAI.DistributedNodeAI):
         return self.name
 
     def b_setMaxHp(self, maxHp):
-        self.d_setMaxHp(maxHp)
-        self.setMaxHp(maxHp)
+        if (maxHp > 137):
+            self.air.writeServerEvent('suspicious', self.doId, 'Toon tried to go over 137 laff.')
+            self.d_setMaxHp(137)
+            self.setMaxHp(137)
+        else:
+            self.d_setMaxHp(maxHp)
+            self.setMaxHp(maxHp)
 
     def d_setMaxHp(self, maxHp):
-        self.sendUpdate('setMaxHp', [maxHp])
+        if (maxHp > 137):
+            self.air.writeServerEvent('suspicious', self.doId, 'Toon tried to go over 137 laff.')
+        else:
+            self.sendUpdate('setMaxHp', [maxHp])
 
     def setMaxHp(self, maxHp):
         self.maxHp = maxHp
@@ -99,3 +107,28 @@ class DistributedAvatarAI(DistributedNodeAI.DistributedNodeAI):
             self.air.writeServerEvent('Admin chat warning', senderId, 'using setParentStr to send "%s"' % parentToken)
             self.notify.warning('Admin chat warning: %s using setParentStr to send "%s"' % (senderId, parentToken))
         DistributedNodeAI.DistributedNodeAI.setParentStr(self, parentToken)
+
+from otp.ai.MagicWordGlobal import *
+    
+@magicWord(chains=[CHAIN_MOD], types=[int])
+def hp(hpVal = -2):
+    toon = spellbook.getTarget()
+    
+    if hpVal == -2:
+        toon.b_setHp(toon.maxHp)
+        return
+        
+    if not -1 <= hpVal <= 137:
+        return 'Laff must be between -1 and 137!'
+        
+    toon.b_setHp(hpVal)
+    
+@magicWord(chains=[CHAIN_DISABLED_ON_LIVE], types=[int])
+def maxHp(hpVal):
+    if not 15 <= hpVal <= 137:
+        return 'Laff must be between 15 and 137!'
+        
+    toon = spellbook.getTarget()
+    toon.b_setMaxHp(hpVal)
+    toon.toonUp(hpVal)
+    

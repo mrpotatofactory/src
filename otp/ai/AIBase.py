@@ -1,23 +1,20 @@
-import gc
+from pandac.PandaModules import *
+from direct.directnotify.DirectNotifyGlobal import *
+from direct.showbase.MessengerGlobal import *
+from direct.showbase.BulletinBoardGlobal import *
+from direct.task.TaskManagerGlobal import *
+from direct.showbase.JobManagerGlobal import *
+from direct.showbase.EventManagerGlobal import *
+from direct.showbase.PythonUtil import *
+from direct.showbase import PythonUtil
+from direct.interval.IntervalManager import ivalMgr
+from direct.task import Task
+from direct.showbase import EventManager
+from direct.showbase import ExceptionVarDump
 import math
 import sys
 import time
-
-from direct.directnotify.DirectNotifyGlobal import *
-from direct.interval.IntervalManager import ivalMgr
-from direct.showbase import EventManager
-from direct.showbase import ExceptionVarDump
-from direct.showbase import PythonUtil
-from direct.showbase.BulletinBoardGlobal import *
-from direct.showbase.EventManagerGlobal import *
-from direct.showbase.JobManagerGlobal import *
-from direct.showbase.MessengerGlobal import *
-from direct.showbase.PythonUtil import *
-from direct.task import Task
-from direct.task.TaskManagerGlobal import *
-from otp.otpbase import BackupManager
-from pandac.PandaModules import *
-
+import gc
 
 class AIBase:
     notify = directNotify.newCategory('AIBase')
@@ -25,7 +22,7 @@ class AIBase:
     def __init__(self):
         self.config = getConfigShowbase()
         __builtins__['__dev__'] = self.config.GetBool('want-dev', 0)
-        logStackDump = (self.config.GetBool('log-stack-dump', (not __dev__)) or self.config.GetBool('ai-log-stack-dump', (not __dev__)))
+        logStackDump = self.config.GetBool('log-stack-dump', not __dev__)
         uploadStackDump = self.config.GetBool('upload-stack-dump', 0)
         if logStackDump or uploadStackDump:
             ExceptionVarDump.install(logStackDump, uploadStackDump)
@@ -72,12 +69,13 @@ class AIBase:
             loadPrcFileData('aibase', 'textures-header-only 1')
         self.wantPets = self.config.GetBool('want-pets', 1)
         if self.wantPets:
-            from toontown.pets import PetConstants
-            self.petMoodTimescale = self.config.GetFloat('pet-mood-timescale', 1.0)
-            self.petMoodDriftPeriod = self.config.GetFloat('pet-mood-drift-period', PetConstants.MoodDriftPeriod)
-            self.petThinkPeriod = self.config.GetFloat('pet-think-period', PetConstants.ThinkPeriod)
-            self.petMovePeriod = self.config.GetFloat('pet-move-period', PetConstants.MovePeriod)
-            self.petPosBroadcastPeriod = self.config.GetFloat('pet-pos-broadcast-period', PetConstants.PosBroadcastPeriod)
+            if game.name == 'toontown':
+                from toontown.pets import PetConstants
+                self.petMoodTimescale = self.config.GetFloat('pet-mood-timescale', 1.0)
+                self.petMoodDriftPeriod = self.config.GetFloat('pet-mood-drift-period', PetConstants.MoodDriftPeriod)
+                self.petThinkPeriod = self.config.GetFloat('pet-think-period', PetConstants.ThinkPeriod)
+                self.petMovePeriod = self.config.GetFloat('pet-move-period', PetConstants.MovePeriod)
+                self.petPosBroadcastPeriod = self.config.GetFloat('pet-pos-broadcast-period', PetConstants.PosBroadcastPeriod)
         self.wantBingo = self.config.GetBool('want-fish-bingo', 1)
         self.wantKarts = self.config.GetBool('wantKarts', 1)
         self.newDBRequestGen = self.config.GetBool('new-database-request-generate', 1)
@@ -88,14 +86,12 @@ class AIBase:
         self.wantSwitchboardHacks = self.config.GetBool('want-switchboard-hacks', 0)
         self.GEMdemoWhisperRecipientDoid = self.config.GetBool('gem-demo-whisper-recipient-doid', 0)
         self.sqlAvailable = self.config.GetBool('sql-available', 1)
-        self.backups = BackupManager.BackupManager(
-            filepath=self.config.GetString('backups-filepath', 'backups/'),
-            extension=self.config.GetString('backups-extension', '.json'))
         self.createStats()
         self.restart()
+        return
 
     def setupCpuAffinities(self, minChannel):
-        if process == 'uberdog':
+        if game.name == 'uberDog':
             affinityMask = self.config.GetInt('uberdog-cpu-affinity-mask', -1)
         else:
             affinityMask = self.config.GetInt('ai-cpu-affinity-mask', -1)
@@ -103,7 +99,7 @@ class AIBase:
             TrueClock.getGlobalPtr().setCpuAffinity(affinityMask)
         else:
             autoAffinity = self.config.GetBool('auto-single-cpu-affinity', 0)
-            if process == 'uberdog':
+            if game.name == 'uberDog':
                 affinity = self.config.GetInt('uberdog-cpu-affinity', -1)
                 if autoAffinity and affinity == -1:
                     affinity = 2
@@ -114,7 +110,7 @@ class AIBase:
             if affinity != -1:
                 TrueClock.getGlobalPtr().setCpuAffinity(1 << affinity)
             elif autoAffinity:
-                if process == 'uberdog':
+                if game.name == 'uberDog':
                     channelSet = int(minChannel / 1000000)
                     channelSet -= 240
                     affinity = channelSet + 3

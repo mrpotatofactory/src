@@ -20,7 +20,7 @@ class DistributedNPCPartyPersonAI(DistributedNPCToonBaseAI):
 
     def avatarEnter(self):
         avId = self.air.getAvatarIdFromSender()
-        if avId not in self.air.doId2do:
+        if not self.air.doId2do.has_key(avId):
             self.notify.warning('Avatar: %s not found' % avId)
             return
         if self.isBusy():
@@ -29,7 +29,6 @@ class DistributedNPCPartyPersonAI(DistributedNPCToonBaseAI):
         av = self.air.doId2do[avId]
         self.busy = avId
         self.acceptOnce(self.air.getAvatarExitEvent(avId), self.__handleUnexpectedExit, extraArgs=[avId])
-        parties = av.hostedParties
         if not self.air.partyManager.canBuyParties():
             flag = NPCToons.PARTY_MOVIE_COMINGSOON
             self.d_setMovie(avId, flag)

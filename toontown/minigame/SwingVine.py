@@ -282,7 +282,7 @@ class SwingVine(NodePath):
 
     def getAttachNode(self, toonId):
         retval = None
-        if toonId in self.attachedToons:
+        if self.attachedToons.has_key(toonId):
             existingAttachNode = self.attachedToons[toonId][4]
             if existingAttachNode:
                 retval = existingAttachNode
@@ -306,7 +306,7 @@ class SwingVine(NodePath):
         return offset
 
     def doubleCheckOffset(self, toonId):
-        if toonId in self.attachedToons:
+        if self.attachedToons.has_key(toonId):
             curOffset = self.attachedToons[toonId][3]
             if curOffset == Point3.zero():
                 newOffset = self.calcOffset(toonId)
@@ -349,7 +349,7 @@ class SwingVine(NodePath):
         return
 
     def changeAttachedToonT(self, toonId, t):
-        if toonId in self.attachedToons:
+        if self.attachedToons.has_key(toonId):
             oldT = self.attachedToons[toonId][0]
             self.attachedToons[toonId][0] = t
             oldSwingType = self.calcSwingAnimType(oldT)
@@ -361,7 +361,7 @@ class SwingVine(NodePath):
             self.attachToon(toonId, t, 1)
 
     def changeAttachedToonFacing(self, toonId, facing):
-        if toonId in self.attachedToons:
+        if self.attachedToons.has_key(toonId):
             curT = self.attachedToons[toonId][0]
             self.detachToon(toonId)
             self.attachToon(toonId, curT, facing)
@@ -371,7 +371,7 @@ class SwingVine(NodePath):
 
     def detachToon(self, toonId):
         self.notify.debug('detachToon toonId=%d vineIndex=%d' % (toonId, self.vineIndex))
-        if toonId in self.attachedToons:
+        if self.attachedToons.has_key(toonId):
             self.attachedToons[toonId][4].removeNode()
             swingIval = self.attachedToons[toonId][6]
             if swingIval:
@@ -383,7 +383,7 @@ class SwingVine(NodePath):
         return
 
     def getAttachedToonInfo(self, toonId):
-        if toonId in self.attachedToons:
+        if self.attachedToons.has_key(toonId):
             return self.attachedToons[toonId]
         else:
             return None
@@ -621,7 +621,7 @@ class SwingVine(NodePath):
         swingInterval.start()
 
     def setupSwingAnim(self, avId):
-        if avId not in self.attachedToons:
+        if not self.attachedToons.has_key(avId):
             return
         av = base.cr.doId2do.get(avId)
         if not av:

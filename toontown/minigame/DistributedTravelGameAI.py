@@ -90,7 +90,7 @@ class DistributedTravelGameAI(DistributedMinigameAI):
 
     def enterProcessChoices(self):
         self.directionVotes = []
-        for dir in xrange(TravelGameGlobals.MaxDirections):
+        for dir in range(TravelGameGlobals.MaxDirections):
             self.directionVotes.append([dir, 0])
 
         for key in self.avatarChoices:
@@ -258,6 +258,7 @@ class DistributedTravelGameAI(DistributedMinigameAI):
         allowedGames = list(ToontownGlobals.MinigamePlayerMatrix[numPlayers])
         from toontown.minigame import MinigameCreatorAI
         allowedGames = MinigameCreatorAI.removeUnreleasedMinigames(allowedGames)
+        allowedGames = [x for x in allowedGames if x not in MinigameCreatorAI.NonTrolleyTrackableGames]
         self.switchToMinigameDict = {}
         for switch in TravelGameGlobals.BoardLayouts[self.boardIndex].keys():
             if self.isLeaf(switch):

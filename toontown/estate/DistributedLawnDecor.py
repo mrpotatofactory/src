@@ -16,6 +16,7 @@ from otp.otpbase import OTPGlobals
 from toontown.estate import GardenGlobals
 
 def recurseParent(intoNode, ParentName):
+	# funny fact: cogtown had a func like this
     parent = intoNode.getParent(0)
     if not parent or parent.getName() == 'render':
         return 0
@@ -176,7 +177,7 @@ class DistributedLawnDecor(DistributedNode.DistributedNode, NodePath, ShadowCast
             picker.traverse(render)
             if queue.getNumEntries() > 0:
                 queue.sortEntries()
-                for index in xrange(queue.getNumEntries()):
+                for index in range(queue.getNumEntries()):
                     entry = queue.getEntry(index)
                     if recurseParent(entry.getIntoNode(), 'terrain_DNARoot'):
                         self.movieNode.setZ(entry.getSurfacePoint(self)[2])
@@ -185,7 +186,7 @@ class DistributedLawnDecor(DistributedNode.DistributedNode, NodePath, ShadowCast
         picker.traverse(render)
         if queue.getNumEntries() > 0:
             queue.sortEntries()
-            for index in xrange(queue.getNumEntries()):
+            for index in range(queue.getNumEntries()):
                 entry = queue.getEntry(index)
                 if recurseParent(entry.getIntoNode(), 'terrain_DNARoot'):
                     self.setZ(entry.getSurfacePoint(render)[2] + self.stickUp + 0.1)
@@ -335,7 +336,7 @@ class DistributedLawnDecor(DistributedNode.DistributedNode, NodePath, ShadowCast
         digupTrack = self.generateDigupTrack(toon)
         self.movie = Sequence(self.startCamIval(avId), moveTrack, Func(shovel.show), digupTrack)
         if avId == localAvatar.doId:
-            self.expectingReplacement = 1
+            # self.expectingReplacement = 1
             self.movie.append(Func(self.movieDone))
         self.movie.start()
 

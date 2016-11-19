@@ -2,6 +2,7 @@ from direct.directnotify import DirectNotifyGlobal
 from direct.distributed import DistributedObject
 from direct.interval.IntervalGlobal import *
 from toontown.effects import DustCloud
+from otp.speedchat import SpeedChatGlobals
 
 def getDustCloudIval(toon):
     dustCloud = DustCloud.DustCloud(fBillboard=0)
@@ -20,21 +21,28 @@ def getDustCloudIval(toon):
 
 class DistributedBlackCatMgr(DistributedObject.DistributedObject):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedBlackCatMgr')
-
-    def __init__(self, cr):
-        DistributedObject.DistributedObject.__init__(self, cr)
+    ActivateEvent = 'DistributedBlackCatMgr-activate'
 
     def announceGenerate(self):
-        DistributedObject.DistributedObject.announceGenerate(self)
         DistributedBlackCatMgr.notify.debug('announceGenerate')
-        self.acceptOnce('DistributedBlackCatMgr-activate', self.d_requestBlackCatTransformation)
+        DistributedObject.DistributedObject.announceGenerate(self)
         self.dustCloudIval = None
+        self.accept(SpeedChatGlobals.SCStaticTextMsgEvent, self.phraseSaid)
 
+    def phraseSaid(self, phraseId):
+        self.notify.debug('Checking if phrase was said')
+        helpPhrase = 315
+
+        if phraseId == helpPhrase:
+            dna = localAvatar.style
+            if dna.getAnimal() == 'cat' and dna.headColor != 0x1a:
+                self.d_requestBlackCatTransformation()
+            
     def delete(self):
         if self.dustCloudIval:
             self.dustCloudIval.finish()
         del self.dustCloudIval
-        self.ignore('DistributedBlackCatMgr-activate')
+        self.ignore(SpeedChatGlobals.SCStaticTextMsgEvent)
         DistributedObject.DistributedObject.delete(self)
 
     def d_requestBlackCatTransformation(self):

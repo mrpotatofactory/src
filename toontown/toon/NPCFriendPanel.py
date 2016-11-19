@@ -7,7 +7,7 @@ import ToonDNA
 from toontown.toonbase import TTLocalizer
 from toontown.toonbase import ToontownGlobals
 from toontown.toonbase import ToontownBattleGlobals
-from toontown.toon import LaughingManGlobals
+from toontown.toontowngui import TTDialog
 
 class NPCFriendPanel(DirectFrame):
     notify = DirectNotifyGlobal.directNotify.newCategory('NPCFriendPanel')
@@ -24,7 +24,7 @@ class NPCFriendPanel(DirectFrame):
 
     def update(self, friendDict, fCallable = 0):
         friendList = friendDict.keys()
-        for i in xrange(self.maxNPCFriends):
+        for i in range(self.maxNPCFriends):
             card = self.cardList[i]
             try:
                 NPCID = friendList[i]
@@ -56,7 +56,7 @@ class NPCFriendPanel(DirectFrame):
         else:
             self.notify.error('got wrong max SOS cards %s' % self.maxNPCFriends)
         count = 0
-        for i in xrange(self.maxNPCFriends):
+        for i in range(self.maxNPCFriends):
             card = NPCFriendCard(parent=self, rotateCard=rotateCard, doneEvent=self['doneEvent'])
             self.cardList.append(card)
             card.setPos(xOffset, 1, yOffset)
@@ -70,7 +70,7 @@ class NPCFriendPanel(DirectFrame):
 
 class NPCFriendCard(DirectFrame):
     normalTextColor = (0.3, 0.25, 0.2, 1)
-    maxRarity = 5
+    maxRarity = 10
     sosTracks = ToontownBattleGlobals.Tracks + ToontownBattleGlobals.NPCTracks
 
     def __init__(self, parent = aspect2dp, rotateCard = False, **kw):
@@ -128,14 +128,29 @@ class NPCFriendCard(DirectFrame):
         self.sosCountInfo = DirectLabel(parent=self.front, relief=None, text='', text_fg=self.normalTextColor, text_scale=0.75, text_align=TextNode.ALeft, textMayChange=1, pos=(0.0, 0, -1.0))
         star = loader.loadModel('phase_3.5/models/gui/name_star')
         self.rarityStars = []
-        for i in xrange(self.maxRarity):
+        for i in range(self.maxRarity):
             label = DirectLabel(parent=self.front, relief=None, image=star, image_scale=rarityScale, image_color=Vec4(0.502, 0.251, 0.251, 1.0), pos=(1.1 - i * 0.24, 0, rarityPosZ))
             label.hide()
             self.rarityStars.append(label)
 
-        return
-
     def __chooseNPCFriend(self):
+        npcId = self['NPCID']
+        if NPCToons.isSecret(npcId):
+            self.diag = TTDialog.TTGlobalDialog(message = TTLocalizer.SOSCallSecretQuestion, doneEvent = 'event-sos-confirm', style = TTDialog.YesNo)
+            self.acceptOnce('event-sos-confirm', self.__handleDiagDone)
+            
+        else:
+            self.__chooseNPCFriendYes()
+            
+    def __handleDiagDone(self):
+        status = self.diag.doneStatus
+        self.diag.cleanup()
+        del self.diag
+        
+        if status == 'ok':
+            self.__chooseNPCFriendYes()
+            
+    def __chooseNPCFriendYes(self):
         if self['NPCID'] and self['doneEvent']:
             doneStatus = {}
             doneStatus['mode'] = 'NPCFriend'
@@ -171,9 +186,14 @@ class NPCFriendCard(DirectFrame):
                     sosText += ' All'
                 else:
                     sosText += ' ' + self.sosTracks[level]
+                    
+            # hide secret cards
+            if NPCToons.isSecret(NPCID):
+                sosText = '???'
+                    
             sosText = TextEncoder.upper(sosText)
             self.sosTypeInfo['text'] = sosText
-            for i in xrange(self.maxRarity):
+            for i in range(self.maxRarity):
                 if i < rarity:
                     self.rarityStars[i].show()
                 else:
@@ -217,8 +237,6 @@ class NPCFriendCard(DirectFrame):
         head = ToonHead.ToonHead()
         head.setupHead(dna, forGui=1)
         self.fitGeometry(head, fFlip=1, dimension=dimension)
-        if NPCID == 91917:
-            LaughingManGlobals.addHeadEffect(head, book=True)
         return head
 
     def fitGeometry(self, geom, fFlip = 0, dimension = 0.5):

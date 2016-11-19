@@ -141,8 +141,7 @@ class Estate(Place.Place):
 
     def exit(self):
         base.localAvatar.stopChat()
-        if base.config.GetBool('want-april-toons'):
-            base.localAvatar.stopAprilToonsControls()
+        base.localAvatar.stopAprilToonsControls()
         self._telemLimiter.destroy()
         del self._telemLimiter
         if hasattr(self, 'fsm'):
@@ -386,3 +385,16 @@ class Estate(Place.Place):
             self.fog.setColor(Vec4(0.8, 0.8, 0.8, 1.0))
             self.fog.setLinearRange(0.0, 700.0)
             render.setFog(self.fog)
+
+    def enterWalk(self, *args):
+        Place.Place.enterWalk(self, *args)
+        if hasattr(localAvatar, 'gardenGameButton'):
+            if localAvatar.gardenGameButton:
+                localAvatar.gardenGameButton.unstash()
+            
+    def exitWalk(self):
+        Place.Place.exitWalk(self)
+        if hasattr(localAvatar, 'gardenGameButton'):
+            if localAvatar.gardenGameButton:
+                localAvatar.gardenGameButton.stash()
+        

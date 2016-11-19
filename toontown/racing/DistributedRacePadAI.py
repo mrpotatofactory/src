@@ -11,18 +11,11 @@ from toontown.racing.KartShopGlobals import KartGlobals
 
 class DistributedRacePadAI(DistributedKartPadAI, FSM):
     notify = DirectNotifyGlobal.directNotify.newCategory("DistributedRacePadAI")
-    defaultTransitions = {'Off': ['WaitEmpty'],
-     'WaitEmpty': ['WaitCountdown', 'Off'],
-     'WaitCountdown': ['WaitEmpty',
-                       'WaitBoarding',
-                       'Off',
-                       'AllAboard'],
-     'WaitBoarding': ['AllAboard', 'WaitEmpty', 'Off'],
-     'AllAboard': ['Off', 'WaitEmpty', 'WaitCountdown']}
     
     def __init__(self, air):
         DistributedKartPadAI.__init__(self, air)
         FSM.__init__(self, 'DistributedRacePadAI')
+        self.demand('Off')
         self.air = air
         self.trackId, self.trackType = [None, None]
         self.lastTime = globalClockDelta.getRealNetworkTime()

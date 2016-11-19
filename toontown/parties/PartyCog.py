@@ -30,7 +30,7 @@ class PartyCogManager:
             cog.unload()
 
     def updateDistances(self, distances):
-        for i in xrange(len(distances)):
+        for i in range(len(distances)):
             self.cogs[i].updateDistance(distances[i])
 
 
@@ -323,7 +323,12 @@ class PartyCog(FSM):
         self.hpText.setBillboardPointEye()
         self.hpText.setBin('fixed', 100)
         self.hpText.setPos(self.root, 0, 0, self.height / 2)
-        seq = Sequence(self.hpText.posInterval(0.25, Point3(self.root.getX(render), self.root.getY(render), self.root.getZ(render) + self.height + 1.0), blendType='easeOut'), Wait(0.25), self.hpText.colorInterval(0.1, Vec4(r, g, b, 0)), Func(self.__hideHitScore))
+        seq = Sequence(self.hpText.posInterval(0.25, Point3(self.root.getX(render),
+                                                            self.root.getY(render),
+                                                            self.root.getZ(render) + self.height + 1.0),
+                                               blendType='easeOut'),
+                       Wait(0.25), self.hpText.colorInterval(0.1, Vec4(r, g, b, 0)),
+                       Func(self.hideHitScore))
         seq.start()
 
     def hideHitScore(self):

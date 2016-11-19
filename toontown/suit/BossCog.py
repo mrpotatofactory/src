@@ -1,24 +1,21 @@
+from pandac.PandaModules import *
+from direct.interval.IntervalGlobal import *
 from direct.actor import Actor
+from otp.avatar import Avatar
 from direct.directnotify import DirectNotifyGlobal
+from toontown.toonbase import ToontownGlobals
+from otp.nametag import NametagGroup
 from direct.fsm import FSM
 from direct.fsm import State
-from direct.interval.IntervalGlobal import *
-from direct.showbase.PythonUtil import Functor
+from toontown.toonbase import TTLocalizer
+from toontown.battle import BattleParticles
+import Suit
 from direct.task.Task import Task
-from pandac.PandaModules import *
+import SuitDNA
+from toontown.battle import BattleProps
+from direct.showbase.PythonUtil import Functor
 import string
 import types
-
-import Suit
-import SuitDNA
-from otp.avatar import Avatar
-from toontown.battle import BattleParticles
-from toontown.battle import BattleProps
-from toontown.nametag import NametagGlobals
-from toontown.toonbase import TTLocalizer
-from toontown.toonbase import ToontownGlobals
-
-
 GenericModel = 'phase_9/models/char/bossCog'
 ModelDict = {'s': 'phase_9/models/char/sellbotBoss',
  'm': 'phase_10/models/char/cashbotBoss',
@@ -34,7 +31,7 @@ class BossCog(Avatar.Avatar):
     def __init__(self):
         Avatar.Avatar.__init__(self)
         self.setFont(ToontownGlobals.getSuitFont())
-        self.setPlayerType(NametagGlobals.CCSuit)
+        self.setPlayerType(NametagGroup.CCSuit)
         self.setPickable(0)
         self.doorA = None
         self.doorB = None
@@ -109,7 +106,13 @@ class BossCog(Avatar.Avatar):
          self.statement]
         dna = self.style
         filePrefix = ModelDict[dna.dept]
-        self.loadModel(GenericModel + '-legs-zero', 'legs')
+        if dna.dept == 'c':
+            self.loadModel(filePrefix + '-legs-zero', 'legs')
+            pj = loader.loadModel(filePrefix + '-joint-pelvis')
+            self.axle = self.find('**/joint_axle')
+            pj.wrtReparentTo(self.axle)
+        else:
+            self.loadModel(GenericModel + '-legs-zero', 'legs')
         self.loadModel(filePrefix + '-torso-zero', 'torso')
         self.loadModel(filePrefix + '-head-zero', 'head')
         self.twoFaced = dna.dept == 's'
@@ -140,14 +143,16 @@ class BossCog(Avatar.Avatar):
         self.neckForwardHpr = VBase3(0, 0, 0)
         self.neckReversedHpr = VBase3(0, -540, 0)
         self.axle = self.find('**/joint_axle')
-        self.doorA = self.__setupDoor('**/joint_doorFront', 'doorA', self.doorACallback, VBase3(0, 0, 0), VBase3(0, 0, -80), CollisionPolygon(Point3(5, -4, 0.32), Point3(0, -4, 0), Point3(0, 4, 0), Point3(5, 4, 0.32)))
-        self.doorB = self.__setupDoor('**/joint_doorRear', 'doorB', self.doorBCallback, VBase3(0, 0, 0), VBase3(0, 0, 80), CollisionPolygon(Point3(-5, 4, 0.84), Point3(0, 4, 0), Point3(0, -4, 0), Point3(-5, -4, 0.84)))
-        treadsModel = loader.loadModel('%s-treads' % GenericModel)
-        treadsModel.reparentTo(self.axle)
-        self.treadsLeft = treadsModel.find('**/right_tread')
-        self.treadsRight = treadsModel.find('**/left_tread')
-        self.doorA.request('Closed')
-        self.doorB.request('Closed')
+        if dna.dept != 'c':
+            self.doorA = self.__setupDoor('**/joint_doorFront', 'doorA', self.doorACallback, VBase3(0, 0, 0), VBase3(0, 0, -80), CollisionPolygon(Point3(5, -4, 0.32), Point3(0, -4, 0), Point3(0, 4, 0), Point3(5, 4, 0.32)))
+            self.doorB = self.__setupDoor('**/joint_doorRear', 'doorB', self.doorBCallback, VBase3(0, 0, 0), VBase3(0, 0, 80), CollisionPolygon(Point3(-5, 4, 0.84), Point3(0, 4, 0), Point3(0, -4, 0), Point3(-5, -4, 0.84)))
+            treadsModel = loader.loadModel('%s-treads' % GenericModel)
+            treadsModel.reparentTo(self.axle)
+            self.treadsLeft = treadsModel.find('**/right_tread')
+            self.treadsRight = treadsModel.find('**/left_tread')
+            self.doorA.request('Closed')
+            self.doorB.request('Closed')
+        
 
     def initializeBodyCollisions(self, collIdStr):
         Avatar.Avatar.initializeBodyCollisions(self, collIdStr)
@@ -264,14 +269,16 @@ class BossCog(Avatar.Avatar):
         return LerpFunctionInterval(rollTexMatrix, fromData=start, toData=start + rate * duration, duration=duration)
 
     def rollLeftTreads(self, duration, rate):
-        start = self.treadsLeftPos
-        self.treadsLeftPos += duration * rate
-        return self.__rollTreadsInterval(self.treadsLeft, start=start, duration=duration, rate=rate)
+        if hasattr(self, "treadsLeft"):
+            start = self.treadsLeftPos
+            self.treadsLeftPos += duration * rate
+            return self.__rollTreadsInterval(self.treadsLeft, start=start, duration=duration, rate=rate)
 
     def rollRightTreads(self, duration, rate):
-        start = self.treadsRightPos
-        self.treadsRightPos += duration * rate
-        return self.__rollTreadsInterval(self.treadsRight, start=start, duration=duration, rate=rate)
+        if hasattr(self, "treadsRight"):
+            start = self.treadsRightPos
+            self.treadsRightPos += duration * rate
+            return self.__rollTreadsInterval(self.treadsRight, start=start, duration=duration, rate=rate)
 
     class DoorFSM(FSM.FSM):
 

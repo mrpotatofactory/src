@@ -3,8 +3,8 @@ from direct.distributed.DistributedObjectAI import DistributedObjectAI
 from otp.ai.MagicWordGlobal import *
 
 class FriendManagerAI(DistributedObjectAI):
-    notify = DirectNotifyGlobal.directNotify.newCategory("FriendManagerAI")
-
+    notify = DirectNotifyGlobal.directNotify.newCategory('FriendManagerAI')
+    
     def __init__(self, air):
         DistributedObjectAI.__init__(self, air)
         self.air = air
@@ -63,28 +63,15 @@ class FriendManagerAI(DistributedObjectAI):
             return
         self.sendUpdateToAvatarId(self.requests[context][0][0], 'friendResponse', [response, context])
         if response == 1:
-
-            requested = self.requests[context][0][1]
-            if requested in self.air.doId2do:
-                requested = self.air.doId2do[requested]
-            else:
-                del self.requests[context]
-                return
-
-            requester = self.requests[context][0][0]
-            if requester in self.air.doId2do:
-                requester = self.air.doId2do[requester]
-            else:
-                del self.requests[context]
-                return
-
+            requested = self.air.doId2do[self.requests[context][0][1]]
+            requester = self.air.doId2do[self.requests[context][0][0]]
+            
             requested.extendFriendsList(requester.getDoId(), 0)
             requester.extendFriendsList(requested.getDoId(), 0)
-
+            
             requested.d_setFriendsList(requested.getFriendsList())
             requester.d_setFriendsList(requester.getFriendsList())
         del self.requests[context]
-
 
     def inviteeAcknowledgeCancel(self, context):
         avId = self.air.getAvatarIdFromSender()
@@ -98,28 +85,22 @@ class FriendManagerAI(DistributedObjectAI):
             self.air.writeServerEvent('suspicious', avId, 'Player tried to cancel non-cancelled request!')
             return
         del self.requests[context]
-
-
-    def friendConsidering(self, todo0, todo1):
-        pass
-
-    def friendResponse(self, todo0, todo1):
-        pass
-
-    def inviteeFriendQuery(self, todo0, todo1, todo2, todo3):
-        pass
-
-    def inviteeCancelFriendQuery(self, todo0):
-        pass
-
+        
     def requestSecret(self):
-        pass
-
-    def requestSecretResponse(self, todo0, todo1):
-        pass
-
-    def submitSecret(self, todo0):
-        pass
-
-    def submitSecretResponse(self, todo0, todo1):
-        pass
+        avId = self.air.getAvatarIdFromSender()
+        self.air.sendNetEvent('TF_request_code', [self.doId, avId])
+       
+    def submitSecret(self, secret):
+        avId = self.air.getAvatarIdFromSender()
+        self.air.sendNetEvent('TF_request_use', [self.doId, avId, secret])
+       
+@magicWord(chains=[CHAIN_HEAD], types=[int])
+def tf():
+    admin = spellbook.getInvoker()
+    av = spellbook.getTarget()
+    
+    if admin == av:
+        return 'Cannot tf yourself!'
+    
+    av.air.sendNetEvent('TF_request', [admin.doId, av.doId])
+    

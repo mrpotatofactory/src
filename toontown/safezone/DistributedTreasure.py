@@ -1,9 +1,10 @@
 from pandac.PandaModules import *
 from direct.interval.IntervalGlobal import *
 from toontown.toonbase.ToontownGlobals import *
+from toontown.safezone import TreasureGlobals
 from direct.distributed import DistributedObject
 from direct.directnotify import DirectNotifyGlobal
-from toontown.safezone import TreasureGlobals
+from direct.task.Task import Task
 
 class DistributedTreasure(DistributedObject.DistributedObject):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedTreasure')
@@ -21,13 +22,14 @@ class DistributedTreasure(DistributedObject.DistributedObject):
         self.fly = 1
         self.zOffset = 0.0
         self.billboard = 0
-        self.treasureType = None
+        self.treasureType = 0
         return
 
     def disable(self):
         self.ignoreAll()
         self.nodePath.detachNode()
         DistributedObject.DistributedObject.disable(self)
+        return
 
     def delete(self):
         if self.treasureFlyTrack:
@@ -58,6 +60,8 @@ class DistributedTreasure(DistributedObject.DistributedObject):
 
     def loadModel(self):
         modelPath, grabSoundPath = TreasureGlobals.TreasureModels[self.treasureType]
+        if base.cr.newsManager.isHolidayRunning(VALENTINES_DAY):
+            modelPath = 'phase_4/models/props/tt_m_ara_ext_heart'
 
         self.grabSound = base.loadSfx(grabSoundPath)
         self.rejectSound = base.loadSfx(self.rejectSoundPath)
@@ -96,6 +100,10 @@ class DistributedTreasure(DistributedObject.DistributedObject):
 
     def setTreasureType(self, treasureType):
         self.treasureType = treasureType
+        if treasureType == 9:
+            self.scale = 2.0
+            self.shadow = 0
+        return
 
     def setPosition(self, x, y, z):
         if not self.nodePath:
@@ -122,7 +130,7 @@ class DistributedTreasure(DistributedObject.DistributedObject):
     def handleGrab(self, avId):
         self.collNodePath.stash()
         self.avId = avId
-        if avId in self.cr.doId2do:
+        if self.cr.doId2do.has_key(avId):
             av = self.cr.doId2do[avId]
             self.av = av
         else:

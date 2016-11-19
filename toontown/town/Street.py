@@ -19,12 +19,10 @@ from toontown.toon.Toon import teleportDebug
 from toontown.estate import HouseGlobals
 from toontown.toonbase import TTLocalizer
 from direct.interval.IntervalGlobal import *
-from toontown.nametag import NametagGlobals
-
+from otp.nametag import NametagGlobals
 visualizeZones = base.config.GetBool('visualize-zones', 0)
 
 class Street(BattlePlace.BattlePlace):
-
     notify = DirectNotifyGlobal.directNotify.newCategory('Street')
 
     def __init__(self, loader, parentFSM, doneEvent):
@@ -98,8 +96,10 @@ class Street(BattlePlace.BattlePlace):
         self.parentFSM = parentFSM
         self.tunnelOriginList = []
         self.elevatorDoneEvent = 'elevatorDone'
-        self.halloweenLights = []
-        self.zone = 0
+        self.eventLights = []
+        self.visInterestHandle = None
+        self.visZones = []
+        self.visInterestChanged = False
 
     def enter(self, requestStatus, visibilityFlag = 1, arrowsOn = 1):
         teleportDebug(requestStatus, 'Street.enter(%s)' % (requestStatus,))
@@ -112,23 +112,48 @@ class Street(BattlePlace.BattlePlace):
         base.localAvatar.setGeom(self.loader.geom)
         base.localAvatar.setOnLevelGround(1)
         self._telemLimiter = TLGatherAllAvs('Street', RotationLimitToH)
-        NametagGlobals.setWant2dNametags(arrowsOn)
-        self.zone = ZoneUtil.getBranchZone(requestStatus['zoneId'])
+        NametagGlobals.setMasterArrowsOn(arrowsOn)
 
         def __lightDecorationOn__():
             geom = base.cr.playGame.getPlace().loader.geom
-            self.halloweenLights = geom.findAllMatches('**/*light*')
-            self.halloweenLights += geom.findAllMatches('**/*lamp*')
-            self.halloweenLights += geom.findAllMatches('**/prop_snow_tree*')
-            for light in self.halloweenLights:
+            self.loader.hood.eventLights = geom.findAllMatches('**/*light*')
+            self.loader.hood.eventLights += geom.findAllMatches('**/*lamp*')
+            self.loader.hood.eventLights += geom.findAllMatches('**/prop_snow_tree*')
+            self.loader.hood.eventLights += geom.findAllMatches('**/prop_tree*')
+            self.loader.hood.eventLights += geom.findAllMatches('**/*christmas*')
+            for light in self.loader.hood.eventLights:
                 light.setColorScaleOff(1)
 
         newsManager = base.cr.newsManager
         if newsManager:
             holidayIds = base.cr.newsManager.getDecorationHolidayId()
+            #Halloween Event
             if (ToontownGlobals.HALLOWEEN_COSTUMES in holidayIds or ToontownGlobals.SPOOKY_COSTUMES in holidayIds) and self.loader.hood.spookySkyFile:
                 lightsOff = Sequence(LerpColorScaleInterval(base.cr.playGame.hood.loader.geom, 0.1, Vec4(0.55, 0.55, 0.65, 1)), Func(self.loader.hood.startSpookySky))
                 lightsOff.start()
+            else:
+                self.loader.hood.startSky()
+                lightsOn = LerpColorScaleInterval(base.cr.playGame.hood.loader.geom, 0.1, Vec4(1, 1, 1, 1))
+                lightsOn.start()
+            #Christmas Event
+            if (ToontownGlobals.WINTER_DECORATIONS in holidayIds or ToontownGlobals.WACKY_WINTER_DECORATIONS in holidayIds) and self.loader.hood.snowySkyFile:
+                lightsOff = Sequence(LerpColorScaleInterval(base.cr.playGame.hood.loader.geom, 0.1, Vec4(0.7, 0.7, 0.8, 1)), Func(self.loader.hood.startSnowySky), Func(__lightDecorationOn__))
+                lightsOff.start()
+                self.snowEvent = BattleParticles.loadParticleFile('snowdisk.ptf')
+                self.snowEvent.setPos(0, 30, 10)
+                #2 and 3 are only for the blizzard event and should be removed
+                self.snowEvent2 = BattleParticles.loadParticleFile('snowdisk.ptf')
+                self.snowEvent2.setPos(0, 10, 10)
+                self.snowEvent3 = BattleParticles.loadParticleFile('snowdisk.ptf')
+                self.snowEvent3.setPos(0, 20, 5)
+                self.snowEventRender = base.cr.playGame.hood.loader.geom.attachNewNode('snowRender')
+                self.snowEventRender.setDepthWrite(2)
+                self.snowEventRender.setBin('fixed', 1)
+                self.snowEventFade = None
+                self.snowEvent.start(camera, self.snowEventRender)
+                #2 and 3 are only for the blizzard event and should be removed
+                self.snowEvent2.start(camera, self.snowEventRender)
+                self.snowEvent3.start(camera, self.snowEventRender)
             else:
                 self.loader.hood.startSky()
                 lightsOn = LerpColorScaleInterval(base.cr.playGame.hood.loader.geom, 0.1, Vec4(1, 1, 1, 1))
@@ -139,11 +164,15 @@ class Street(BattlePlace.BattlePlace):
             lightsOn.start()
         self.accept('doorDoneEvent', self.handleDoorDoneEvent)
         self.accept('DistributedDoor_doorTrigger', self.handleDoorTrigger)
+        
+        # add street branch interest
+        self.branchInterest = base.cr.addInterest(localAvatar.defaultShard, ZoneUtil.getBranchZone(requestStatus['zoneId']), "")
+        
         self.enterZone(requestStatus['zoneId'])
+        
         self.tunnelOriginList = base.cr.hoodMgr.addLinkTunnelHooks(self, self.loader.nodeList, self.zoneId)
         self.fsm.request(requestStatus['how'], [requestStatus])
         self.replaceStreetSignTextures()
-        return
 
     def exit(self, visibilityFlag = 1):
         if visibilityFlag:
@@ -153,15 +182,19 @@ class Street(BattlePlace.BattlePlace):
         del self._telemLimiter
 
         def __lightDecorationOff__():
-            for light in self.halloweenLights:
+            for light in self.eventLights:
                 light.reparentTo(hidden)
 
         newsManager = base.cr.newsManager
-        NametagGlobals.setWant2dNametags(False)
+        #NametagGlobals.setMasterArrowsOn(0)
         self.loader.hood.stopSky()
         self.loader.music.stop()
         base.localAvatar.setGeom(render)
         base.localAvatar.setOnLevelGround(0)
+        if not self.visInterestHandle is None:
+            base.cr.removeInterest(self.visInterestHandle)
+            
+        base.cr.removeInterest(self.branchInterest)
 
     def load(self):
         BattlePlace.BattlePlace.load(self)
@@ -184,15 +217,12 @@ class Street(BattlePlace.BattlePlace):
         bldg = base.cr.doId2do.get(bldgDoId)
         if bldg:
             if bldg.elevatorNodePath is not None:
-                if self._enterElevatorGotElevator():
-                    return Task.done
+                self._enterElevatorGotElevator()
+                return Task.done
         return Task.cont
 
     def _enterElevatorGotElevator(self):
-        if not messenger.whoAccepts('insideVictorElevator'):
-            return False
         messenger.send('insideVictorElevator')
-        return True
 
     def exitElevatorIn(self):
         taskMgr.remove(self._eiwbTask)
@@ -247,7 +277,7 @@ class Street(BattlePlace.BattlePlace):
         hoodId = requestStatus['hoodId']
         zoneId = requestStatus['zoneId']
         if avId != -1:
-            if avId not in base.cr.doId2do:
+            if not base.cr.doId2do.has_key(avId):
                 teleportDebug(requestStatus, "couldn't find friend %s" % avId)
                 handle = base.cr.identifyFriend(avId)
                 requestStatus = {'how': 'teleportIn',
@@ -268,7 +298,7 @@ class Street(BattlePlace.BattlePlace):
         return
 
     def enterTeleportOut(self, requestStatus):
-        if 'battle' in requestStatus:
+        if requestStatus.has_key('battle'):
             self.__teleportOutDone(requestStatus)
         else:
             BattlePlace.BattlePlace.enterTeleportOut(self, requestStatus, self.__teleportOutDone)
@@ -308,7 +338,7 @@ class Street(BattlePlace.BattlePlace):
             collNodePaths = i.findAllMatches('**/+CollisionNode')
             numCollNodePaths = collNodePaths.getNumPaths()
             visGroupName = i.node().getName()
-            for j in xrange(numCollNodePaths):
+            for j in range(numCollNodePaths):
                 collNodePath = collNodePaths.getPath(j)
                 bitMask = collNodePath.node().getIntoCollideMask()
                 if bitMask.getBit(1):
@@ -330,6 +360,29 @@ class Street(BattlePlace.BattlePlace):
         self.ignore('on-floor')
         self.showAllVisibles()
 
+    def addVisInterest(self, zone):
+        self.notify.debug('addVisInterest zone=%i'%zone)
+        self.visZones.append(zone)
+        self.visInterestChanged = True
+
+    def removeVisInterest(self, zone):
+        self.notify.debug('removeVisInterest zone=%i'%zone)
+        try:
+            self.visZones.remove(zone)
+            self.visInterestChanged = True
+        except ValueError: #item was not in the list
+            self.notify.warning('Street.removeVisInterest called on zone %i that isn\'t in interest' % zone)
+    
+    def updateVisInterest(self):
+        if self.visInterestChanged:
+            self.notify.debug('updateVisInterest zones=' + str(self.visZones) + ' handle=' +str(self.visInterestHandle))
+            self.visInterestChanged = False
+            if self.visInterestHandle is None:
+                if len(self.visZones) > 0:
+                    self.visInterestHandle = base.cr.addInterest(base.localAvatar.defaultShard, self.visZones, 'streetVis')
+            else:
+                base.cr.alterInterest(self.visInterestHandle, base.localAvatar.defaultShard, self.visZones)
+
     def doEnterZone(self, newZoneId):
         if self.zoneId != None:
             for i in self.loader.nodeDict[self.zoneId]:
@@ -337,7 +390,9 @@ class Street(BattlePlace.BattlePlace):
                     if i not in self.loader.nodeDict[newZoneId]:
                         self.loader.fadeOutDict[i].start()
                         self.loader.exitAnimatedProps(i)
+                        self.removeVisInterest(self.loader.nodeToZone[i])
                 else:
+                    self.removeVisInterest(self.loader.nodeToZone[i])
                     i.stash()
                     self.loader.exitAnimatedProps(i)
 
@@ -347,6 +402,7 @@ class Street(BattlePlace.BattlePlace):
                     if i not in self.loader.nodeDict[self.zoneId]:
                         self.loader.fadeInDict[i].start()
                         self.loader.enterAnimatedProps(i)
+                        self.addVisInterest(self.loader.nodeToZone[i])
                 else:
                     if self.loader.fadeOutDict[i].isPlaying():
                         self.loader.fadeOutDict[i].finish()
@@ -354,28 +410,27 @@ class Street(BattlePlace.BattlePlace):
                         self.loader.fadeInDict[i].finish()
                     self.loader.enterAnimatedProps(i)
                     i.unstash()
+                    self.addVisInterest(self.loader.nodeToZone[i])
 
+        self.updateVisInterest()
         if newZoneId != self.zoneId:
             if visualizeZones:
                 if self.zoneId != None:
                     self.loader.zoneDict[self.zoneId].clearColor()
                 if newZoneId != None:
                     self.loader.zoneDict[newZoneId].setColor(0, 0, 1, 1, 100)
-            if newZoneId is not None:
-                loader = base.cr.playGame.getPlace().loader
-                if newZoneId in loader.zoneVisDict:
-                    base.cr.sendSetZoneMsg(newZoneId, loader.zoneVisDict[newZoneId])
-                else:
-                    visList = [newZoneId] + loader.zoneVisDict.values()[0]
-                    base.cr.sendSetZoneMsg(newZoneId, visList)
+            if newZoneId != None:
+                base.cr.sendSetZoneMsg(newZoneId)
+                self.notify.debug('Entering Zone %d' % newZoneId)
             self.zoneId = newZoneId
         geom = base.cr.playGame.getPlace().loader.geom
-        self.halloweenLights = geom.findAllMatches('**/*light*')
-        self.halloweenLights += geom.findAllMatches('**/*lamp*')
-        self.halloweenLights += geom.findAllMatches('**/prop_snow_tree*')
-        for light in self.halloweenLights:
+        self.eventLights = geom.findAllMatches('**/*light*')
+        self.eventLights += geom.findAllMatches('**/*lamp*')
+        self.eventLights += geom.findAllMatches('**/prop_snow_tree*')
+        self.eventLights += geom.findAllMatches('**/prop_tree*')
+        self.eventLights += geom.findAllMatches('**/*christmas*')
+        for light in self.eventLights:
             light.setColorScaleOff(1)
-
         return
 
     def replaceStreetSignTextures(self):

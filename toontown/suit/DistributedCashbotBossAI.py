@@ -4,19 +4,19 @@ from toontown.toonbase import ToontownGlobals
 from toontown.coghq import DistributedCashbotBossCraneAI
 from toontown.coghq import DistributedCashbotBossSafeAI
 from toontown.suit import DistributedCashbotBossGoonAI
-#from toontown.coghq import DistributedCashbotBossTreasureAI
+from toontown.coghq import DistributedCashbotBossTreasureAI
 from toontown.battle import BattleExperienceAI
 from toontown.chat import ResistanceChat
 from direct.fsm import FSM
 import DistributedBossCogAI
 import SuitDNA
 import random
-from otp.ai.MagicWordGlobal import *
 import math
 
 class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedCashbotBossAI')
-    maxGoons = 8
+    maxGoons = 4 #8
+    BossName = "CFO"
 
     def __init__(self, air):
         DistributedBossCogAI.DistributedBossCogAI.__init__(self, air, 'm')
@@ -60,6 +60,15 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         self.initializeBattles(1, ToontownGlobals.CashbotBossBattleOnePosHpr)
 
     def generateSuits(self, battleNumber):
+        weakenedValue = ((1, 1), (2, 2), (2, 2), (1, 1), (1, 1, 1, 1, 1))
+        
+        from toontown.building import SuitBuildingGlobals
+        listVersion = list(SuitBuildingGlobals.SuitBuildingInfo)
+        if simbase.config.GetBool('cfo-cheat', 0):
+            listVersion[11] = weakenedValue
+            listVersion[12] = weakenedValue
+            SuitBuildingGlobals.SuitBuildingInfo = tuple(listVersion)
+            
         cogs = self.invokeSuitPlanner(11, 0)
         skelecogs = self.invokeSuitPlanner(12, 1)
         activeSuits = cogs['activeSuits'] + skelecogs['activeSuits']
@@ -95,14 +104,14 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
     def __makeBattleThreeObjects(self):
         if self.cranes == None:
             self.cranes = []
-            for index in xrange(len(ToontownGlobals.CashbotBossCranePosHprs)):
+            for index in range(len(ToontownGlobals.CashbotBossCranePosHprs)):
                 crane = DistributedCashbotBossCraneAI.DistributedCashbotBossCraneAI(self.air, self, index)
                 crane.generateWithRequired(self.zoneId)
                 self.cranes.append(crane)
 
         if self.safes == None:
             self.safes = []
-            for index in xrange(len(ToontownGlobals.CashbotBossSafePosHprs)):
+            for index in range(len(ToontownGlobals.CashbotBossSafePosHprs)):
                 safe = DistributedCashbotBossSafeAI.DistributedCashbotBossSafeAI(self.air, self, index)
                 safe.generateWithRequired(self.zoneId)
                 self.safes.append(safe)
@@ -167,10 +176,10 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             del self.toonsToAttack[i]
             self.toonsToAttack.append(avId)
 
-    def makeTreasure(self, goon):
-        return
+    def makeTreasure(self, goon): #a criacao do tesouros...
         if self.state != 'BattleThree':
             return
+            
         pos = goon.getPos(self)
         v = Vec3(pos[0], pos[1], 0.0)
         if not v.normalize():
@@ -183,13 +192,14 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         fpos = self.scene.getRelativePoint(self, Point3(v[0] + dx, v[1] + dy, 0))
         if goon.strength <= 10:
             style = ToontownGlobals.ToontownCentral
-            healAmount = 3
+            healAmount = 5 #3
         elif goon.strength <= 15:
             style = random.choice([ToontownGlobals.DonaldsDock, ToontownGlobals.DaisyGardens, ToontownGlobals.MinniesMelodyland])
             healAmount = 10
         else:
             style = random.choice([ToontownGlobals.TheBrrrgh, ToontownGlobals.DonaldsDreamland])
-            healAmount = 12
+            healAmount = 15 #12
+            
         if self.recycledTreasures:
             treasure = self.recycledTreasures.pop(0)
             treasure.d_setGrab(0)
@@ -197,10 +207,11 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             treasure.b_setStyle(style)
             treasure.b_setPosition(pos[0], pos[1], 0)
             treasure.b_setFinalPosition(fpos[0], fpos[1], 0)
+            
         else:
-            #treasure = DistributedCashbotBossTreasureAI.DistributedCashbotBossTreasureAI(self.air, self, goon, style, fpos[0], fpos[1], 0)
-            #treasure.generateWithRequired(self.zoneId)
-            pass
+            treasure = DistributedCashbotBossTreasureAI.DistributedCashbotBossTreasureAI(self.air, self, goon, style, fpos[0], fpos[1], 0)
+            treasure.generateWithRequired(self.zoneId)
+
         treasure.healAmount = healAmount
         self.treasures[treasure.doId] = treasure
 
@@ -219,7 +230,7 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
                 treasure.d_setReject()
 
     def __recycleTreasure(self, treasure):
-        if treasure.doId in self.grabbingTreasures:
+        if self.grabbingTreasures.has_key(treasure.doId):
             del self.grabbingTreasures[treasure.doId]
             self.recycledTreasures.append(treasure)
 
@@ -238,20 +249,20 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
 
         self.recycledTreasures = []
 
-    def getMaxGoons(self):
+    def getMaxGoons(self): #define o numero maximo de brutamontes depois de determinado tempo, testado e OK
         t = self.getBattleThreeTime()
         if t <= 1.0:
             return self.maxGoons
         elif t <= 1.1:
-            return self.maxGoons + 1
+            return self.maxGoons + 0 #1
         elif t <= 1.2:
-            return self.maxGoons + 2
+            return self.maxGoons + 1 #2
         elif t <= 1.3:
-            return self.maxGoons + 3
+            return self.maxGoons + 2 #3
         elif t <= 1.4:
-            return self.maxGoons + 4
+            return self.maxGoons + 3 #4
         else:
-            return self.maxGoons + 8
+            return self.maxGoons + 5 #8
 
     def makeGoon(self, side = None):
         if side == None:
@@ -265,7 +276,7 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             self.goons.append(goon)
         if self.getBattleThreeTime() > 1.0:
             goon.STUN_TIME = 4
-            goon.b_setupGoon(velocity=8, hFov=90, attackRadius=20, strength=30, scale=1.8)
+            goon.b_setupGoon(velocity=8, hFov=90, attackRadius=20, strength=25, scale=1.8) #e o limite de dano (estava 30)
         else:
             goon.STUN_TIME = self.progressValue(30, 8)
             goon.b_setupGoon(velocity=self.progressRandomValue(3, 7), hFov=self.progressRandomValue(70, 80), attackRadius=self.progressRandomValue(6, 15), strength=int(self.progressRandomValue(5, 25)), scale=self.progressRandomValue(0.5, 1.5))
@@ -389,21 +400,6 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             if toon:
                 toon.doResistanceEffect(self.rewardId)
 
-            if simbase.config.GetBool('cfo-staff-event', False):
-
-                withStaff = False
-                for avId in self.involvedToons:
-                    av = self.air.doId2do.get(avId)
-                    if av:
-                        if av.adminAccess > 100:
-                            withStaff = True
-
-                if withStaff:
-                    participants = simbase.backups.load('cfo-staff-event', ('participants',), default={'doIds': []})
-                    if avId not in participants['doIds']:
-                        participants['doIds'].append(toon.doId)
-                    simbase.backups.save('cfo-staff-event', ('participants',), participants)
-
     def enterOff(self):
         DistributedBossCogAI.DistributedBossCogAI.enterOff(self)
         self.rewardedToons = []
@@ -500,44 +496,31 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
     def enterEpilogue(self):
         DistributedBossCogAI.DistributedBossCogAI.enterEpilogue(self)
         self.d_setRewardId(self.rewardId)
+        
+from otp.ai.MagicWordGlobal import *
+from panda3d.core import *
 
+@magicWord(chains=[CHAIN_DISABLED_ON_LIVE])
+def setcfocheat():
+    loadPrcFileData('mw cheat', 'cfo-cheat 1')
+    
+@magicWord()
+def endcfo():
+    toon = spellbook.getTarget()
+    if toon:
+        z = toon.zoneId
+        for obj in simbase.air.doId2do.values():
+            zone = getattr(obj, "zoneId", -1)
+            if zone == z:
+                if obj.__class__.__name__ == "DistributedCashbotBossAI":
+                    obj.b_setState('Victory')
+                    return "CFO defeated!"
+    
+        return "CFO not found!"
+        
+    return "Error!"  
 
-@magicWord(category=CATEGORY_ADMINISTRATOR)
-def restartCraneRound():
-    """
-    Restarts the crane round in the CFO.
-    """
-    invoker = spellbook.getInvoker()
-    boss = None
-    for do in simbase.air.doId2do.values():
-        if isinstance(do, DistributedCashbotBossAI):
-            if invoker.doId in do.involvedToons:
-                boss = do
-                break
-    if not boss:
-        return "You aren't in a CFO!"
-    boss.exitIntroduction()
-    boss.b_setState('PrepareBattleThree')
-    boss.b_setState('BattleThree')
-    return 'Restarting the crane round...'
-
-
-@magicWord(category=CATEGORY_ADMINISTRATOR)
-def skipCFO():
-    """
-    Skips to the final round of the CFO.
-    """
-    invoker = spellbook.getInvoker()
-    boss = None
-    for do in simbase.air.doId2do.values():
-        if isinstance(do, DistributedCashbotBossAI):
-            if invoker.doId in do.involvedToons:
-                boss = do
-                break
-    if not boss:
-        return "You aren't in a CFO!"
-    if boss.state in ('PrepareBattleThree', 'BattleThree'):
-        return "You can't skip this round."
-    boss.exitIntroduction()
-    boss.b_setState('PrepareBattleThree')
-    return 'Skipping the first round...'
+@magicWord(chains=[CHAIN_MOD], accessOther=ACCESS_ADMIN)
+def unites():
+    spellbook.getTarget().restockAllResistanceMessages(99)
+    return 'Restocked %s\'s unites' % spellbook.getTarget().getName()

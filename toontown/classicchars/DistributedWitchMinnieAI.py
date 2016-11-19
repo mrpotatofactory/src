@@ -1,6 +1,9 @@
 from direct.directnotify import DirectNotifyGlobal
-from toontown.classicchars.DistributedMickeyAI import DistributedMickeyAI
+from toontown.classicchars.DistributedMinnieAI import DistributedMinnieAI
+from toontown.toonbase import ToontownGlobals
 
-class DistributedWitchMinnieAI(DistributedMickeyAI):
+class DistributedWitchMinnieAI(DistributedMinnieAI):
     notify = DirectNotifyGlobal.directNotify.newCategory("DistributedWitchMinnieAI")
 
+    def walkSpeed(self):
+        return ToontownGlobals.WitchMinnieSpeed

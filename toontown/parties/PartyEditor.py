@@ -51,10 +51,30 @@ class PartyEditor(DirectObject, FSM):
         isVictory = ToontownGlobals.VICTORY_PARTY_HOLIDAY in holidayIds
         isValentine = ToontownGlobals.VALENTINES_DAY in holidayIds
         for activityId in PartyGlobals.PartyEditorActivityOrder:
-            if not isVictory and activityId in PartyGlobals.VictoryPartyActivityIds or not isWinter and activityId in PartyGlobals.WinterPartyActivityIds or not isValentine and activityId in PartyGlobals.ValentinePartyActivityIds:
+            
+            #FIXME: Disabling ValenToon activities since they doesn't appear on the grounds.
+            if activityId in PartyGlobals.ValentinePartyActivityIds:
                 pass
-            elif isVictory and activityId in PartyGlobals.VictoryPartyReplacementActivityIds or isWinter and activityId in PartyGlobals.WinterPartyReplacementActivityIds or isValentine and activityId in PartyGlobals.ValentinePartyReplacementActivityIds:
+
+            #FIXME: Same goes to Winter activities too.
+            if activityId in PartyGlobals.WinterPartyActivityIds:
                 pass
+
+            #Disable Holiday activities when isn't enabled.
+            elif not isVictory and activityId in PartyGlobals.VictoryPartyActivityIds:
+                pass
+            elif not isWinter and activityId in PartyGlobals.WinterPartyActivityIds: 
+                pass
+            elif not isValentine and activityId in PartyGlobals.ValentinePartyActivityIds:
+                pass
+            
+            #Replace normal activities with holiday themed ones if enabled.
+            elif isVictory and activityId in PartyGlobals.VictoryPartyReplacementActivityIds:
+                pass
+            #elif isWinter and activityId in PartyGlobals.WinterPartyReplacementActivityIds:
+                #pass
+            #elif isValentine and activityId in PartyGlobals.ValentinePartyReplacementActivityIds:
+                #pass
             else:
                 pele = PartyEditorListElement(self, activityId)
                 self.elementList.addItem(pele)
@@ -62,11 +82,17 @@ class PartyEditor(DirectObject, FSM):
                     self.partyClockElement = pele
 
         for decorationId in PartyGlobals.DecorationIds:
-            if not isVictory and decorationId in PartyGlobals.VictoryPartyDecorationIds or not isWinter and decorationId in PartyGlobals.WinterPartyDecorationIds or not isValentine and decorationId in PartyGlobals.ValentinePartyDecorationIds:
+            #Disable Holiday decorations when isn't enabled.
+            if not isVictory and decorationId in PartyGlobals.VictoryPartyDecorationIds:
                 pass
-            elif isVictory and decorationId in PartyGlobals.VictoryPartyReplacementDecorationIds or isValentine and decorationId in PartyGlobals.ValentinePartyReplacementDecorationIds:
+            elif not isWinter and decorationId in PartyGlobals.WinterPartyDecorationIds:
                 pass
-            elif decorationId in PartyGlobals.TTIUnreleasedDecor:
+            elif not isValentine and decorationId in PartyGlobals.ValentinePartyDecorationIds:
+                pass
+            #Replace normal decorations with holiday themed ones if enabled.
+            elif isVictory and decorationId in PartyGlobals.VictoryPartyReplacementDecorationIds:
+                pass
+            elif isValentine and decorationId in PartyGlobals.ValentinePartyReplacementDecorationIds:
                 pass
             else:
                 pele = PartyEditorListElement(self, decorationId, isDecoration=True)

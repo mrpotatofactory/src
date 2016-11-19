@@ -356,13 +356,12 @@ class DistributedPetProxyAI(DistributedObjectAI.DistributedObjectAI):
     def generate(self):
         DistributedObjectAI.DistributedObjectAI.generate(self)
         self.traits = PetTraits.PetTraits(self.traitSeed, self.safeZone)
-        print self.traits.traits
         for i in xrange(len(self.traitList)):
             value = self.traitList[i]
             if value == 0.0:
                 traitName = PetTraits.getTraitNames()[i]
                 traitValue = self.traits.getTraitValue(traitName)
-                DistributedPetProxyAI.notify.info("%s: initializing new trait '%s' to %s, seed=%s" % (self.doId,
+                DistributedPetProxyAI.notify.debug("%s: initializing new trait '%s' to %s, seed=%s" % (self.doId,
                  traitName,
                  traitValue,
                  self.traitSeed))

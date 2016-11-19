@@ -5,12 +5,20 @@ from direct.task import Task
 from DistributedTreasureAI import DistributedTreasureAI
 import random
 
+import TreasureGlobals
+
 class TreasurePlannerAI(DirectObject.DirectObject):
     notify = DirectNotifyGlobal.directNotify.newCategory('TreasurePlannerAI')
 
     def __init__(self, zoneId, treasureType, callback = None):
         self.zoneId = zoneId
-        self.treasureType = treasureType
+        
+        index = 0
+
+        name = treasureType.__name__[11:13]
+        if name == "Tr": name = "TT"
+        self.treasureType = TreasureGlobals.__dict__['Treasure' + name]
+
         self.callback = callback
         self.initSpawnPoints()
         self.treasures = []
@@ -21,7 +29,6 @@ class TreasurePlannerAI(DirectObject.DirectObject):
         self.lastRequestId = None
         self.requestStartTime = None
         self.requestCount = None
-        return
 
     def initSpawnPoints(self):
         self.spawnPoints = []

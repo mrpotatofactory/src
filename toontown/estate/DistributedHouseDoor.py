@@ -2,7 +2,6 @@ from toontown.toonbase.ToonBaseGlobal import *
 from pandac.PandaModules import *
 from direct.interval.IntervalGlobal import *
 from direct.distributed.ClockDelta import *
-from direct.distributed import DistributedObject
 from toontown.toonbase import ToontownGlobals
 from direct.directnotify import DirectNotifyGlobal
 from direct.showbase.MessengerGlobal import messenger
@@ -28,12 +27,15 @@ class DistributedHouseDoor(DistributedDoor.DistributedDoor):
 
     def getTriggerName(self):
         return 'door_trigger_' + str(self.houseId)
+        
+    def getEnterTriggerEvent(self):
+        return 'enter' + self.getTriggerName()
 
     def hideDoorParts(self):
         pass
 
     def announceGenerate(self):
-        DistributedObject.DistributedObject.announceGenerate(self)
+        DistributedDoor.DistributedObject.DistributedObject.announceGenerate(self)
         if self.doorType == DoorTypes.EXT_STANDARD:
             house = base.cr.doId2do.get(self.houseId)
             if house and house.house_loaded:
@@ -55,9 +57,13 @@ class DistributedHouseDoor(DistributedDoor.DistributedDoor):
         self.accept(self.getEnterTriggerEvent(), self.doorTrigger)
         self.acceptOnce('clearOutToonInterior', self.doorTrigger)
         self.zoneDoneLoading = 0
+        
+        if self.isInterior():
+            trigger = self.getBuilding().find('**/door_trigger*')
+            trigger.setName(self.getTriggerName())
 
     def getBuilding(self, allowEmpty = False):
-        if 'building' not in self.__dict__:
+        if not self.__dict__.has_key('building'):
             if self.doorType == DoorTypes.INT_STANDARD:
                 door = render.find('**/leftDoor;+s')
                 self.building = door.getParent()
@@ -104,7 +110,6 @@ class DistributedHouseDoor(DistributedDoor.DistributedDoor):
         self.doorTrack = Sequence(LerpHprInterval(nodePath=rightDoor, duration=1.0, hpr=VBase3(0, 0, 0), startHpr=VBase3(h, 0, 0), other=otherNP, blendType='easeInOut'), Func(doorFrameHoleRight.hide), Func(self.hideIfHasFlat, rightDoor), SoundInterval(self.closeSfx, node=rightDoor), name=trackName)
         self.doorTrack.start(ts)
         if hasattr(self, 'done'):
-            base.cr.playGame.hood.loader.setHouse(self.houseId)
             zoneId = self.otherZoneId
             if self.doorType == DoorTypes.EXT_STANDARD:
                 whereTo = 'house'
@@ -120,4 +125,3 @@ class DistributedHouseDoor(DistributedDoor.DistributedDoor):
              'allowRedirect': 0,
              'doorDoId': self.otherDoId}
             messenger.send('doorDoneEvent', [request])
-        return

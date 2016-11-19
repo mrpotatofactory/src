@@ -10,7 +10,6 @@ import FactoryEntityCreator
 import CountryClubRoomSpecs
 from otp.level import LevelSpec, LevelConstants
 from toontown.toonbase import TTLocalizer
-from toontown.nametag.NametagGlobals import *
 if __dev__:
     from otp.level import EditorGlobals
 
@@ -28,6 +27,7 @@ class DistributedCountryClubRoom(DistributedLevel.DistributedLevel, CountryClubR
         CountryClubRoom.CountryClubRoom.__init__(self)
         self.suitIds = []
         self.suits = []
+        self.zoneIds = []
         self.reserveSuits = []
         self.joiningReserves = []
         self.suitsInitialized = 0

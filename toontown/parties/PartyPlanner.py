@@ -1,35 +1,32 @@
 import calendar
 from datetime import datetime
 from datetime import timedelta
-from direct.directnotify import DirectNotifyGlobal
-from direct.fsm.FSM import FSM
-from direct.gui import DirectGuiGlobals
+from pandac.PandaModules import Vec3, Vec4, Point3, TextNode, VBase4
+from otp.otpbase import OTPLocalizer
 from direct.gui.DirectGui import DirectFrame, DirectButton, DirectLabel, DirectScrolledList, DirectCheckButton
+from direct.gui import DirectGuiGlobals
 from direct.showbase import DirectObject
 from direct.showbase import PythonUtil
-from pandac.PandaModules import *
-from pandac.PandaModules import Vec3, Vec4, Point3, TextNode, VBase4
-
-from otp.otpbase import OTPGlobals
-from otp.otpbase import OTPLocalizer
-from toontown.friends.FriendsListPanel import determineFriendName
-from toontown.nametag.Nametag import Nametag
-from toontown.nametag.NametagFloat2d import *
-from toontown.nametag.NametagGlobals import *
-from toontown.nametag.NametagGroup import NametagGroup
-from toontown.parties import PartyGlobals
-from toontown.parties import PartyUtils
-from toontown.parties.CalendarGuiMonth import CalendarGuiMonth
-from toontown.parties.InviteVisual import InviteVisual
-from toontown.parties.PartyEditor import PartyEditor
-from toontown.parties.PartyInfo import PartyInfo
-from toontown.parties.ScrolledFriendList import ScrolledFriendList
-from toontown.toon import ToonHead
-from toontown.toonbase import TTLocalizer
+from direct.fsm.FSM import FSM
 from toontown.toonbase import ToontownGlobals
+from toontown.toonbase import TTLocalizer
 from toontown.toontowngui import TTDialog
 from toontown.toontowngui.TeaserPanel import TeaserPanel
-
+from toontown.toon import ToonHead
+from toontown.parties import PartyGlobals
+from toontown.friends.FriendsListPanel import determineFriendName
+from toontown.parties.ScrolledFriendList import ScrolledFriendList
+from toontown.parties.CalendarGuiMonth import CalendarGuiMonth
+from toontown.parties.InviteVisual import InviteVisual
+from toontown.parties.PartyInfo import PartyInfo
+from toontown.parties import PartyUtils
+from toontown.parties.PartyEditor import PartyEditor
+from otp.otpbase import OTPGlobals
+from pandac.PandaModules import *
+from direct.directnotify import DirectNotifyGlobal
+from otp.nametag.NametagGroup import NametagGroup
+from otp.nametag.Nametag import Nametag
+from otp.nametag.NametagFloat2d import *
 
 class PartyPlanner(DirectFrame, FSM):
     notify = DirectNotifyGlobal.directNotify.newCategory('PartyPlanner')
@@ -40,10 +37,11 @@ class PartyPlanner(DirectFrame, FSM):
         self.doneEvent = doneEvent
         self.stateArray = ['Off',
          'Welcome',
-         'PartyEditor', # 'Guests',  skip over the Guests state.
-         'Date',
-         'Time',
-         'Invitation',
+         'PartyEditor',
+         'Guests',
+         #'Date',
+         #'Time',
+         #'Invitation',
          'Farewell']
         self.partyTime = base.cr.toontownTimeManager.getCurServerDateTime()
         self.partyNowTime = base.cr.toontownTimeManager.getCurServerDateTime()
@@ -97,8 +95,7 @@ class PartyPlanner(DirectFrame, FSM):
 
     def enterGuests(self, *args):
         self.prevButton['state'] = DirectGuiGlobals.NORMAL
-        self.nextButton['state'] = DirectGuiGlobals.NORMAL
-        self.nextButton.show()
+        self.nextButton.hide()
         self.guestPage.show()
 
     def exitGuests(self):
@@ -280,41 +277,33 @@ class PartyPlanner(DirectFrame, FSM):
     def __createNametag(self, parent):
         if self.nametagGroup == None:
             self.nametagGroup = NametagGroup()
-            interfaceFont = OTPGlobals.getInterfaceFont()
-            self.nametagGroup.setFont(interfaceFont)
-            self.nametagGroup.setChatFont(interfaceFont)
-            self.nametagGroup.setActive(False)
+            self.nametagGroup.setFont(OTPGlobals.getInterfaceFont())
+            self.nametagGroup.setActive(0)
             self.nametagGroup.setAvatar(self.partyPlannerHead)
             self.nametagGroup.manage(base.marginManager)
-            nametagColor = NametagGlobals.NametagColors[NametagGlobals.CCNonPlayer]
-            self.nametagGroup.setNametagColor(nametagColor)
-            chatColor = NametagGlobals.ChatColors[NametagGlobals.CCNonPlayer]
-            self.nametagGroup.setChatColor(chatColor)
-            nametag2d = self.nametagGroup.getNametag2d()
-            nametag2d.hideNametag()
-            nametag2d.hideChat()
+            self.nametagGroup.setColorCode(self.nametagGroup.CCNonPlayer)
+            self.nametagGroup.getNametag2d().setContents(0)
             self.nametagNode = NametagFloat2d()
-            self.nametagNode.hideChat()
-            self.nametagGroup.add(self.nametagNode)
-            self.nametagGroup.setText(base.cr.partyManager.getPartyPlannerName())
+            self.nametagNode.setContents(Nametag.CName)
+            self.nametagGroup.addNametag(self.nametagNode)
+            self.nametagGroup.setName(base.cr.partyManager.getPartyPlannerName())
             self.nametagNP = parent.attachNewNode(self.nametagNode)
             nametagPos = self.gui.find('**/step_01_partymanPeteNametag_locator').getPos()
             self.nametagNP.setPosHprScale(nametagPos[0], 0, nametagPos[2], 0, 0, 0, 0.1, 1, 0.1)
             self.chatNode = NametagFloat2d()
-            self.chatNode.hideNametag()
-            self.chatNode.showThought()
-            self.nametagGroup.add(self.chatNode)
-            self.nametagGroup.setChatText(TTLocalizer.PartyPlannerInstructions)
+            self.chatNode.setContents(Nametag.CSpeech | Nametag.CThought)
+            self.nametagGroup.addNametag(self.chatNode)
+            self.nametagGroup.setChat(TTLocalizer.PartyPlannerInstructions, CFSpeech)
             self.chatNP = parent.attachNewNode(self.chatNode)
             chatPos = self.gui.find('**/step_01_partymanPeteText_locator').getPos()
             self.chatNP.setPosHprScale(chatPos[0], 0, chatPos[2], 0, 0, 0, 0.08, 1, 0.08)
-            self.nametagGroup.updateAll()
+        return
 
     def clearNametag(self):
         if self.nametagGroup != None:
             self.nametagGroup.unmanage(base.marginManager)
-            self.nametagGroup.remove(self.nametagNode)
-            self.nametagGroup.remove(self.chatNode)
+            self.nametagGroup.removeNametag(self.nametagNode)
+            self.nametagGroup.removeNametag(self.chatNode)
             self.nametagNP.removeNode()
             self.chatNP.removeNode()
             del self.nametagNP
@@ -456,40 +445,58 @@ class PartyPlanner(DirectFrame, FSM):
     def _createGuestPage(self):
         page = DirectFrame(self.frame)
         page.setName('PartyPlannerGuestPage')
-        self.guestTitleLabel = DirectLabel(parent=page, relief=None, text=TTLocalizer.PartyPlannerGuestTitle, pos=self.gui.find('**/title_locator').getPos(), scale=self.titleScale)
+        self.guestTitleLabel = DirectLabel(parent=page, relief=None, text=TTLocalizer.PartyPlannerGuestTitle,
+                                           pos=self.gui.find('**/title_locator').getPos(), scale=self.titleScale * 0)
         self.guestBackgroundLabel = DirectLabel(parent=page, relief=None, image=self.gui.find('**/guestListBackground_flat'), scale=(1.2, 1.0, 1.0))
         self.friendList = ScrolledFriendList(page, self.gui, makeItemsCheckBoxes=True)
-        if len(base.localAvatar.friendsList) == 0:
-            self.noFriends = True
-        else:
-            self.noFriends = False
-            for friendPair in base.localAvatar.friendsList:
-                self.friendList.addFriend(determineFriendName(friendPair), friendPair[0])
+        
+        self.guestBackgroundLabel.setX(10000)
+        self.friendList.setX(10000)
+        
+        self.noFriends = False
 
-            self.friendList.scrollTo(0)
         pos = self.gui.find('**/step_04_partyWillBe_locator').getPos()
         self.publicPrivateLabel = DirectLabel(parent=page, relief=None, text=TTLocalizer.PartyPlannerPublicPrivateLabel, text_align=TextNode.ACenter, text_scale=0.065, pos=pos)
         self.publicDescriptionLabel = DirectLabel(parent=page, relief=None, text=TTLocalizer.PartyPlannerPublicDescription, text_align=TextNode.ACenter, text_scale=TTLocalizer.PPpbulicDescriptionLabel, pos=(pos[0] - 0.52, pos[1], pos[2]))
-        self.publicDescriptionLabel.stash()
-        self.privateDescriptionLabel = DirectLabel(parent=page, relief=None, text=TTLocalizer.PartyPlannerPrivateDescription, text_align=TextNode.ACenter, text_scale=TTLocalizer.PPprivateDescriptionLabel, pos=(pos[0] + 0.55, pos[1], pos[2]))
-        self.privateDescriptionLabel.stash()
+        self.privateDescriptionLabel = DirectLabel(parent=page, relief=None, text=TTLocalizer.PartyPlannerPrivateDescription,
+                                                   text_align=TextNode.ACenter, text_scale=self.titleScale * 16, pos=(pos[0] + 0.55, pos[1], pos[2]))
         pos = self.gui.find('**/step_04_public_locator').getPos()
         self.publicButton = DirectButton(parent=page, relief=None, geom=(self.gui.find('**/publicButton_up'),
          self.gui.find('**/publicButton_down'),
          self.gui.find('**/publicButton_rollover'),
-         self.gui.find('**/publicButton_inactive')), text=TTLocalizer.PartyPlannerPublic, text_pos=(pos[0], pos[2]), text_scale=TTLocalizer.PPpublicButton, command=self.__doTogglePublicPrivate)
+         self.gui.find('**/publicButton_inactive')), text=TTLocalizer.PartyPlannerPublic, text_pos=(pos[0], pos[2]),
+         text_scale=TTLocalizer.PPpublicButton, command=self.__doTogglePublicPrivate, scale=3)
         self.publicButton['state'] = DirectGuiGlobals.DISABLED
-        self.publicButton.bind(DirectGuiGlobals.ENTER, self.__enterPublic)
-        self.publicButton.bind(DirectGuiGlobals.EXIT, self.__exitPublic)
         pos = self.gui.find('**/step_04_private_locator').getPos()
         self.privateButton = DirectButton(parent=page, relief=None, geom=(self.gui.find('**/privateButton_up'),
          self.gui.find('**/privateButton_down'),
          self.gui.find('**/privateButton_rollover'),
          self.gui.find('**/privateButton_inactive')), text=TTLocalizer.PartyPlannerPrivate, text_pos=(pos[0], pos[2]), text_scale=TTLocalizer.PPprivateButton, command=self.__doTogglePublicPrivate)
-        self.privateButton.bind(DirectGuiGlobals.ENTER, self.__enterPrivate)
-        self.privateButton.bind(DirectGuiGlobals.EXIT, self.__exitPrivate)
         self.checkAllButton = DirectButton(parent=page, relief=None, geom=(self.gui.find('**/checkAllButton_up'), self.gui.find('**/checkAllButton_down'), self.gui.find('**/checkAllButton_rollover')), command=self.__doCheckAll)
         self.uncheckAllButton = DirectButton(parent=page, relief=None, geom=(self.gui.find('**/uncheckAllButton_up'), self.gui.find('**/uncheckAllButton_down'), self.gui.find('**/uncheckAllButton_rollover')), command=self.__doUncheckAll)
+        
+        self.checkAllButton.setX(10000)
+        self.uncheckAllButton.setX(10000)
+        
+        self.privateButton.setPos(-.25, 0, -.25)
+        self.privateButton.setScale(1.7)
+        
+        self.publicButton.setPos(.28, 0, -.7)
+        self.publicButton.setScale(1.7)
+        
+        self.guestTitleLabel.setX(10000)
+        self.privateDescriptionLabel.setScale(.04)
+        self.privateDescriptionLabel.setPos(0)
+        self.publicDescriptionLabel.setScale(1)
+        self.publicDescriptionLabel.setPos(0, 0, -.5)
+        
+        pos = self.gui.find('**/step_06_sendInvitation_locator').getPos()
+        self.inviteButton = DirectButton(parent=page, relief=None, geom=(self.gui.find('**/send_up'), self.gui.find('**/send_down'),
+                                                                         self.gui.find('**/send_rollover')),
+                                         text='Complete', #TTLocalizer.PartyPlannerInviteButton,
+                                         textMayChange=True, text_scale=0.05,
+                                         text_pos=(pos[0], pos[2]),
+                                         command=self.__handleComplete)
         return page
 
     def __doCheckAll(self):
@@ -662,7 +669,7 @@ class PartyPlanner(DirectFrame, FSM):
         decorations = self.partyEditor.partyEditorGrid.getDecorationsOnGrid()
         invitees = self.getInvitees()
         self.accept('addPartyResponseReceived', self.processAddPartyResponse)
-        base.cr.partyManager.sendAddParty(hostId, self.partyTime.strftime('%Y-%m-%d %H:%M:%S'), endTime.strftime('%Y-%m-%d %H:%M:%S'), self.isPrivate, self.currentInvitationTheme, self.partyActivities, decorations, invitees)
+        base.cr.partyManager.sendAddParty(self.isPrivate, self.partyActivities, decorations)
 
     def getInvitees(self):
         invitees = []
@@ -692,7 +699,7 @@ class PartyPlanner(DirectFrame, FSM):
             goingBackAllowed = False
             self.confirmTitleLabel['text'] = TTLocalizer.PartyPlannerConfirmationErrorTitle
             confirmRecapText = TTLocalizer.PartyPlannerConfirmationTooManyText
-        self.nametagGroup.setChatText(confirmRecapText)
+        self.nametagGroup.setChat(confirmRecapText, CFSpeech)
         self.request('Farewell', goingBackAllowed)
 
     def __acceptExit(self):

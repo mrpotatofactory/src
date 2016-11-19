@@ -130,7 +130,7 @@ class ToonAvatarPanel(AvatarPanelBase.AvatarPanelBase):
 
 
 
-        if base.cr.playerFriendsManager.askTransientFriend(self.avId) and self.avId not in base.cr.doId2do:
+        if base.cr.playerFriendsManager.askTransientFriend(self.avId) and not base.cr.doId2do.has_key(self.avId):
             self.friendButton['state'] = DGG.DISABLED
 
 
@@ -373,7 +373,7 @@ class ToonAvatarPanel(AvatarPanelBase.AvatarPanelBase):
         self.ignoreAll()
         if hasattr(self.avatar, 'bFake') and self.avatar.bFake:
             self.avatar.delete()
-        base.setCellsActive([base.rightCells[0]], 1)
+        base.setCellsAvailable([base.rightCells[0]], 1)
         AvatarPanelBase.AvatarPanelBase.cleanup(self)
         return
 
@@ -518,25 +518,12 @@ class ToonAvatarPanel(AvatarPanelBase.AvatarPanelBase):
                             self.groupButton['image_color'] = Vec4(1, 1, 1, 0.4)
                             self.groupButton['state'] = DGG.NORMAL
                     else:
-                        g1 = localAvatar.boardingParty.countInGroup(self.avId)
-                        g2 = localAvatar.boardingParty.countInGroup(localAvatar.doId)
-                        if (g1 + g2) > localAvatar.boardingParty.maxSize:
-                            self.groupButton['text'] = ('', TTLocalizer.AvatarPanelGroupMember, TTLocalizer.AvatarPanelGroupMember)
-                            self.groupButton['command'] = None
-                            self.groupButton['image'] = self.inviteImageDisabled
-                            self.groupButton['image_color'] = Vec4(1, 1, 1, 0.4)
-                        else:
-                            if g1 > 0 and g2 > 0:
-                                self.groupButton['text'] = ('', TTLocalizer.AvatarPanelGroupInvite, "%s %d"%(TTLocalizer.AvatarPanelGroupMerge, (g1+g2)))
-                                self.groupFrame['text']=TTLocalizer.BoardingPartyTitleMerge;
-                            else:
-                                self.groupButton['text'] = ('', TTLocalizer.AvatarPanelGroupInvite, TTLocalizer.AvatarPanelGroupInvite)
-                                self.groupFrame['text']=TTLocalizer.BoardingPartyTitle;
-                            self.groupButton['command'] = self.handleInvite
-                            self.groupButton['image'] = self.inviteImageList
+                        self.groupButton['text'] = ('', TTLocalizer.AvatarPanelGroupInvite, TTLocalizer.AvatarPanelGroupInvite)
+                        self.groupButton['command'] = self.handleInvite
+                        self.groupButton['image'] = self.inviteImageList
                         self.groupButton['state'] = DGG.NORMAL
                     if base.config.GetBool('want-boarding-groups', 1):
-                        base.setCellsActive([base.rightCells[0]], 0)
+                        base.setCellsAvailable([base.rightCells[0]], 0)
                         self.groupFrame.show()
         return
 

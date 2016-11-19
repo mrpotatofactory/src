@@ -22,7 +22,7 @@ class PlayingCardDeck:
 
     def dealCards(self, num):
         cardList = []
-        for i in xrange(num):
+        for i in range(num):
             cardList.append(self.cards.pop(0))
 
         return cardList

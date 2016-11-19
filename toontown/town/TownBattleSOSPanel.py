@@ -91,7 +91,7 @@ class TownBattleSOSPanel(DirectFrame, StateData.StateData):
         return DirectButton(relief=None, text=friendName, text_scale=0.04, text_align=TextNode.ALeft, text_fg=fg, text1_bg=self.textDownColor, text2_bg=self.textRolloverColor, text3_fg=self.textDisabledColor, command=com, extraArgs=[friendId, friendName])
 
     def makeNPCFriendButton(self, NPCFriendId, numCalls):
-        if NPCFriendId not in TTLocalizer.NPCToonNames:
+        if not TTLocalizer.NPCToonNames.has_key(NPCFriendId):
             return None
         friendName = TTLocalizer.NPCToonNames[NPCFriendId]
         friendName += ' %d' % numCalls
@@ -183,7 +183,7 @@ class TownBattleSOSPanel(DirectFrame, StateData.StateData):
                 del self.friends[friendPair]
 
         for friendPair in newFriends:
-            if friendPair not in self.friends:
+            if not self.friends.has_key(friendPair):
                 friendButton = self.makeFriendButton(friendPair)
                 if friendButton:
                     self.scrollList.addItem(friendButton)

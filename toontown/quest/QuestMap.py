@@ -30,9 +30,7 @@ class QuestMap(DirectFrame):
         self.cogInfoFrame.setPos(0, 0, 0.6)
         self.buildingMarkers = []
         self.av = av
-        self.wantToggle = False
-        if base.config.GetBool('want-toggle-quest-map', True):
-            self.wantToggle = True
+        self.wantToggle = base.config.GetBool('want-toggle-quest-map', True)
         self.updateMarker = True
         self.cornerPosInfo = None
         self.hqPosInfo = None
@@ -127,43 +125,36 @@ class QuestMap(DirectFrame):
             marker.destroy()
 
         self.buildingMarkers = []
-
-        for (i, questDesc) in enumerate(self.av.quests):
-            mapIndex = i + 1
-            quest = Quests.getQuest(questDesc[0])
-            toNpcId = questDesc[2]
-
-            completed = quest.getCompletionStatus(self.av, questDesc) == Quests.COMPLETE
-            if not completed:
+        dnaStore = base.cr.playGame.dnaStore
+        for questIndex in self.av.questPage.quests.keys():
+            questDesc = self.av.questPage.quests.get(questIndex)
+            if questDesc is None:
+                continue
+            mapIndex = questIndex + 1
+            questId, fromNpcId, toNpcId, rewardId, toonProgress = questDesc
+            quest = Quests.getQuest(questId)
+            fComplete = quest.getCompletionStatus(self.av, questDesc) == Quests.COMPLETE
+            if not fComplete:
                 if quest.getType() == Quests.RecoverItemQuest:
                     if quest.getHolder() == Quests.AnyFish:
                         self.putBuildingMarker(self.fishingSpotInfo, mapIndex=mapIndex)
                     continue
-                elif quest.getType() not in (
-                    Quests.DeliverGagQuest, Quests.DeliverItemQuest,
-                    Quests.VisitQuest, Quests.TrackChoiceQuest):
+                elif quest.getType() not in (Quests.DeliverGagQuest, Quests.DeliverItemQuest, Quests.VisitQuest, Quests.TrackChoiceQuest):
                     continue
-
             if toNpcId == Quests.ToonHQ:
                 self.putBuildingMarker(self.hqPosInfo, mapIndex=mapIndex)
-                continue
-
-            npcZoneId = NPCToons.getNPCZone(toNpcId)
-            hoodId = ZoneUtil.getCanonicalHoodId(npcZoneId)
-            branchId = ZoneUtil.getCanonicalBranchZone(npcZoneId)
-
-            if (self.hoodId != hoodId) or (self.zoneId != branchId):
-                continue
-
-            for blockIndex in xrange(base.cr.playGame.dnaStore.getNumBlockNumbers()):
-                blockNumber = base.cr.playGame.dnaStore.getBlockNumberAt(blockIndex)
-                zoneId = base.cr.playGame.dnaStore.getZoneFromBlockNumber(blockNumber)
-                interiorZoneId = (zoneId - (zoneId%100)) + 500 + blockNumber
-                if npcZoneId == interiorZoneId:
-                    self.putBuildingMarker(
-                        base.cr.playGame.dnaStore.getDoorPosHprFromBlockNumber(blockNumber).getPos(render),
-                        base.cr.playGame.dnaStore.getDoorPosHprFromBlockNumber(blockNumber).getHpr(render),
-                        mapIndex=mapIndex)
+            else:
+                npcZone = NPCToons.getNPCZone(toNpcId)
+                hoodId = ZoneUtil.getCanonicalHoodId(npcZone)
+                branchId = ZoneUtil.getCanonicalBranchZone(npcZone)
+                if self.hoodId == hoodId and self.zoneId == branchId:
+                    for blockIndex in xrange(dnaStore.getNumBlockNumbers()):
+                        blockNumber = dnaStore.getBlockNumberAt(blockIndex)
+                        zone = dnaStore.getZoneFromBlockNumber(blockNumber)
+                        branchZone = zone - zone % 100
+                        finalZone = branchZone + 500 + blockNumber
+                        if npcZone == finalZone:
+                            self.putBuildingMarker(dnaStore.getDoorPosHprFromBlockNumber(blockNumber).getPos(), dnaStore.getDoorPosHprFromBlockNumber(blockNumber).getHpr(), mapIndex=mapIndex)
 
     def transformAvPos(self, pos):
         if self.cornerPosInfo is None:
@@ -182,44 +173,50 @@ class QuestMap(DirectFrame):
                 self.marker.setHpr(0, 0, -180 - self.av.getH())
         i = 0
         for buildingMarker in self.buildingMarkers:
-            buildingMarker.setScale((math.sin(task.time * 16.0 + i * math.pi / 3.0) + 1) * 0.005 + 0.04)
-            i = i + 1
+            if not buildingMarker.isEmpty():
+                buildingMarker.setScale((math.sin(task.time * 16.0 + i * math.pi / 3.0) + 1) * 0.005 + 0.04)
+                i = i + 1
 
         return Task.cont
 
     def updateMap(self):
         if self.av:
-            hoodId = ZoneUtil.getCanonicalHoodId(self.av.getLocation()[1])
-            zoneId = ZoneUtil.getCanonicalBranchZone(self.av.getLocation()[1])
             try:
+                hoodId = ZoneUtil.getCanonicalHoodId(self.av.getLocation()[1])
+                zoneId = ZoneUtil.getCanonicalBranchZone(self.av.getLocation()[1])
                 mapsGeom = loader.loadModel('phase_4/models/questmap/%s_maps' % ToontownGlobals.dnaMap[hoodId])
+                mapImage = mapsGeom.find('**/%s_%s_english' % (ToontownGlobals.dnaMap[hoodId], zoneId))
+                if not mapImage.isEmpty():
+                    self.container['image'] = mapImage
+                    self.resetFrameSize()
+                    self.cornerPosInfo = QuestMapGlobals.CornerPosTable.get('%s_%s_english' % (ToontownGlobals.dnaMap[hoodId], zoneId))
+                    self.hqPosInfo = QuestMapGlobals.HQPosTable.get('%s_%s_english' % (ToontownGlobals.dnaMap[hoodId], zoneId))
+                    self.fishingSpotInfo = QuestMapGlobals.FishingSpotPosTable.get('%s_%s_english' % (ToontownGlobals.dnaMap[hoodId], zoneId))
+                    self.cogInfoPos = QuestMapGlobals.CogInfoPosTable.get('%s_%s_english' % (ToontownGlobals.dnaMap[hoodId], zoneId))
+                    self.cogInfoFrame.setPos(self.cogInfoPos)
+                    self.hide()
+                    self.hoodId = hoodId
+                    self.zoneId = zoneId
+                    self.updateQuestInfo()
+                    self.updateCogInfo()
+                    taskMgr.add(self.update, 'questMapUpdate')
+                else:
+                    self.stop()
+                mapsGeom.removeNode()
             except:
                 self.stop()
-                return
-            mapImage = mapsGeom.find('**/%s_%s_english' % (ToontownGlobals.dnaMap[hoodId], zoneId))
-            if not mapImage.isEmpty():
-                self.container['image'] = mapImage
-                self.resetFrameSize()
-                self.cornerPosInfo = QuestMapGlobals.CornerPosTable.get('%s_%s_english' % (ToontownGlobals.dnaMap[hoodId], zoneId))
-                self.hqPosInfo = QuestMapGlobals.HQPosTable.get('%s_%s_english' % (ToontownGlobals.dnaMap[hoodId], zoneId))
-                self.fishingSpotInfo = QuestMapGlobals.FishingSpotPosTable.get('%s_%s_english' % (ToontownGlobals.dnaMap[hoodId], zoneId))
-                self.cogInfoPos = QuestMapGlobals.CogInfoPosTable.get('%s_%s_english' % (ToontownGlobals.dnaMap[hoodId], zoneId))
-                self.cogInfoFrame.setPos(self.cogInfoPos)
-                self.hide()
-                self.hoodId = hoodId
-                self.zoneId = zoneId
-                self.updateQuestInfo()
-                self.updateCogInfo()
-                taskMgr.add(self.update, 'questMapUpdate')
-            else:
-                self.stop()
-                mapsGeom.removeNode()
 
     def start(self):
         self.container.show()
         self.accept('questPageUpdated', self.updateMap)
         self.handleMarker()
         self.updateMap()
+        taskMgr.doMethodLater(2, self.__emulateEnd, 'emulateend')
+        
+    def __emulateEnd(self, task):
+        messenger.send('end')
+        messenger.send('end-up')
+        return task.done
 
     def initMarker(self, task):
         if self.av:

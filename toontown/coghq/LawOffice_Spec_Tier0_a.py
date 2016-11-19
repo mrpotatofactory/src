@@ -1,6 +1,6 @@
+# File: L (Python 2.4)
+
 from toontown.coghq.SpecImports import *
-
-
 GlobalEntities = {
     1000: {
         'type': 'levelMgr',

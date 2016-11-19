@@ -441,7 +441,7 @@ class Place(StateData.StateData, FriendsListManager.FriendsListManager):
              'how': 'teleportIn',
              'hoodId': hoodId,
              'zoneId': zoneId,
-             'shardId': None, # ALPHA BANDAGE: should be shardId, but this causes the AI it teleports to to die right now.
+             'shardId': None, # should be shardId
              'avId': -1})
         else:
             if hostId is None:
@@ -541,15 +541,14 @@ class Place(StateData.StateData, FriendsListManager.FriendsListManager):
         pass
 
     def enterDoorIn(self, requestStatus):
-        NametagGlobals.setWant2dNametags(False)
+        NametagGlobals.setMasterArrowsOn(0)
         door = base.cr.doId2do.get(requestStatus['doorDoId'])
-        if not door is None:
-            door.readyToExit()
+        door.readyToExit()
         base.localAvatar.obscureMoveFurnitureButton(1)
         base.localAvatar.startQuestMap()
 
     def exitDoorIn(self):
-        NametagGlobals.setWant2dNametags(True)
+        NametagGlobals.setMasterArrowsOn(1)
         base.localAvatar.obscureMoveFurnitureButton(-1)
 
     def enterDoorOut(self):
@@ -705,14 +704,14 @@ class Place(StateData.StateData, FriendsListManager.FriendsListManager):
 
     def _placeTeleportInPostZoneComplete(self, requestStatus):
         teleportDebug(requestStatus, '_placeTeleportInPostZoneComplete(%s)' % (requestStatus,))
-        NametagGlobals.setWant2dNametags(False)
+        NametagGlobals.setMasterArrowsOn(0)
         base.localAvatar.laffMeter.start()
         base.localAvatar.startQuestMap()
         base.localAvatar.reconsiderCheesyEffect()
         base.localAvatar.obscureMoveFurnitureButton(1)
         avId = requestStatus.get('avId', -1)
         if avId != -1:
-            if avId in base.cr.doId2do:
+            if base.cr.doId2do.has_key(avId):
                 teleportDebug(requestStatus, 'teleport to avatar')
                 avatar = base.cr.doId2do[avId]
                 avatar.forceToTruePosition()
@@ -743,7 +742,7 @@ class Place(StateData.StateData, FriendsListManager.FriendsListManager):
     def exitTeleportIn(self):
         self.removeSetZoneCompleteCallback(self._tiToken)
         self._tiToken = None
-        NametagGlobals.setWant2dNametags(True)
+        NametagGlobals.setMasterArrowsOn(1)
         base.localAvatar.laffMeter.stop()
         base.localAvatar.obscureMoveFurnitureButton(-1)
         base.localAvatar.stopUpdateSmartCamera()

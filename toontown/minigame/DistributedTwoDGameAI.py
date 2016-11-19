@@ -70,7 +70,7 @@ class DistributedTwoDGameAI(DistributedMinigameAI):
                 enemyType = enemiesPool[enemyIndex][0]
                 self.enemyHealthTable[i] += [ToonBlitzGlobals.EnemyBaseHealth]
                 self.enemyHealthTable[i][j] *= self.numPlayers
-                if enemyType in ToonBlitzGlobals.EnemyHealthMultiplier:
+                if ToonBlitzGlobals.EnemyHealthMultiplier.has_key(enemyType):
                     self.enemyHealthTable[i][j] *= ToonBlitzGlobals.EnemyHealthMultiplier[enemyType]
 
             self.treasureTakenTable += [[]]
@@ -350,7 +350,7 @@ class DistributedTwoDGameAI(DistributedMinigameAI):
                 enemyIndicesSelected.sort()
             treasureIndicesPool = []
             treasureValuePool = []
-            for value in xrange(1, 5):
+            for value in range(1, 5):
                 treasureValuePool += [value] * ToonBlitzGlobals.TreasureValueProbability[value]
 
             treasureIndicesSelected = []

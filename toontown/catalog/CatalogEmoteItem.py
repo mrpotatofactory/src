@@ -3,7 +3,7 @@ from toontown.toonbase import ToontownGlobals
 from toontown.toonbase import TTLocalizer
 from otp.otpbase import OTPLocalizer
 from direct.interval.IntervalGlobal import *
-LoyaltyEmoteItems = (20, 21, 22, 23, 24)
+LoyaltyEmoteItems = (20, 21, 22, 23, 24, 25)
 
 class CatalogEmoteItem(CatalogItem.CatalogItem):
     sequenceNumber = 0
@@ -71,6 +71,7 @@ class CatalogEmoteItem(CatalogItem.CatalogItem):
         else:
             track = Sequence(Func(Emote.globalEmote.doEmote, toon, self.emoteIndex), Wait(duration + 4), name=name)
         self.pictureToon = toon
+        toon.setBin('gui-popup', 60)
         return (model, track)
 
     def changeIval(self, volume):
@@ -110,7 +111,13 @@ class CatalogEmoteItem(CatalogItem.CatalogItem):
         return self.emoteIndex
 
     def getBasePrice(self):
+        if self.emoteIndex in LoyaltyEmoteItems:
+            return config.GetInt('catalog-emblems-price-as-jb-emotes', 1000)
+            
         return 550
+
+    def getEmblemPrices(self):
+        return []
 
     def decodeDatagram(self, di, versionNumber, store):
         CatalogItem.CatalogItem.decodeDatagram(self, di, versionNumber, store)
@@ -128,11 +135,13 @@ class CatalogEmoteItem(CatalogItem.CatalogItem):
         dg.addUint16(self.loyaltyDays)
 
     def isGift(self):
-        if self.getEmblemPrices():
-            return 0
-        if self.loyaltyRequirement() > 0:
-            return 0
-        elif self.emoteIndex in LoyaltyEmoteItems:
-            return 0
-        else:
-            return 1
+        return 0
+
+        #if self.getEmblemPrices():
+        #    return 0
+        #if self.loyaltyRequirement() > 0:
+        #    return 0
+        #elif self.emoteIndex in LoyaltyEmoteItems:
+        #    return 0
+        #else:
+        #    return 1

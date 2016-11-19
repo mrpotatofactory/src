@@ -149,9 +149,9 @@ class DistributedPairingGameAI(DistributedMinigameAI):
         for oneToonFaceUpList in self.faceUpDict.values():
             faceUpList += oneToonFaceUpList
 
-        for i in xrange(len(faceUpList)):
+        for i in range(len(faceUpList)):
             cardA = faceUpList[i]
-            for j in xrange(i + 1, len(faceUpList)):
+            for j in range(i + 1, len(faceUpList)):
                 cardB = faceUpList[j]
                 if self.cards[cardA].rank == self.cards[cardB].rank:
                     return (cardA, cardB)
@@ -185,10 +185,10 @@ class DistributedPairingGameAI(DistributedMinigameAI):
             self.air.writeServerEvent('suspicious', avId, 'openCardRequest from non-player av %s' % avId)
             return
         if deckOrderIndex < 0 or deckOrderIndex >= len(self.cards):
-            self.air.writeServerEvent('suspicious', avId, 'openCardRequest: invalid deckOrderIndex: %s' % deckOrderIndex)
+            self.logSuspicious(avId, 'openCardRequest: invalid deckOrderIndex: %s' % deckOrderIndex)
             return
         if bonusGlowCard < 0 or bonusGlowCard >= len(self.cards):
-            self.air.writeServerEvent('suspicious', avId, 'openCardRequest: invalid bonusGlowCard: %s' % bonusGlowCard)
+            self.logSuspicious(avId, 'openCardRequest: invalid bonusGlowCard: %s' % bonusGlowCard)
             return
         cardsToTurnDown = []
         faceUpList = self.faceUpDict[avId]

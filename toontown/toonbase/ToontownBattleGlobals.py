@@ -11,8 +11,8 @@ BattleCamJoinPos = Point3(0, -12, 13)
 BattleCamJoinHpr = Vec3(0, -45, 0)
 SkipMovie = 0
 BaseHp = 15
-Tracks = TTLocalizer.BattleGlobalTracks
-NPCTracks = TTLocalizer.BattleGlobalNPCTracks
+Tracks = map(str, TTLocalizer.BattleGlobalTracks)
+NPCTracks = map(str, TTLocalizer.BattleGlobalNPCTracks)
 TrackColors = ((211 / 255.0, 148 / 255.0, 255 / 255.0),
  (249 / 255.0, 255 / 255.0, 93 / 255.0),
  (79 / 255.0, 190 / 255.0, 76 / 255.0),
@@ -100,7 +100,7 @@ UnpaidMaxSkills = [Levels[0][1] - 1,
  Levels[4][4] - 1,
  Levels[5][4] - 1,
  Levels[6][1] - 1]
-ExperienceCap = 300
+ExperienceCap = 400
 
 def gagIsPaidOnly(track, level):
     return Levels[track][level] > UnpaidMaxSkills[track]
@@ -786,8 +786,8 @@ def getBossBattleCreditMultiplier(battleNumber):
     return 1 + battleNumber
 
 
-def getInvasionMultiplier():
-    return 2.0
+def getInvasionMultiplier(mega=False):
+    return 3.0 if mega else 2.0
 
 
 def getMoreXpHolidayMultiplier():
@@ -796,7 +796,7 @@ def getMoreXpHolidayMultiplier():
 
 def encodeUber(trackList):
     bitField = 0
-    for trackIndex in xrange(len(trackList)):
+    for trackIndex in range(len(trackList)):
         if trackList[trackIndex] > 0:
             bitField += pow(2, trackIndex)
 
@@ -843,3 +843,5 @@ def getUberFlagSafe(flagMask, index):
         return -1
     else:
         return getUberFlag(flagMask, index)
+
+UNIOR_FUCK_TOONS = 20

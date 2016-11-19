@@ -5,6 +5,7 @@ from toontown.toonbase import TTLocalizer
 from direct.task import Task
 from toontown.fishing import FishGlobals
 from toontown.pets import PetUtil, PetDNA, PetConstants
+from toontown.hood import ZoneUtil
 
 class DistributedNPCPetclerkAI(DistributedNPCToonBaseAI):
 
@@ -20,14 +21,14 @@ class DistributedNPCPetclerkAI(DistributedNPCToonBaseAI):
 
     def avatarEnter(self):
         avId = self.air.getAvatarIdFromSender()
-        if avId not in self.air.doId2do:
+        if not self.air.doId2do.has_key(avId):
             self.notify.warning('Avatar: %s not found' % avId)
             return
         if self.isBusy():
             self.freeAvatar(avId)
             return
-        self.petSeeds = simbase.air.petMgr.getAvailablePets(5)
-        numGenders = len(PetDNA.PetGenders)
+        self.petSeeds = self.air.petMgr.getAvailablePets(3, ZoneUtil.getCanonicalHoodId(self.zoneId))
+        numGenders = 2 # len(PetDNA.PetGenders)
         self.petSeeds *= numGenders
         self.petSeeds.sort()
         self.sendUpdateToAvatarId(avId, 'setPetSeeds', [self.petSeeds])
@@ -92,7 +93,7 @@ class DistributedNPCPetclerkAI(DistributedNPCToonBaseAI):
         if av:
             from toontown.hood import ZoneUtil
             zoneId = ZoneUtil.getCanonicalSafeZoneId(self.zoneId)
-            if petNum not in xrange(0, len(self.petSeeds)):
+            if petNum not in range(0, len(self.petSeeds)):
                 self.air.writeServerEvent('suspicious', avId, 'DistributedNPCPetshopAI.petAdopted and no such pet!')
                 self.notify.warning('somebody called petAdopted on a non-existent pet! avId: %s' % avId)
                 return
@@ -104,7 +105,7 @@ class DistributedNPCPetclerkAI(DistributedNPCToonBaseAI):
             if av.petId != 0:
                 simbase.air.petMgr.deleteToonsPet(avId)
             gender = petNum % len(PetDNA.PetGenders)
-            if nameIndex not in xrange(0, TTLocalizer.PetNameIndexMAX):
+            if nameIndex not in range(0, TTLocalizer.PetNameIndexMAX):
                 self.air.writeServerEvent('avoid_crash', avId, "DistributedNPCPetclerkAI.petAdopted and didn't have valid nameIndex!")
                 self.notify.warning("somebody called petAdopted and didn't have valid nameIndex to adopt! avId: %s" % avId)
                 return
@@ -125,6 +126,8 @@ class DistributedNPCPetclerkAI(DistributedNPCToonBaseAI):
         if av:
             simbase.air.petMgr.deleteToonsPet(avId)
             self.transactionType = 'return'
+        
+        self.transactionDone()
 
     def transactionDone(self):
         avId = self.air.getAvatarIdFromSender()

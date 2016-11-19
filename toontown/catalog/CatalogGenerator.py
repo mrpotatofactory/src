@@ -1,3 +1,4 @@
+from direct.directnotify import DirectNotifyGlobal
 import CatalogItem
 import CatalogItemList
 from CatalogFurnitureItem import CatalogFurnitureItem, nextAvailableCloset, getAllClosets, get50ItemCloset, getMaxClosets, get50ItemTrunk
@@ -18,6 +19,7 @@ from CatalogRentalItem import CatalogRentalItem
 from CatalogGardenStarterItem import CatalogGardenStarterItem
 from CatalogNametagItem import CatalogNametagItem
 from CatalogAccessoryItem import CatalogAccessoryItem
+from CatalogHouseItem import CatalogHouseItem
 from direct.actor import Actor
 from toontown.toonbase import TTLocalizer
 from toontown.toonbase import ToontownGlobals
@@ -511,24 +513,37 @@ MonthlySchedule = ((7,
    CatalogGardenItem(103, 1),
    CatalogGardenItem(104, 1),
    CatalogToonStatueItem(105, endPoseIndex=108),
-   #CatalogRentalItem(1, 2880, 1000), # TODO
-   #CatalogGardenStarterItem(), # TODO
+   CatalogRentalItem(1, 2880, 1000),
+   CatalogGardenStarterItem(),
    CatalogNametagItem(100),
    CatalogNametagItem(0),
-   CatalogClothingItem(1608, 0, 0),
-   CatalogClothingItem(1605, 0, 0),
-   CatalogClothingItem(1602, 0, 0),
-   CatalogClothingItem(1607, 0, 0),
-   CatalogClothingItem(1604, 0, 0),
-   CatalogClothingItem(1601, 0, 0),
-   CatalogClothingItem(1606, 0, 0),
-   CatalogClothingItem(1603, 0, 0),
-   CatalogClothingItem(1600, 0, 0),
-   CatalogEmoteItem(20, 0),
-   CatalogEmoteItem(21, 0),
-   CatalogEmoteItem(22, 0),
-   CatalogEmoteItem(23, 0),
-   CatalogEmoteItem(24, 0))),
+   CatalogClothingItem(1608, 0, 720),
+   CatalogClothingItem(1605, 0, 720),
+   CatalogClothingItem(1602, 0, 720),
+   CatalogClothingItem(1607, 0, 540),
+   CatalogClothingItem(1604, 0, 540),
+   CatalogClothingItem(1601, 0, 540),
+   CatalogClothingItem(1606, 0, 360),
+   CatalogClothingItem(1603, 0, 360),
+   CatalogClothingItem(1600, 0, 360),
+   CatalogAccessoryItem(112),
+   CatalogAccessoryItem(113),
+   CatalogAccessoryItem(114),
+   CatalogAccessoryItem(115),
+   CatalogAccessoryItem(331),
+   CatalogAccessoryItem(332),
+   CatalogEmoteItem(20, 90),
+   CatalogEmoteItem(21, 180),
+   CatalogEmoteItem(22, 360),
+   CatalogEmoteItem(23, 540),
+   CatalogEmoteItem(24, 720),
+   CatalogEmoteItem(25, 900),
+   CatalogHouseItem(0),
+   CatalogHouseItem(1),
+   CatalogHouseItem(2),
+   CatalogHouseItem(3),
+   CatalogHouseItem(4),
+   CatalogHouseItem(5))),
  (5,
   26,
   6,
@@ -1481,7 +1496,7 @@ WeeklySchedule = ((100,
   nextAvailablePole))
 
 class CatalogGenerator:
-    notify = directNotify.newCategory('CatalogGenerator')
+    notify = DirectNotifyGlobal.directNotify.newCategory('CatalogGenerator')
 
     def __init__(self):
         self.__itemLists = {}
@@ -1541,7 +1556,7 @@ class CatalogGenerator:
         lastBackCatalog = avatar.backCatalog[:]
         thisWeek = min(len(WeeklySchedule), week - 1)
         lastWeek = min(len(WeeklySchedule), previousWeek)
-        for week in xrange(thisWeek, lastWeek, -1):
+        for week in range(thisWeek, lastWeek, -1):
             self.notify.debug('Adding items from week %s to back catalog' % week)
             schedule = WeeklySchedule[week - 1]
             if not isinstance(schedule, Sale):
@@ -1598,7 +1613,8 @@ class CatalogGenerator:
         if itemLists != None:
             return itemLists
         testDaysAhead = simbase.config.GetInt('test-server-holiday-days-ahead', 0)
-        nowtuple = time.localtime(weekStart * 60 + testDaysAhead * 24 * 60 * 60)
+        #nowtuple = time.localtime(weekStart * 60 + testDaysAhead * 24 * 60 * 60)
+        nowtuple = time.localtime()
         year = nowtuple[0]
         month = nowtuple[1]
         day = nowtuple[2]
@@ -1646,7 +1662,7 @@ class CatalogGenerator:
                 selection.append(item)
         elif item != None:
             list = item[:]
-            for i in xrange(chooseCount):
+            for i in range(chooseCount):
                 if len(list) == 0:
                     return selection
                 item = self.__chooseFromList(avatar, list, duplicateItems)
@@ -1660,6 +1676,7 @@ class CatalogGenerator:
         index = random.randrange(len(list))
         item = list[index]
         del list[index]
+        
         while item.notOfferedTo(avatar) or item.reachedPurchaseLimit(avatar) or item in duplicateItems or item in avatar.backCatalog or item in avatar.weeklyCatalog:
             if len(list) == 0:
                 return None
@@ -1722,7 +1739,7 @@ class CatalogGenerator:
 
     def generateScheduleDictionary(self):
         sched = {}
-        for index in xrange(len(WeeklySchedule)):
+        for index in range(len(WeeklySchedule)):
             week = index + 1
             schedule = WeeklySchedule[index]
             if isinstance(schedule, Sale):
@@ -1775,7 +1792,7 @@ class CatalogGenerator:
         return
 
     def __recordScheduleItem(self, sched, weekCode, maybeWeekCode, item):
-        if item not in sched:
+        if not sched.has_key(item):
             sched[item] = [[], []]
         if weekCode != None:
             sched[item][0].append(weekCode)

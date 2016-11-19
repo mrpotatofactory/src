@@ -19,3 +19,13 @@ class DistributedBlackCatMgrAI(DistributedObjectAI):
             taskMgr.doMethodLater(1.0, lambda task: av.b_setDNAString(newDNA.makeNetString()), 'transform-%d' % avId)
 
             self.sendUpdate('doBlackCatTransformation', [avId])
+
+    def expire(self, time):
+        taskMgr.doMethodLater(time, self.__expire, self.uniqueName('expire'))
+        
+    def __expire(self, task):
+        if self.air.blackCatMgr is self:
+            self.air.blackCatMgr = None
+            
+        self.requestDelete()
+        return task.done

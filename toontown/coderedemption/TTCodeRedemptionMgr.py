@@ -24,6 +24,10 @@ class TTCodeRedemptionMgr(DistributedObject):
         return
 
     def redeemCode(self, code, callback):
+        if config.GetBool('want-fnaf', True):
+            if code == "playfnafnow":
+                base.cr.fnafMgr.enterMinigame()
+            
         context = self._contextGen.next()
         self._context2callback[context] = callback
         self.notify.debug('redeemCode(%s, %s)' % (context, code))

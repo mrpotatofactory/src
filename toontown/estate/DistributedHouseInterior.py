@@ -14,7 +14,7 @@ from toontown.catalog import CatalogFlooringItem
 from toontown.catalog import CatalogMouldingItem
 from toontown.catalog import CatalogWainscotingItem
 from toontown.dna.DNAParser import DNADoor
-WindowPlugNames = ('**/windowcut_a*', '**/windowcut_b*', '**/windowcut_c*', '**/windowcut_d*', '**/windowcut_e*', '**/windowcut_f*')
+WindowPlugNames = ('**/windowcut_c*', '**/windowcut_e*')
 RoomNames = ('**/group2', '**/group1')
 WallNames = ('ceiling*', 'wall_side_middle*', 'wall_front_middle*', 'windowcut_*')
 MouldingNames = ('wall_side_top*', 'wall_front_top*')
@@ -66,7 +66,8 @@ class DistributedHouseInterior(DistributedObject.DistributedObject):
         doorNP = door.copyTo(door_origin)
         houseColor = HouseGlobals.atticWood
         color = Vec4(houseColor[0], houseColor[1], houseColor[2], 1)
-        DNADoor.setupDoor(doorNP, door_origin, door_origin, dnaStore, str(self.houseId), color)
+        door = DNADoor('d')
+        door.setupDoor(doorNP, door_origin, door_origin, dnaStore, self.houseId, color)
         doorFrame = doorNP.find('door_*_flat')
         doorFrame.setColor(color)
         self.interior.flattenMedium()
@@ -83,8 +84,8 @@ class DistributedHouseInterior(DistributedObject.DistributedObject):
                 plug.flattenLight()
                 self.windowSlots.append((plug, viewBase))
 
-        self.windowSlots[2][1].setPosHpr(16.0, -12.0, 5.51, -90, 0, 0)
-        self.windowSlots[4][1].setPosHpr(-12.0, 26.0, 5.51, 0, 0, 0)
+        self.windowSlots[0][0].setPosHpr(16.0, -12.0, 5.51, -90, 0, 0)
+        self.windowSlots[1][0].setPosHpr(-12.0, 26.0, 5.51, 0, 0, 0)
         self.__colorWalls()
         self.__setupWindows()
         messenger.send('houseInteriorLoaded-%d' % self.zoneId)
@@ -101,11 +102,11 @@ class DistributedHouseInterior(DistributedObject.DistributedObject):
             return
         numSurfaceTypes = CatalogSurfaceItem.NUM_ST_TYPES
         numRooms = min(len(self.wallpaper) / numSurfaceTypes, len(RoomNames))
-        for room in xrange(numRooms):
+        for room in range(numRooms):
             roomName = RoomNames[room]
             roomNode = self.interior.find(roomName)
             if not roomNode.isEmpty():
-                for surface in xrange(numSurfaceTypes):
+                for surface in range(numSurfaceTypes):
                     slot = room * numSurfaceTypes + surface
                     wallpaper = self.wallpaper[slot]
                     color = wallpaper.getColor()
@@ -137,36 +138,32 @@ class DistributedHouseInterior(DistributedObject.DistributedObject):
             node.setColorScale(*(HouseGlobals.archWood + (1,)))
 
     def __setupWindows(self):
-        for plug, viewBase in self.windowSlots:
-            if plug:
-                plug.show()
-            if viewBase:
-                viewBase.getChildren().detach()
-
         if not self.windows:
             self.notify.info('No windows in interior; returning.')
             return
-        for item in self.windows:
-            plug, viewBase = self.windowSlots[item.placement]
-            if plug:
-                plug.hide()
-            if viewBase:
-                model = item.loadModel()
-                model.reparentTo(viewBase)
-                if self.exteriorWindowsHidden:
-                    model.findAllMatches('**/outside').stash()
-                    
+        for plug, viewBase in self.windowSlots:
+            for item in self.windows:
+                if plug:
+                    plug.hide()
+                if viewBase:
+                    model = item.loadModel()
+                    model.setPos(plug.getPos())
+                    model.setHpr(plug.getHpr())
+                    model.reparentTo(self.interior)
+                    if self.exteriorWindowsHidden:
+                        model.findAllMatches('**/outside').stash()
+
     def hideExteriorWindows(self):
         self.exteriorWindowsHidden = 1
         for item in self.windows:
-            plug, viewBase = self.windowSlots[item.placement]
+            plug, viewBase = self.windowSlots[item.placement % len(self.windowSlots)]
             if viewBase:
                 viewBase.findAllMatches('**/outside').stash()
 
     def showExteriorWindows(self):
         self.exteriorWindowsHidden = 0
         for item in self.windows:
-            plug, viewBase = self.windowSlots[item.placement]
+            plug, viewBase = self.windowSlots[item.placement % len(self.windowSlots)]
             if viewBase:
                 viewBase.findAllMatches('**/outside;+s').unstash()
 
@@ -183,6 +180,7 @@ class DistributedHouseInterior(DistributedObject.DistributedObject):
 
     def setWindows(self, items):
         self.windows = CatalogItemList.CatalogItemList(items, store=CatalogItem.Customization | CatalogItem.WindowPlacement)
+        print ['setWindows', self.windows]
         if self.interior:
             self.__setupWindows()
 

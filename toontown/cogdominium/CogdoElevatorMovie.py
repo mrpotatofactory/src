@@ -10,6 +10,7 @@ from toontown.toonbase.ToontownGlobals import *
 from toontown.toonbase import TTLocalizer
 from toontown.suit import Suit, SuitDNA
 from toontown.toon import Toon, ToonHead, ToonDNA
+from DistributedCogdoInterior import *
 from CogdoUtil import CogdoGameMovie
 import CogdoUtil
 
@@ -45,8 +46,6 @@ class CogdoElevatorMovie(CogdoGameMovie):
         for part in suit.getHeadParts():
             part.hide()
 
-        suit.loop('neutral')
-
     def load(self):
         self.notify.debug('load()')
         CogdoGameMovie.load(self)
@@ -76,23 +75,24 @@ class CogdoElevatorMovie(CogdoGameMovie):
         self.toonHead.setPosHprScale(-0.73, 0, -1.27, 180, 0, 0, 0.18, 0.18, 0.18)
         self.toonHead.reparentTo(hidden)
         self.toonHead.startBlink()
+        self.toonHead.setBin('gui-popup', 100)
         self.clipPlane = self.toonHead.attachNewNode(PlaneNode('clip'))
         self.clipPlane.node().setPlane(Plane(0, 0, 1, 0))
         self.clipPlane.setPos(0, 0, 2.45)
         self._toonDialogueSfx = loader.loadSfx('phase_3.5/audio/dial/AV_dog_long.ogg')
         self._camHelperNode = NodePath('CamHelperNode')
         self._camHelperNode.reparentTo(render)
-        dialogue = TTLocalizer.CogdoElevatorRewardLaff
+        dialogue = TTLocalizer.CogdoMazeGameElevatorRewardLaff
 
         def start():
             self.frame.show()
-            base.setCellsActive(base.bottomCells + base.leftCells + base.rightCells, 0)
+            base.setCellsAvailable(base.bottomCells + base.leftCells + base.rightCells, 0)
 
         def end():
             self._dialogueLabel.reparentTo(hidden)
             self.toonHead.reparentTo(hidden)
             self.frame.hide()
-            base.setCellsActive(base.bottomCells + base.leftCells + base.rightCells, 1)
+            base.setCellsAvailable(base.bottomCells + base.leftCells + base.rightCells, 1)
             self._stopUpdateTask()
 
         self._ival = Sequence(Func(start), Func(self.displayLine, dialogue), Wait(self.elevatorDuration), Func(end))

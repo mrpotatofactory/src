@@ -16,6 +16,9 @@ class DistributedToonUD(DistributedObjectUD):
     def setBankMoney(self, todo0):
         pass
 
+    def setMaxMoney(self, todo0):
+        pass
+
     def setMoney(self, todo0):
         pass
 
@@ -203,9 +206,6 @@ class DistributedToonUD(DistributedObjectUD):
         pass
 
     def checkTeleportAccess(self, todo0):
-        pass
-        
-    def setScavengerHunt(self, todo0):
         pass
 
     def battleSOS(self, todo0):
@@ -541,5 +541,12 @@ class DistributedToonUD(DistributedObjectUD):
     def flagAv(self, todo0, todo1, todo2):
         pass
 
-    def setAchievements(self, achievements):
+    def requestPing(self, todo0):
         pass
+
+    def ping(self, todo0):
+        pass
+
+    def pingresp(self, todo0):
+        pass
+

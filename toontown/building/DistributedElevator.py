@@ -50,7 +50,6 @@ class DistributedElevator(DistributedObject.DistributedObject):
         self.isSetup = 0
         self.__preSetupState = None
         self.bigElevator = 0
-        self.offsetNp = None
         return
 
     def generate(self):
@@ -66,6 +65,7 @@ class DistributedElevator(DistributedObject.DistributedObject):
         self.elevatorSphereNodePath = self.getElevatorModel().attachNewNode(self.elevatorSphereNode)
         self.elevatorSphereNodePath.reparentTo(self.getElevatorModel())
         self.elevatorSphereNodePath.stash()
+        #self.elevatorSphereNodePath.show()
         self.boardedAvIds = {}
         self.openDoors = getOpenInterval(self, self.leftDoor, self.rightDoor, self.openSfx, self.finalOpenSfx, self.type)
         self.closeDoors = getCloseInterval(self, self.leftDoor, self.rightDoor, self.closeSfx, self.finalCloseSfx, self.type)
@@ -116,14 +116,12 @@ class DistributedElevator(DistributedObject.DistributedObject):
                 del self.openDoors
             if hasattr(self, 'closeDoors'):
                 del self.closeDoors
+            self.offsetNP.removeNode()
         del self.fsm
         del self.openSfx
         del self.closeSfx
         self.isSetup = 0
         self.fillSlotTrack = None
-        if not self.offsetNp:
-            return
-        self.offsetNP.removeNode()
         if hasattr(base.localAvatar, 'elevatorNotifier'):
             base.localAvatar.elevatorNotifier.cleanup()
         DistributedObject.DistributedObject.delete(self)
@@ -131,7 +129,7 @@ class DistributedElevator(DistributedObject.DistributedObject):
 
     def setBldgDoId(self, bldgDoId):
         self.bldgDoId = bldgDoId
-        self.bldgRequest = self.cr.relatedObjectMgr.requestObjects([bldgDoId], allCallback=self.gotBldg, timeout=2)
+        self.bldgRequest = self.cr.relatedObjectMgr.requestObjects([bldgDoId], allCallback=self.gotBldg, timeout=10) #timeout=2
 
     def gotBldg(self, buildingList):
         self.bldgRequest = None
@@ -188,7 +186,7 @@ class DistributedElevator(DistributedObject.DistributedObject):
             del self.toonRequests[index]
         if avId == 0:
             pass
-        elif avId not in self.cr.doId2do:
+        elif not self.cr.doId2do.has_key(avId):
             func = PythonUtil.Functor(self.gotToon, index, avId)
             self.toonRequests[index] = self.cr.relatedObjectMgr.requestObjects([avId], allCallback=func)
         elif not self.isSetup:
@@ -303,7 +301,7 @@ class DistributedElevator(DistributedObject.DistributedObject):
             timeToSet = self.countdownTime
             if timeSent > 0:
                 timeToSet = timeSent
-            if avId in self.cr.doId2do:
+            if self.cr.doId2do.has_key(avId):
                 if bailFlag == 1 and hasattr(self, 'clockNode'):
                     if timestamp < timeToSet and timestamp >= 0:
                         self.countdown(timeToSet - timestamp)
@@ -482,6 +480,9 @@ class DistributedElevator(DistributedObject.DistributedObject):
     def __doorsClosed(self, zoneId):
         if self.localToonOnBoard:
             hoodId = ZoneUtil.getHoodId(zoneId)
+            if self.zoneId == ToontownGlobals.TowersLobby:
+                hoodId = ToontownGlobals.BossbotHQ
+                
             loader, where = self._getDoorsClosedInfo()
             doneStatus = {'loader': loader,
              'where': where,
@@ -545,7 +546,7 @@ class DistributedElevator(DistributedObject.DistributedObject):
             keyList.append(key)
 
         for key in keyList:
-            if key in self.__toonTracks:
+            if self.__toonTracks.has_key(key):
                 self.clearToonTrack(key)
 
     def getDestName(self):

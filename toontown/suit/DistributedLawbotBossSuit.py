@@ -277,13 +277,13 @@ class DistributedLawbotBossSuit(DistributedSuitBase.DistributedSuitBase):
         self.activeIntervals = {}
 
     def clearInterval(self, name, finish = 1):
-        if name in self.activeIntervals:
+        if self.activeIntervals.has_key(name):
             ival = self.activeIntervals[name]
             if finish:
                 ival.finish()
             else:
                 ival.pause()
-            if name in self.activeIntervals:
+            if self.activeIntervals.has_key(name):
                 del self.activeIntervals[name]
         else:
             self.notify.debug('interval: %s already cleared' % name)
@@ -306,7 +306,7 @@ class DistributedLawbotBossSuit(DistributedSuitBase.DistributedSuitBase):
 
     def exitPreThrowProsecute(self):
         throwName = self.uniqueName('preThrowProsecute')
-        if throwName in self.activeIntervals:
+        if self.activeIntervals.has_key(throwName):
             self.activeIntervals[throwName].pause()
             del self.activeIntervals[throwName]
 
@@ -324,7 +324,7 @@ class DistributedLawbotBossSuit(DistributedSuitBase.DistributedSuitBase):
 
     def exitPostThrowProsecute(self):
         throwName = self.uniqueName('postThrowProsecute')
-        if throwName in self.activeIntervals:
+        if self.activeIntervals.has_key(throwName):
             self.activeIntervals[throwName].finish()
             del self.activeIntervals[throwName]
 
@@ -346,7 +346,7 @@ class DistributedLawbotBossSuit(DistributedSuitBase.DistributedSuitBase):
 
     def exitPreThrowAttack(self):
         throwName = self.uniqueName('preThrowAttack')
-        if throwName in self.activeIntervals:
+        if self.activeIntervals.has_key(throwName):
             self.activeIntervals[throwName].pause()
             del self.activeIntervals[throwName]
 
@@ -368,7 +368,7 @@ class DistributedLawbotBossSuit(DistributedSuitBase.DistributedSuitBase):
 
     def exitPostThrowAttack(self):
         throwName = self.uniqueName('postThrowAttack')
-        if throwName in self.activeIntervals:
+        if self.activeIntervals.has_key(throwName):
             self.activeIntervals[throwName].finish()
             del self.activeIntervals[throwName]
 

@@ -1,17 +1,25 @@
-# Python artifacts:
-*.pyc
+desktop.ini
 
-# Eclipse IDE:
-.project
-.pydevproject
+*.db
+*.log
+*.buildings
 
-# Mac directory info:
-.DS_Store
+databases/*.*
+databases/astrondb/*.*
+databases/air_cache/*.*
 
-# Game-specific files and directories:
-preferences.json
-logs/
-screenshots/
-backups/
-contentpacks/
-toondata/
+# Python byte-compiled/optimized
+*.py[co]
+
+run_fritz.bat
+connect.bat
+
+# Screenshots
+screenshots/*.jpg
+
+run_localhost.bat
+
+settings.txt
+
+# Nirai build files
+build/*
