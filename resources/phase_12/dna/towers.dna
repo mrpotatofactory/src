@@ -1,0 +1,1554 @@
+
+group "towers" [
+ visgroup "19000:towers" [
+
+node "__bldg0" [
+ pos [ 0 0 0 ]
+ nhpr [ 0 0 0 ]
+ flat_building "tb0:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb0:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb0:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg1" [
+ pos [ 30 0 0 ]
+ nhpr [ 0 0 0 ]
+ flat_building "tb1:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb1:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb1:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg2" [
+ pos [ 60 0 0 ]
+ nhpr [ 0 0 0 ]
+ flat_building "tb2:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb2:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb2:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg3" [
+ pos [ 90 0 0 ]
+ nhpr [ 0 0 0 ]
+ flat_building "tb3:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb3:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb3:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg4" [
+ pos [ 120 0 0 ]
+ nhpr [ 0 0 0 ]
+ flat_building "tb4:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb4:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb4:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg5" [
+ pos [ 150 0 0 ]
+ nhpr [ 0 0 0 ]
+ flat_building "tb5:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb5:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb5:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg6" [
+ pos [ 180 0 0 ]
+ nhpr [ 0 0 0 ]
+ flat_building "tb6:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb6:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb6:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg7" [
+ pos [ 210 0 0 ]
+ nhpr [ 0 0 0 ]
+ flat_building "tb7:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb7:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb7:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg8" [
+ pos [ 240 0 0 ]
+ nhpr [ 0 0 0 ]
+ flat_building "tb8:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb8:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb8:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg9" [
+ pos [ 270 0 0 ]
+ nhpr [ 0 0 0 ]
+ flat_building "tb9:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb9:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb9:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg10" [
+ pos [ 0 -30 0 ]
+ nhpr [ 90 0 0 ]
+ flat_building "tb10:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb10:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb10:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg11" [
+ pos [ 0 -60 0 ]
+ nhpr [ 90 0 0 ]
+ flat_building "tb11:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb11:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb11:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg12" [
+ pos [ 0 -90 0 ]
+ nhpr [ 90 0 0 ]
+ flat_building "tb12:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb12:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb12:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg13" [
+ pos [ 0 -120 0 ]
+ nhpr [ 90 0 0 ]
+ flat_building "tb13:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb13:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb13:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg14" [
+ pos [ 0 -150 0 ]
+ nhpr [ 90 0 0 ]
+ flat_building "tb14:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb14:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb14:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg15" [
+ pos [ 0 -180 0 ]
+ nhpr [ 90 0 0 ]
+ flat_building "tb15:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb15:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb15:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg16" [
+ pos [ 300 0 0 ]
+ nhpr [ -90 0 0 ]
+ flat_building "tb16:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb16:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb16:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg17" [
+ pos [ 300 -30 0 ]
+ nhpr [ -90 0 0 ]
+ flat_building "tb17:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb17:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb17:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg18" [
+ pos [ 300 -60 0 ]
+ nhpr [ -90 0 0 ]
+ flat_building "tb18:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb18:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb18:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg19" [
+ pos [ 300 -90 0 ]
+ nhpr [ -90 0 0 ]
+ flat_building "tb19:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb19:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb19:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg20" [
+ pos [ 300 -120 0 ]
+ nhpr [ -90 0 0 ]
+ flat_building "tb20:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb20:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb20:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg21" [
+ pos [ 300 -150 0 ]
+ nhpr [ -90 0 0 ]
+ flat_building "tb21:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb21:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb21:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg22" [
+ pos [ 30 -180 0 ]
+ nhpr [ 180 0 0 ]
+ flat_building "tb22:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb22:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb22:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg23" [
+ pos [ 60 -180 0 ]
+ nhpr [ 180 0 0 ]
+ flat_building "tb23:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb23:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb23:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg24" [
+ pos [ 90 -180 0 ]
+ nhpr [ 180 0 0 ]
+ flat_building "tb24:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb24:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb24:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg25" [
+ pos [ 120 -180 0 ]
+ nhpr [ 180 0 0 ]
+ flat_building "tb25:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb25:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb25:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg26" [
+ pos [ 150 -180 0 ]
+ nhpr [ 180 0 0 ]
+ flat_building "tb26:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb26:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb26:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg27" [
+ pos [ 180 -180 0 ]
+ nhpr [ 180 0 0 ]
+ flat_building "tb27:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb27:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb27:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg28" [
+ pos [ 210 -180 0 ]
+ nhpr [ 180 0 0 ]
+ flat_building "tb28:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb28:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb28:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg29" [
+ pos [ 240 -180 0 ]
+ nhpr [ 180 0 0 ]
+ flat_building "tb29:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb29:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb29:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg30" [
+ pos [ 270 -180 0 ]
+ nhpr [ 180 0 0 ]
+ flat_building "tb30:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb30:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb30:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]
+node "__bldg31" [
+ pos [ 300 -180 0 ]
+ nhpr [ 180 0 0 ]
+ flat_building "tb31:random10_DNARoot" [
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  flat_building "tb31:random20_DNARoot" [
+    pos [ 22 0 0 ]
+    width [ 8 ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+    wall [
+     height [ 15 ]
+     code [ "wall_sm_cement_blue_ur" ]
+    ]
+   ]
+  landmark_building "tb31:toon_landmark_TT_B1_DNARoot" [
+    code [ "toon_landmark_TT_B1" ]
+    title [ "slave bldg" ]
+    pos [ 7 0 0 ]
+    door [
+     code [ "door_double_square_ur" ]
+    ]
+  ]
+ ]group "floor" [
+    prop "tile0" [
+     code [ "wall_suit_build1_ur" ]
+     pos [0 -180 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile1" [
+     code [ "wall_suit_build1_ur" ]
+     pos [0 -150 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile2" [
+     code [ "wall_suit_build1_ur" ]
+     pos [0 -120 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile3" [
+     code [ "wall_suit_build1_ur" ]
+     pos [0 -90 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile4" [
+     code [ "wall_suit_build1_ur" ]
+     pos [0 -60 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile5" [
+     code [ "wall_suit_build1_ur" ]
+     pos [0 -30 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile6" [
+     code [ "wall_suit_build1_ur" ]
+     pos [30 -180 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile7" [
+     code [ "wall_suit_build1_ur" ]
+     pos [30 -150 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile8" [
+     code [ "wall_suit_build1_ur" ]
+     pos [30 -120 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile9" [
+     code [ "wall_suit_build1_ur" ]
+     pos [30 -90 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile10" [
+     code [ "wall_suit_build1_ur" ]
+     pos [30 -60 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile11" [
+     code [ "wall_suit_build1_ur" ]
+     pos [30 -30 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile12" [
+     code [ "wall_suit_build1_ur" ]
+     pos [60 -180 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile13" [
+     code [ "wall_suit_build1_ur" ]
+     pos [60 -150 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile14" [
+     code [ "wall_suit_build1_ur" ]
+     pos [60 -120 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile15" [
+     code [ "wall_suit_build1_ur" ]
+     pos [60 -90 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile16" [
+     code [ "wall_suit_build1_ur" ]
+     pos [60 -60 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile17" [
+     code [ "wall_suit_build1_ur" ]
+     pos [60 -30 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile18" [
+     code [ "wall_suit_build1_ur" ]
+     pos [90 -180 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile19" [
+     code [ "wall_suit_build1_ur" ]
+     pos [90 -150 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile20" [
+     code [ "wall_suit_build1_ur" ]
+     pos [90 -120 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile21" [
+     code [ "wall_suit_build1_ur" ]
+     pos [90 -90 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile22" [
+     code [ "wall_suit_build1_ur" ]
+     pos [90 -60 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile23" [
+     code [ "wall_suit_build1_ur" ]
+     pos [90 -30 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile24" [
+     code [ "wall_suit_build1_ur" ]
+     pos [120 -180 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile25" [
+     code [ "wall_suit_build1_ur" ]
+     pos [120 -150 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile26" [
+     code [ "wall_suit_build1_ur" ]
+     pos [120 -120 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile27" [
+     code [ "wall_suit_build1_ur" ]
+     pos [120 -90 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile28" [
+     code [ "wall_suit_build1_ur" ]
+     pos [120 -60 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile29" [
+     code [ "wall_suit_build1_ur" ]
+     pos [120 -30 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile30" [
+     code [ "wall_suit_build1_ur" ]
+     pos [150 -180 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile31" [
+     code [ "wall_suit_build1_ur" ]
+     pos [150 -150 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile32" [
+     code [ "wall_suit_build1_ur" ]
+     pos [150 -120 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile33" [
+     code [ "wall_suit_build1_ur" ]
+     pos [150 -90 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile34" [
+     code [ "wall_suit_build1_ur" ]
+     pos [150 -60 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile35" [
+     code [ "wall_suit_build1_ur" ]
+     pos [150 -30 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile36" [
+     code [ "wall_suit_build1_ur" ]
+     pos [180 -180 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile37" [
+     code [ "wall_suit_build1_ur" ]
+     pos [180 -150 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile38" [
+     code [ "wall_suit_build1_ur" ]
+     pos [180 -120 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile39" [
+     code [ "wall_suit_build1_ur" ]
+     pos [180 -90 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile40" [
+     code [ "wall_suit_build1_ur" ]
+     pos [180 -60 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile41" [
+     code [ "wall_suit_build1_ur" ]
+     pos [180 -30 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile42" [
+     code [ "wall_suit_build1_ur" ]
+     pos [210 -180 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile43" [
+     code [ "wall_suit_build1_ur" ]
+     pos [210 -150 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile44" [
+     code [ "wall_suit_build1_ur" ]
+     pos [210 -120 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile45" [
+     code [ "wall_suit_build1_ur" ]
+     pos [210 -90 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile46" [
+     code [ "wall_suit_build1_ur" ]
+     pos [210 -60 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile47" [
+     code [ "wall_suit_build1_ur" ]
+     pos [210 -30 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile48" [
+     code [ "wall_suit_build1_ur" ]
+     pos [240 -180 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile49" [
+     code [ "wall_suit_build1_ur" ]
+     pos [240 -150 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile50" [
+     code [ "wall_suit_build1_ur" ]
+     pos [240 -120 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile51" [
+     code [ "wall_suit_build1_ur" ]
+     pos [240 -90 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile52" [
+     code [ "wall_suit_build1_ur" ]
+     pos [240 -60 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile53" [
+     code [ "wall_suit_build1_ur" ]
+     pos [240 -30 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile54" [
+     code [ "wall_suit_build1_ur" ]
+     pos [270 -180 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile55" [
+     code [ "wall_suit_build1_ur" ]
+     pos [270 -150 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile56" [
+     code [ "wall_suit_build1_ur" ]
+     pos [270 -120 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile57" [
+     code [ "wall_suit_build1_ur" ]
+     pos [270 -90 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile58" [
+     code [ "wall_suit_build1_ur" ]
+     pos [270 -60 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+    prop "tile59" [
+     code [ "wall_suit_build1_ur" ]
+     pos [270 -30 0]
+     nhpr [ 0 -90 0 ]
+     scale [ 30 30 30 ]
+    ]
+    
+ prop "TILECOLLIDER" [
+   code [ "wall_camera_barrier" ]
+   pos [ 0 -180 0 ]
+   nhpr [ 0 -90 0 ]
+   scale [ 300 300 180 ]
+ ]
+
+  ]
+ ]
+]

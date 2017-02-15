@@ -1,0 +1,1 @@
+This is to fix the ~stupid~ issue with sign fonts.
