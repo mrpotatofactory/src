@@ -1,0 +1,25 @@
+desktop.ini
+
+*.db
+*.log
+*.buildings
+
+databases/*.*
+databases/astrondb/*.*
+databases/air_cache/*.*
+
+# Python byte-compiled/optimized
+*.py[co]
+
+run_fritz.bat
+connect.bat
+
+# Screenshots
+screenshots/*.jpg
+
+run_localhost.bat
+
+settings.txt
+
+# Nirai build files
+build/*
